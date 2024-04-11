@@ -7,10 +7,13 @@
           <input aria-invalid="false" id="tristate-input" placeholder="Filter by text ..." type="text" class="MuiInputBase-input MuiOutlinedInput-input css-1x5jdmq">
           </div>
           <div><label>Agents</label>
-          <select class="js-example-basic-multiple" name="states[]" multiple="multiple">
+          <div class="multi-select">
+          <select class="js-example-basic-multiple" name="states[]" multiple="multiple" data-tags="true" data-allow-clear="true">
           <option value="AL" data-uid="1,2">Alabama</option>
           <option value="WY" data-uid="1,3">Wyoming</option>
-        </select>  
+          
+          
+        </select> 
         </div>
         <div><label>Uses</label>
           <select class="js-example-basic-multiple" name="states[]" multiple="multiple">
@@ -102,6 +105,7 @@
 </div>
         </div>
       </div>
+    </div>
     </div>
     <div class="right-content">
     <div class="right-map">

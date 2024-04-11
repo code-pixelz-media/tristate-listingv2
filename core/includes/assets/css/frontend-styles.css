@@ -94,6 +94,10 @@ h1,h2,h3,h4,h5,h6 {
   padding: 2px 8px
 }
 
+.select2-container {
+  width: 100% !important;
+}
+
 .Filterform .multi-select>div {
   min-height: 25px
 }

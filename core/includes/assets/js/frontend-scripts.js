@@ -1,8 +1,13 @@
 jQuery(document).ready(function() {
 
 
-  jQuery('.js-example-basic-multiple').select2();
+  jQuery('.js-example-basic-multiple').select2({
+    theme: "classic",
+    tags: "true",
+  });
 
+  jQuery('#js-example-basic-multiple option').attr('data-id')
+  
   jQuery(".tcr_tab_content").hide();
   jQuery(".tcr_tab_content:first").show();
 
