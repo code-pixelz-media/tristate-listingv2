@@ -44,7 +44,7 @@ h1,h2,h3,h4,h5,h6 {
   width: 100%!important
 }
 
-#filter-wrapper .MuiBox-root {
+#filter-wrapper .MuiBox-root .property-filter, .filter-wrapper .MuiBox-root {
   display: flex;
   gap: 15px
 }
@@ -53,21 +53,15 @@ h1,h2,h3,h4,h5,h6 {
   gap: 8px;
   padding: 5px
 }
-
+.MuiStack-root.property-filter {
+  flex-wrap: wrap;
+}
 .price-range-btm {
   display: flex;
   justify-content: space-between;
   gap: 8px!important
 }
 
-.left-content {
-  width: 33.33%;
-  background: var(--bg-ligt);
-  position: sticky;
-  position: -webkit-sticky;
-  top: 0;
-  height: 100vh
-}
 .ajax-hide {
   /* display: none; */
 }
