@@ -8,17 +8,13 @@
           </div>
           <div><label>Agents</label>
           <select class="js-example-basic-multiple" name="states[]" multiple="multiple">
-          <option value="AL">Alabama</option>
-          <option value="WY">Wyoming</option>
-          <option value="WY">Wyoming</option>
-          <option value="WY">Wyoming</option>
-          <option value="WY">Wyoming</option>
-          <option value="WY">Wyoming</option>
+          <option value="AL" data-uid="1,2">Alabama</option>
+          <option value="WY" data-uid="1,3">Wyoming</option>
         </select>  
         </div>
         <div><label>Uses</label>
           <select class="js-example-basic-multiple" name="states[]" multiple="multiple">
-          <option value="AL">Alabama</option>
+          <option value="AL" data-uses="1,2">Alabama</option>
           <option value="WY">Wyoming</option>
           <option value="WY">Wyoming</option>
           <option value="WY">Wyoming</option>
@@ -216,7 +212,111 @@
     </div>
   </div>
 </div>
-
+<div class="property-list-wrapper ajax-hide">
+  <div class="MuiBox-root">
+    <div class="MuiStack-root property-filter css-12xuzbq">
+    <div class="propertylisting-content">
+      <h2>31-57 Vernon Blvd</h2>
+      <h4>Astoria</h4>
+      <div class="css-ajk2hm">
+        <ul class="ul-buttons">
+          <li class="bg-blue"><span>Retail</span></li>
+          <li class="bg-green">
+            <span>For Lease</span>
+          </li>
+          <li class="bg-yellow"><span>$60.00/SF</span></li>
+        </ul>
+        <ul class="ul-content">
+          <li> <p>Open floor plan</p> </li>
+          <li> <p>Built out F&amp;B</p> </li>
+          <li><p>Large glass window</p></li>
+          <li><p>Natural Light</p></li>
+          <li><p>Tremendous signage &amp; branding opportunity on Veron Blvd</p></li>
+          <li><p>Groudn level: 1,4000SF</p></li>
+          <li><p>all uses considered - F&amp;B or fitness is preferred</p></li>
+        </ul>
+        <ul class="ul-content ul-features">
+          <li> <p>Min Size: <span>2,400.00</span></p></li>
+          <li> <p>Max Size: <span>2,400.00</span></p></li>
+          <li> <p>Zoning <span>R7A, C1-3</span></p></li>
+          <li> <p>Key Tag: <span>Call Mike: 917-838-5686</span></p></li>
+          <li> <p>Listing Agent: <span>Richard Babeck</span></p></li>
+          <li> <p>Vented: <span>YES</span></p></li>
+          <li> <p>Borough: <span>Queens</span></p></li>
+        </ul>
+        <p class="price">$10,000.00</p>
+        <a href="#" class="MuiButton-colorPrimary"> More Info </a>
+      </div>
+    </div>
+    <div class="propertylisting-content">
+      <h2>31-57 Vernon Blvd</h2>
+      <h4>Astoria</h4>
+      <div class="css-ajk2hm">
+        <ul class="ul-buttons">
+          <li class="bg-blue"><span>Retail</span></li>
+          <li class="bg-green">
+            <span>For Lease</span>
+          </li>
+          <li class="bg-yellow"><span>$60.00/SF</span></li>
+        </ul>
+        <ul class="ul-content">
+          <li> <p>Open floor plan</p> </li>
+          <li> <p>Built out F&amp;B</p> </li>
+          <li><p>Large glass window</p></li>
+          <li><p>Natural Light</p></li>
+          <li><p>Tremendous signage &amp; branding opportunity on Veron Blvd</p></li>
+          <li><p>Groudn level: 1,4000SF</p></li>
+          <li><p>all uses considered - F&amp;B or fitness is preferred</p></li>
+        </ul>
+        <ul class="ul-content ul-features">
+          <li> <p>Min Size: <span>2,400.00</span></p></li>
+          <li> <p>Max Size: <span>2,400.00</span></p></li>
+          <li> <p>Zoning <span>R7A, C1-3</span></p></li>
+          <li> <p>Key Tag: <span>Call Mike: 917-838-5686</span></p></li>
+          <li> <p>Listing Agent: <span>Richard Babeck</span></p></li>
+          <li> <p>Vented: <span>YES</span></p></li>
+          <li> <p>Borough: <span>Queens</span></p></li>
+        </ul>
+        <p class="price">$10,000.00</p>
+        <a href="#" class="MuiButton-colorPrimary"> More Info </a>
+      </div>
+    </div>
+    <div class="propertylisting-content">
+      <h2>31-57 Vernon Blvd</h2>
+      <h4>Astoria</h4>
+      <div class="css-ajk2hm">
+        <ul class="ul-buttons">
+          <li class="bg-blue"><span>Retail</span></li>
+          <li class="bg-green">
+            <span>For Lease</span>
+          </li>
+          <li class="bg-yellow"><span>$60.00/SF</span></li>
+        </ul>
+        <ul class="ul-content">
+          <li> <p>Open floor plan</p> </li>
+          <li> <p>Built out F&amp;B</p> </li>
+          <li><p>Large glass window</p></li>
+          <li><p>Natural Light</p></li>
+          <li><p>Tremendous signage &amp; branding opportunity on Veron Blvd</p></li>
+          <li><p>Groudn level: 1,4000SF</p></li>
+          <li><p>all uses considered - F&amp;B or fitness is preferred</p></li>
+        </ul>
+        <ul class="ul-content ul-features">
+          <li> <p>Min Size: <span>2,400.00</span></p></li>
+          <li> <p>Max Size: <span>2,400.00</span></p></li>
+          <li> <p>Zoning <span>R7A, C1-3</span></p></li>
+          <li> <p>Key Tag: <span>Call Mike: 917-838-5686</span></p></li>
+          <li> <p>Listing Agent: <span>Richard Babeck</span></p></li>
+          <li> <p>Vented: <span>YES</span></p></li>
+          <li> <p>Borough: <span>Queens</span></p></li>
+        </ul>
+        <p class="price">$10,000.00</p>
+        <a href="#" class="MuiButton-colorPrimary"> More Info </a>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 </div>
