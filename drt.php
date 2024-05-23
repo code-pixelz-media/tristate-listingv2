@@ -327,82 +327,118 @@ function drt_shortcode($atts)
 
 
       function drtInitializeSelect2(elementId, actionName) {
-        var $selectElement = '#' + elementId;
-/*         $($selectElement).siblings('.select2-container').find('.select2-search__field').on('click', function() {
-    $(this).focus(); // Set focus to the clicked input field
-}); */
-        $($selectElement).select2({
-          dropdownAutoWidth: true,
-          language: {
+    var $selectElement = $('#' + elementId);
+
+    $selectElement.select2({
+        dropdownAutoWidth: true,
+        language: {
             searching: function() {
-              // No text is displayed during searching
-              return '';
+                return ''; // No text is displayed during searching
             }
-          },
-          ajax: {
-            url: '<?php echo admin_url('admin-ajax.php'); ?>',
+        },
+        ajax: {
+            transport: function(params, success, failure) {
+                // Preparing data to be sent with the request
+                var requestData = {
+                    action: actionName,
+                    broker_ids: $('#tri_agents').val(),
+                    _buildout_city: $('#_buildout_city').val(),
+                    _gsheet_use: $('#_gsheet_use').val(),
+                    selected_type: getSelectedListingTypes(),
+                    _gsheet_neighborhood: $('#_gsheet_neighborhood').val(),
+                    _gsheet_zip: $('#_gsheet_zip').val(),
+                    _gsheet_state: $('#_gsheet_state').val(),
+                    _gsheet_vented: $('#_gsheet_vented').val(),
+                    property_price_range: $('#price-range-selected').val(),
+                    property_size_range: $('#size-range-selected').val(),
+                    property_rent_range: $('#rent-range-selected').val(),
+                };
+
+                // Making the AJAX request
+                $.ajax({
+                  url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: requestData,
+                    beforeSend: function() {
+                        $('.select2-search--dropdown').addClass('hidden');
+                    },
+                    success: function(data) {
+                        // Sorting and processing data
+                        data.sort(function(a, b) {
+                            return a.text.localeCompare(b.text);
+                        });
+
+                        data.forEach(function(option) {
+                            option.disabled = !option.matched;
+                        });
+
+                        success({
+                            results: data
+                        });
+
+                        $('.select2-search--dropdown').removeClass('select2-search--hide');
+                    },
+                    error: failure,
+                    cache: true // Enable caching of AJAX requests
+                });
+            }
+        }
+    });
+
+
+    // Close dropdown when clear icon is clicked
+    $selectElement.on('select2:clearing', function(e) {
+        setTimeout(() => $(this).select2('close'), 10);
+    });
+
+    // Also handle dropdown close when item is unselected
+    $selectElement.on('select2:unselect', function(e) {
+        setTimeout(() => $(this).select2('close'), 10);
+    });
+
+ // Debouncing AJAX requests
+ function debounce(func, delay) {
+        let debounceTimer;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
+
+    $selectElement.on('select2:close', debounce(function() {
+        const data = {
+           
+            action: actionName,
+                    broker_ids: $('#tri_agents').val(),
+                    _buildout_city: $('#_buildout_city').val(),
+                    _gsheet_use: $('#_gsheet_use').val(),
+                    selected_type: getSelectedListingTypes(),
+                    _gsheet_neighborhood: $('#_gsheet_neighborhood').val(),
+                    _gsheet_zip: $('#_gsheet_zip').val(),
+                    _gsheet_state: $('#_gsheet_state').val(),
+                    _gsheet_vented: $('#_gsheet_vented').val(),
+                    property_price_range: $('#price-range-selected').val(),
+                    property_size_range: $('#size-range-selected').val(),
+                    property_rent_range: $('#rent-range-selected').val(),
+        };
+
+        $.ajax({
+          url: '<?php echo admin_url('admin-ajax.php'); ?>',
             type: 'POST',
-            dataType: 'json',
-            allowClear: true, // Enable the clear button
-            data: function(params) {
-              return {
-                action: actionName,
-                broker_ids: $('#tri_agents').val(),
-                _buildout_city: $('#_buildout_city').val(),
-                _gsheet_use: $('#_gsheet_use').val(),
-                selected_type: getSelectedListingTypes(),
-                _gsheet_neighborhood: $('#_gsheet_neighborhood').val(),
-                _gsheet_zip: $('#_gsheet_zip').val(),
-                _gsheet_state: $('#_gsheet_state').val(),
-                _gsheet_vented: $('#_gsheet_vented').val(),
-                property_price_range: $('#price-range-selected').val(),
-                property_size_range: $('#size-range-selected').val(),
-                property_rent_range: $('#rent-range-selected').val(),
-              };
+            data: data,
+            success: function(response) {
+                console.log('Filtered results:', response);
+                // Handle the response data
             },
-            beforeSend: function () 
-  {
-    $('.select2-search--dropdown').addClass('hidden');
-  },
-            processResults: function(data) {
-              // Sort data alphabetically by option text
-              data.sort(function(a, b) {
-                return a.text.localeCompare(b.text);
-              });
-
-              // Disable unmatched options
-              data.forEach(function(option) {
-                option.disabled = !option.matched;
-              });
-
-              return {
-                results: data
-              };
-            },
-            success: function() {
-      $('.select2-search--dropdown').removeClass('select2-search--hide'); // show search bar then focus
-      //$('.select2-search__field')[0].focus();
-  },
-
-            cache: true // Enable caching of AJAX requests
-          },
-          
+            error: function(error) {
+                console.error('Error fetching filtered results:', error);
+            }
         });
-       // $($selectElement).select2 ('container').find ('.select2-search').addClass ('hidden') ;
-
- // Close dropdown when clear icon is clicked
- $($selectElement).on('select2:clearing', function(e) {
-    setTimeout(() => $(this).select2('close'), 10);
-  });
-
-  // Also handle dropdown close when item is unselected
-  $($selectElement).on('select2:unselect', function(e) {
-    setTimeout(() => $(this).select2('close'), 10); 
-  });
-
-
-
-      }
+    }, 300)); // 300ms debounce delay
+}
 
       window.onload = function() {
     var ids = [
@@ -1726,6 +1762,8 @@ function live_search_callback()
 
     $range = explode('-', sanitize_text_field($_POST['property_rent_range']));
     $trimmed_range = array_map('trim', $range);
+    
+    var_dump($trimmed_range);
 
     if ($trimmed_range[0] == "0" && $trimmed_range[1] == "200000") {
     } else {
@@ -1760,7 +1798,7 @@ function live_search_callback()
 
   echo $results_string;
 
-  $max_p_val = [];
+  $max_p_val = [0];
 
   if ($drt_query->have_posts()) {
     while ($drt_query->have_posts()) {
@@ -2046,7 +2084,7 @@ $selected_array = isset($_POST['selected_type']) ? $_POST['selected_type'] : arr
     $propertyListingContent.removeClass('column-two');
   }
 
-     
+
      
 
     });
