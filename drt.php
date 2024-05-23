@@ -38,6 +38,67 @@ function drt_restrict_page_access()
   }
 }
 
+function get_rent_minmax($type="min", $formatted=true) {
+  global $wpdb;
+  
+  $max_rent= $wpdb->get_var("
+  SELECT MAX(CAST(pm.meta_value AS UNSIGNED)) 
+  FROM $wpdb->postmeta pm
+  INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+  WHERE pm.meta_key = '__gsheet__monthly_rent'
+  AND p.post_type = 'properties'
+");
+
+
+  $formatted_max_val = number_format($max_rent);
+  $formatted_min_val = '$0'; 
+  
+  if($formatted){
+  
+    $retval= $type == 'min' ? $formatted_min_val : '$' .$formatted_max_val;
+    
+  }else{
+  
+    $retval= $type == 'min' ? (int) 0 :(int) $max_rent;
+    
+  }
+  
+  return $retval;
+
+
+
+}
+
+function get_size_minmax($type="min", $formatted=true) {
+  global $wpdb;
+  
+  $max_size= $wpdb->get_var("
+  SELECT MAX(CAST(pm.meta_value AS UNSIGNED)) 
+  FROM $wpdb->postmeta pm
+  INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+  WHERE pm.meta_key = '_gsheet__max_size_fm'
+  AND p.post_type = 'properties'
+");
+
+ 
+  $formatted_max_val = number_format($max_size);
+  $formatted_min_val = '0 SF'; 
+  
+  if($formatted){
+  
+    $retval= $type == 'min' ? $formatted_min_val :  $formatted_max_val.' SF';
+    
+  }else{
+  
+    $retval= $type == 'min' ? (int) 0 :(int) $max_size;
+    
+  }
+  
+  return $retval;
+
+}
+
+
 // for getting price 
 function get_price_minmax($type="min", $formatted=true) {
   global $wpdb;
@@ -67,61 +128,6 @@ function get_price_minmax($type="min", $formatted=true) {
 
 }
 
-// for rent
-function get_property_rent_minmaxrange(){
-  global $wpdb;
-
-  // Query for maximum price
-  $max_price = $wpdb->get_var("
-      SELECT MAX(CAST(meta_value AS UNSIGNED)) 
-      FROM $wpdb->postmeta 
-      WHERE meta_key = '_gsheet_monthly_rent'
-  ");
-
-  // Query for minimum price
-  $min_price = $wpdb->get_var("
-      SELECT MIN(CAST(meta_value AS UNSIGNED)) 
-      FROM $wpdb->postmeta 
-      WHERE meta_key = '_gsheet_monthly_rent'
-  ");
-
-  // Format the results with commas
-  $formatted_max_price = number_format($max_price);
-  $formatted_min_price = number_format($min_price);
-
-  // Return the formatted results as an array
-  return array(
-      'min_price' => $formatted_min_price,
-      'max_price' => $formatted_max_price
-  );
-}
-
-// for size
-function get_property_size_minmaxrange(){
-  global $wpdb;
-    $max_price = $wpdb->get_var("
-      SELECT MAX(CAST(meta_value AS UNSIGNED)) 
-      FROM $wpdb->postmeta 
-      WHERE meta_key = '_gsheet__max_size_fm'
-  ");
-
-  // Query for minimum price
-  $min_price = $wpdb->get_var("
-      SELECT MIN(CAST(meta_value AS UNSIGNED)) 
-      FROM $wpdb->postmeta 
-      WHERE meta_key = '_gsheet_min_size_fm'
-  ");
-  
-    // Format the results with commas
-    $formatted_max_price = number_format($max_price);
-    $formatted_min_price = number_format($min_price);
-  
-    // Return the formatted results as an array
-    return array(
-        'min_size' => $formatted_min_price,
-        'max_size' => $formatted_max_price
-    );
-}
 
 function __total()
 {
@@ -270,10 +276,10 @@ function drt_shortcode($atts)
         rangeHiddenFields.attr("data-clear", "1");
         $("#price-range").slider("values", [jQuery("#price-range").data('min'), jQuery("#price-range").data('max')]);
         //  $("#priceRange").val("$0 - $4000000");
-        $("#price-range2").slider("values", [0, 25000]);
-        $("#priceRange2").val("0 SF to 25000 SF");
-        $("#price-range3").slider("values", [0, 200000]);
-        $("#priceRange3").val("$0 - $200000");
+        $("#price-range2").slider("values", [jQuery("#price-range2").data('min'), jQuery("#price-range2").data('max')]);
+        // $("#priceRange2").val("0 SF to 25000 SF");
+        $("#price-range3").slider("values", [jQuery("#price-range3").data('min'), jQuery("#price-range3").data('max')]);
+        // $("#priceRange3").val("$0 - $200000");
         $(".range-inputs").each(function() {
           $(this).val($(this).data("default"));
         });
@@ -397,8 +403,8 @@ function drt_shortcode($atts)
         setTimeout(() => $(this).select2('close'), 10);
     });
 
- // Debouncing AJAX requests
- function debounce(func, delay) {
+    // Debouncing AJAX requests
+    function debounce(func, delay) {
         let debounceTimer;
         return function() {
             const context = this;
@@ -407,37 +413,6 @@ function drt_shortcode($atts)
             debounceTimer = setTimeout(() => func.apply(context, args), delay);
         };
     }
-
-    $selectElement.on('select2:close', debounce(function() {
-        const data = {
-           
-            action: actionName,
-                    broker_ids: $('#tri_agents').val(),
-                    _buildout_city: $('#_buildout_city').val(),
-                    _gsheet_use: $('#_gsheet_use').val(),
-                    selected_type: getSelectedListingTypes(),
-                    _gsheet_neighborhood: $('#_gsheet_neighborhood').val(),
-                    _gsheet_zip: $('#_gsheet_zip').val(),
-                    _gsheet_state: $('#_gsheet_state').val(),
-                    _gsheet_vented: $('#_gsheet_vented').val(),
-                    property_price_range: $('#price-range-selected').val(),
-                    property_size_range: $('#size-range-selected').val(),
-                    property_rent_range: $('#rent-range-selected').val(),
-        };
-
-        $.ajax({
-          url: '<?php echo admin_url('admin-ajax.php'); ?>',
-            type: 'POST',
-            data: data,
-            success: function(response) {
-                console.log('Filtered results:', response);
-                // Handle the response data
-            },
-            error: function(error) {
-                console.error('Error fetching filtered results:', error);
-            }
-        });
-    }, 300)); // 300ms debounce delay
 }
 
       window.onload = function() {
@@ -1047,7 +1022,7 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
             </div>
 
             <div id="sale_lease">
-              <div>
+            <div>
                 <div class="slider-box" id="for_sale">
                   <label for="priceRange">Price :</label>
                   <input style="display:none" type="text" id="priceRange" readonly>
@@ -1060,15 +1035,17 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
                 </div>
 
               </div>
+              <!-- For Rent -->
+       
               <div>
                 <div class="slider-box" id="for_lease">
                   <label for="priceRange">Rent:</label>
                   <input style="display:none" type="text" id="priceRange3" readonly>
                   <div class="range-min-max">
-                    <input type="text" class="range-inputs" id="rent-range-min" data-default="$0" name="rent_range_min" value="$0">
-                    <input type="text" class="range-inputs" id="rent-range-max" data-default="$2,00,000" name="rent_range_max" value="$2,00,000">
+                    <input type="text" class="range-inputs" id="rent-range-min"data-default="<?php echo get_rent_minmax(); ?>" name="price_range_min" value="<?php echo get_rent_minmax(); ?>">
+                    <input type="text" class="range-inputs" id="rent-range-max" data-default="<?php echo get_rent_minmax('max');?>" name="price_range_max" value="<?php echo get_rent_minmax('max'); ?>">
                   </div>
-                  <div id="price-range3" class="slider"></div>
+                  <div id="price-range3" class="slider" data-min="<?php echo get_rent_minmax('min',false) ?>" data-max="<?php echo get_rent_minmax('max',false); ?>"></div>
                   <input type="hidden" name="rent-range" data-clear="0" id="rent-range-selected" onchange="rangeChanged(this)">
                 </div>
               </div>
@@ -1080,10 +1057,10 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
                 <input style="display:none" type="text" id="priceRange2" readonly>
 
                 <div class="range-min-max">
-                  <input type="text" class="range-inputs" id="size-range-min" data-default="0 SF" name="size_range_min" value="0 SF">
-                  <input type="text" class="range-inputs" id="size-range-max" data-default="25,000 SF" name="size_range_max" value="25,000 SF">
+                  <input type="text" class="range-inputs" id="size-range-min" data-default="<?php echo get_size_minmax(); ?>" name="size_range_min" value="<?php echo get_size_minmax(); ?>">
+                  <input type="text" class="range-inputs" id="size-range-max"  data-default="<?php echo get_size_minmax('max');?>" name="price_range_max" value="<?php echo get_size_minmax('max'); ?>">
                 </div>
-                <div id="price-range2" class="slider"></div>
+                <div id="price-range2" class="slider" data-min="<?php echo get_size_minmax('min',false) ?>" data-max="<?php echo get_size_minmax('max',false); ?>"></div>
                 <input type="hidden" name="size-range" id="size-range-selected" data-clear="0" onchange="rangeChanged(this)">
               </div>
             </div>
@@ -1739,7 +1716,8 @@ function live_search_callback()
 
     $range = explode('-', sanitize_text_field($_POST['property_size_range']));
     $trimmed_range = array_map('trim', $range);
-    if ($trimmed_range[0] == "0" && $trimmed_range[1] == "25000") {
+        
+    if ($trimmed_range[0] == "0" && $trimmed_range[1] == get_size_minmax('max', false)) {
     } else {
       $args['meta_query'][] = array(
         'relation' => 'AND',
@@ -1762,21 +1740,20 @@ function live_search_callback()
 
     $range = explode('-', sanitize_text_field($_POST['property_rent_range']));
     $trimmed_range = array_map('trim', $range);
-    
-    var_dump($trimmed_range);
 
-    if ($trimmed_range[0] == "0" && $trimmed_range[1] == "200000") {
+
+    if ($trimmed_range[0] == "0" &&  $trimmed_range[1] == get_rent_minmax('max', false)) {
     } else {
       $args['meta_query'][] = array(
         'relation' => 'AND',
         array(
-          'key'     => '_gsheet_monthly_rent',
+          'key'     => '__gsheet__monthly_rent',
           'value'   => $trimmed_range[0],
           'compare' => '>',
           'type'    => 'NUMERIC',
         ),
         array(
-          'key'     => '_gsheet_monthly_rent',
+          'key'     => '__gsheet__monthly_rent',
           'value'   => $trimmed_range[1],
           'compare' => '<',
           'type'    => 'NUMERIC',

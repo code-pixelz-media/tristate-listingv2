@@ -82,24 +82,44 @@
               <option value="WY">Wyoming</option>
             </select>
           </div>
+          <div>
           <div class="slider-box">
             <label for="priceRange">Price :</label>
             <input type="text" id="priceRange" readonly>
             <div id="price-range" class="slider"></div>
 
           </div>
+          </div>
+          <div>
           <div class="slider-box">
             <label for="priceRange">Size:</label>
-            <input type="text" id="priceRan2" readonly>
+            <input type="text" id="priceRange2" readonly>
             <div id="price-range2" class="slider"></div>
 
           </div>
+          </div>
+          <div>
           <div class="slider-box">
             <label for="priceRange">Rent:</label>
             <input type="text" id="priceRange3" readonly>
             <div id="price-range3" class="slider"></div>
 
           </div>
+          </div>
+          <div class="price-range-btm">
+  <div class="MuiBox-root css-69324s">
+    <div>
+      <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1hw9j7s"> Save to a new map layer <span class="MuiTouchRipple-root css-w0pj6f"></span>
+      </button>
+    </div>
+  </div>
+  <div class="MuiBox-root css-69324s">
+    <div>
+      <button tabindex="0" type="button" class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary bg-red css-1hw9j7s color-white"> Clear Filter <span class="MuiTouchRipple-root css-w0pj6f"></span>
+      </button>
+    </div>
+  </div>
+</div>
         </div>
       </div>
     </div>
