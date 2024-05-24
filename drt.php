@@ -637,7 +637,7 @@ function drt_shortcode($atts)
       // Attach input event handler to relevant elements
       $('#tri_agents,#_gsheet_use,#_gsheet_zip,#_gsheet_state,#_buildout_city,#_gsheet_vented,#_gsheet_neighborhood,#_gsheet_listing_type').on('input', function() {
         // Send a single AJAX request with combined data
-
+        const currentClickId = $(this).attr('id');
         $.ajax({
           url: '<?php echo admin_url('admin-ajax.php'); ?>',
           type: 'POST',
@@ -661,12 +661,20 @@ function drt_shortcode($atts)
 
           success: function(response) {
             // Process the response
-
+/* 
             if (!isDropdownsInitialized) {
               initializeDropdownsAndSelect2($(this).attr('id'));
               isDropdownsInitialized = true; // Set the flag as true after initialization
-            }
+            } */
             $('#propertylisting-content').html(response);
+            if (!isDropdownsInitialized) {
+          initializeDropdownsAndSelect2(currentClickId);
+          $('#' + currentClickId).select2('close');
+          isDropdownsInitialized = true; // Set the flag as true after initialization
+        } else {
+          // Ensure the current dropdown remains open
+         // $('#' + currentClickId).select2('open');
+        }
 
           },
           error: function(xhr, status, error) {
@@ -677,6 +685,7 @@ function drt_shortcode($atts)
 
       // Initialize dropdowns and Select2
       function initializeDropdownsAndSelect2(currentClickId) {
+        console.log(currentClickId);
         // Initialize tri_agents dropdown first
         const triAgentsData = getCachedData('tri_agents');
         if (triAgentsData) {
@@ -692,8 +701,9 @@ function drt_shortcode($atts)
           '_gsheet_neighborhood',
           '_gsheet_state',
           '_gsheet_zip',
-          '_buildout_city',
           '_gsheet_vented',
+          '_buildout_city',
+          currentClickId,
         ].filter(id => id !== currentClickId);
 
         // Check for cached data and initialize Select2 for other elements
@@ -711,6 +721,7 @@ function drt_shortcode($atts)
         $('.select2-selection').on('click', function(event) {
           event.stopPropagation();
           event.preventDefault();
+
         }).trigger('click');
 
         // Close Select2 dropdowns
@@ -2491,9 +2502,7 @@ function get_gsheet_use_dropdown_callback()
   $table_name = $wpdb->prefix . 'postmeta';
   $meta_key = '_gsheet_use';
 
-  $query = $wpdb->prepare("
-    SELECT DISTINCT pm.meta_value 
-    FROM $table_name AS pm 
+  $query = $wpdb->prepare("SELECT DISTINCT pm.meta_value FROM $table_name AS pm 
     INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID 
     WHERE pm.meta_key = %s 
     AND p.post_status = 'publish' 
@@ -2503,7 +2512,20 @@ function get_gsheet_use_dropdown_callback()
   // Fetch all ZIP codes
   $results_all = $wpdb->get_results($query);
 
-  // Array to store matched ZIP codes
+/*   // Array to store matched ZIP codes
+  $matched_zip = array();
+
+  // Filter ZIP codes based on criteria
+  if (!empty($selected_zip)) {
+    $matched_zip_query = $wpdb->prepare("SELECT DISTINCT pm.meta_value FROM $table_name AS pm WHERE pm.meta_key = '_gsheet_zip' AND pm.meta_value IN ('" . implode("','", $selected_zip) . "')
+    ");
+    $matched_zip_results = $wpdb->get_results($matched_zip_query);
+    foreach ($matched_zip_results as $result) {
+      $matched_zip[] = $result->meta_value;
+    }
+  } */
+
+/*   // Array to store matched ZIP codes
   $matched_zip = array();
 
   // Filter ZIP codes based on criteria
@@ -2518,30 +2540,22 @@ function get_gsheet_use_dropdown_callback()
     foreach ($matched_zip_results as $result) {
       $matched_zip[] = $result->meta_value;
     }
-  }
+  } */
 
   // Prepare query conditions based on selected filters
   $conditions = array();
 
+  if (!empty($selected_zip)) {
+    $conditions[] = $wpdb->prepare("post_id IN (SELECT post_id FROM $table_name WHERE meta_key = '_gsheet_zip' AND meta_value IN ('" . implode("','", $selected_zip) . "'))");
+  }
+
   if (!empty($selected_broker_ids)) {
-    $conditions[] = $wpdb->prepare("
-      post_id IN (
-        SELECT post_id 
-        FROM $table_name 
-        WHERE meta_key = '_gsheet_listing_agent' 
-        AND meta_value IN ('" . implode("','", $selected_broker_ids) . "')
-      )
-    ");
+    $conditions[] = $wpdb->prepare("post_id IN (SELECT post_id FROM $table_name WHERE meta_key = '_gsheet_listing_agent' AND meta_value IN ('" . implode("','", $selected_broker_ids) . "'))");
   }
 
   if (!empty($selected_type)) {
-    $conditions[] = $wpdb->prepare("
-      post_id IN (
-        SELECT post_id 
-        FROM $table_name 
-        WHERE meta_key = '_gsheet_listing_type' 
-        AND meta_value IN ('" . implode("','", $selected_type) . "')
-      )
+    $conditions[] = $wpdb->prepare("post_id IN (SELECT post_id FROM $table_name WHERE meta_key = '_gsheet_listing_type' 
+        AND meta_value IN ('" . implode("','", $selected_type) . "'))
     ");
   }
 
