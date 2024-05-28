@@ -2,6 +2,89 @@ jQuery(document).on('change','#map-layer-data', function(){
   jQuery("#save_map_layer").text($(this).val());
 
 });
+
+jQuery(document).ready(function($){
+  
+   $(document).on('click','.key-show', function(){
+       $('<p>'+$(this).data('text') +'</p>').insertAfter($(this));
+       $(this).text('Hide').addClass('hide-now').removeClass('key-show');
+   });
+   
+   $(document).on('click','.hide-now', function(){
+      $(this).text('Show');
+      $(this).next('p').remove();
+      $(this).removeClass('hide-now').addClass('key-show');
+      
+   });
+   
+  $(document).on('click', '.description-container .desc-more', function(e) {
+    e.preventDefault();
+    var container = $(this).closest('.description-container');
+    container.find('.trimmed-desc').hide();
+    container.find('.full-desc').show();
+  });
+
+  $(document).on('click', '.description-container .desc-less', function(e) {
+      e.preventDefault();
+      var container = $(this).closest('.description-container');
+      container.find('.full-desc').hide();
+      container.find('.trimmed-desc').show();
+  });
+  
+  $(document).on('change','#manage-sliders', function(){
+        var maxp = $(this).data('maxprice'),
+            maxr = $(this).data('maxrent'),
+            maxs = $(this).data('maxsize'),
+            //price-range===> property price price-range2==>size price-range3==>rent
+            crs  = $(this).data('current');
+            
+            console.log(crs);
+            
+          //when price is changed need to change on rent and size
+          if(crs == 'price-range'){
+            
+            // for rent range slider
+            $( "#price-range3" ).slider( "option", "max", maxr );
+            $("#rent-range-max").val('$'+maxr.toLocaleString());
+            //for size range slider
+            $( "#price-range2" ).slider( "option", "max", maxs );
+            $("#size-range-max").val(maxs.toLocaleString()+ ' SF');
+          }
+          //when size is changed need to change on price and rent 
+          if(crs =='price-range2'){
+            //for price
+            $("#price-range" ).slider( "option", "max", maxp );
+            $("#price-range-max").val('$'+maxp.toLocaleString());
+            // for rent
+            $("#price-range3" ).slider( "option", "max", maxr );
+            $("#rent-range-max").val('$'+maxr.toLocaleString());
+          }
+          // when rent is changed need to change on price and size
+          if(crs =='price-range3'){
+            //for price
+            $( "#price-range" ).slider( "option", "max", maxp );
+            $("#price-range-max").val('$'+maxp.toLocaleString());
+            //for size 
+            $( "#price-range2" ).slider( "option", "max", maxs );
+            $("#size-range-max").val(maxs.toLocaleString()+ ' SF');
+          }
+          
+          // if(crs == 'all'){
+          //   //for price
+          //   $("#price-range" ).slider( "option", "max", maxp );
+          //   $("#price-range-max").val('$'+maxp.toLocaleString());
+          //   // for rent
+          //   $("#price-range3" ).slider( "option", "max", maxr );
+          //   $("#rent-range-max").val('$'+maxr.toLocaleString());
+          //   //for size 
+          //   $( "#price-range2" ).slider( "option", "max", maxs );
+          //   $("#size-range-max").val('$'+maxs.toLocaleString());
+          // }
+  });
+ 
+});
+   
+
 jQuery(document).ready(function () {
   var multipleSelects = jQuery(".js-example-basic-multiple").select2({
     theme: "default",

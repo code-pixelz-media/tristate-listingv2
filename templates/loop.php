@@ -1,5 +1,7 @@
 <?php
 
+
+
 $ID             = $args['ID'];
 $buildout_lease = meta_of_api_sheet($ID ,'lease');
 $buildout_sale  =  meta_of_api_sheet($ID, 'sale');
@@ -83,10 +85,6 @@ if(empty($_agent)){
         
 }
 
-
-
-
-
 $meta_vrs = [
     'City' => $city,
     'State' => $state,
@@ -100,8 +98,6 @@ $meta_vrs = [
     'Neighborhood' => $neighborhood,
     'Zip Code' => $zip
 ];
-
-
 
 
 if (!empty($bo_price) && $bo_price !== '0' && $bo_price !== 0) {
@@ -148,6 +144,8 @@ if(!empty($selected_array)){
 
 }
 
+$full_desc = $desc; 
+$trimmed_desc = wp_trim_words($desc, 10, '...&nbsp<span class="desc-more">More</span>');
 
 
 ?>
@@ -199,13 +197,27 @@ if(!empty($selected_array)){
 
             </ul>
             <ul class="ul-content">
-                <?php
-                echo $desc;
-                ?>
+            <?php if(!empty($desc)) : ?>
+            <div class="description-container">
+                <div class="trimmed-desc">
+                    <?php echo $trimmed_desc; ?>
+                </div>
+                <div class="full-desc" style="display:none;">
+                    <?php echo $full_desc; ?> <span class="desc-less"> Less</span>
+                </div>
+            </div>
+            <?php endif; ?>
             </ul>
             <ul class="ul-content ul-features">
                 <?php foreach ($meta_vrs as $k => $v) {
-                    echo !empty($v) ? ' <li><p>' . $k . ': <span>' . $v . '</span></p></li>' : '';
+                    if($k == 'Key Tag'){
+                        echo !empty($v) ? ' <li><p>' . $k . ': <span data-text="'.$v.'" class="key-show">Show</span>
+                        <div class="tag-container"></div></p></li>' : '';
+                    }else{
+                        
+                        echo !empty($v) ? ' <li><p>' . $k . ': <span>' . $v . '</span></p></li>' : '';
+                    }
+                    
                 } ?>
             </ul>
         </div>

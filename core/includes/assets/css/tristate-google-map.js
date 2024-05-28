@@ -6,29 +6,32 @@ let markerCluster;
 
 function markersLatLng(tId) {
   var allMarkers = document.getElementById(tId).value;
-  var markersArray = JSON.parse(allMarkers);
+
   var markerData = [];
-  if(markersArray.length > 0){
-    markersArray.forEach(function(input) {
-      var latitude = parseFloat(input.lat);
-      var longitude = parseFloat(input.long);
-      var img = input.marker_image;
-     
-  
-      if (!isNaN(latitude) && !isNaN(longitude) && isFinite(latitude) && isFinite(longitude)) {
-        var title = input.popup_data.title ;
-        if (title.length > 35) {
-          title = title.substring(0, 23);
-          title += " ...";
+  if(allMarkers.length > 0){
+    var markersArray = JSON.parse(allMarkers);
+    if(markersArray){
+      markersArray.forEach(function(input) {
+        var latitude = parseFloat(input.lat);
+        var longitude = parseFloat(input.long);
+        var img = input.marker_image;
+       
+    
+        if (!isNaN(latitude) && !isNaN(longitude) && isFinite(latitude) && isFinite(longitude)) {
+          var title = input.popup_data.title ;
+          if (title.length > 35) {
+            title = title.substring(0, 23);
+            title += " ...";
+          }
+          var subs = input.popup_data.sub_title;
+          var image = input.popup_data.image ;
+          var link = input.popup_data.link ?? '#';
+          var listingType= input.popup_data.type;
+          var markerDataObject = { lat: latitude, lng: longitude, imgIcon:img, title: title , subtitle:subs, type: listingType , img:image ,link :link };
+          markerData.push(markerDataObject);
         }
-        var subs = input.popup_data.sub_title;
-        var image = input.popup_data.image ;
-        var link = input.popup_data.link ?? '#';
-        var listingType= input.popup_data.type;
-        var markerDataObject = { lat: latitude, lng: longitude, imgIcon:img, title: title , subtitle:subs, type: listingType , img:image ,link :link };
-        markerData.push(markerDataObject);
-      }
-    });
+      });
+  }
   }
 
 

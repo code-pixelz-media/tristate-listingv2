@@ -484,12 +484,50 @@ div#search_count_area input {
   text-align: center;
   font-size: 12px;
 }
+.desc-less{
+  padding: 3px 5px;
+  line-height: 1;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid var(--colorblue);
+  border-radius: 5px;
+  display: inline-block;
+  word-break: break-word;
+}
+.desc-more{
+
+  padding: 3px 5px;
+  line-height: 1;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid var(--colorblue);
+  border-radius: 5px;
+  display: inline-block;
+  word-break: break-word;
+  
+}
 .key-show {
     background: var(--colorblue) !important;
     padding: 3px 5px;
     line-height: 1;
     font-size: 12px;
     text-transform: uppercase;
+    cursor: pointer;
+    color: #fff;
+}
+
+.hide-now{
+  background: var(--colorblue) !important;
+  padding: 3px 5px;
+  line-height: 1;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: #fff;
 }
 .border-primary-small {
   border: 1px solid var(--colorblue) !important;
