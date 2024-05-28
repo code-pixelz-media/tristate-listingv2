@@ -3138,3 +3138,35 @@ function get_neighborhood_dropdown_cb_callback()
   wp_send_json($data);
   wp_die();
 }
+
+
+
+
+
+//add_action('init', 'delete_posts_and_metadata',999);
+
+function delete_posts_and_metadata()
+{
+  $post_types_to_delete = array('cpm_properties', 'code_properties');
+
+  foreach ($post_types_to_delete as $post_type) {
+    $posts = get_posts(array(
+      'post_type' => $post_type,
+      'posts_per_page' => -1,
+      'fields' => 'ids'
+    ));
+
+    foreach ($posts as $post_id) {
+
+      $meta_keys = get_post_custom_keys($post_id);
+      if ($meta_keys) {
+        foreach ($meta_keys as $meta_key) {
+          delete_post_meta($post_id, $meta_key);
+        }
+      }
+
+      // Delete post
+      wp_delete_post($post_id, true);
+    }
+  }
+}
