@@ -871,7 +871,7 @@ function drt_shortcode($atts)
         switch (id) {
           case '_buildout_city':
             return 'get_buildout_dropdown_cb';
-            case '_gsheet_use':
+          case '_gsheet_use':
             return 'get_gsheet_use_dropdown';
           case '_gsheet_state':
             return 'get_state_dropdown_cb';
@@ -1628,14 +1628,31 @@ function live_search_callback()
 
 
   // Broker IDs condition
-  $brokerIds = isset($_POST['broker_ids']) ? $_POST['broker_ids'] : array();
+/*   $brokerIds = isset($_POST['broker_ids']) ? $_POST['broker_ids'] : array();
   if (!empty($brokerIds)) {
     $args['meta_query'][] = array(
       'key'     => '_gsheet_listing_agent',
       'value'   => $brokerIds,
       'compare' => 'IN'
     );
-  }
+  } */
+  $brokerIds = isset($_POST['broker_ids']) ? $_POST['broker_ids'] : array();
+if (!empty($brokerIds)) {
+    $args['meta_query'][] = array(
+        'relation' => 'OR', // Using 'OR' to check either of the keys
+        array(
+            'key'     => '_gsheet_listing_agent',
+            'value'   => $brokerIds,
+            'compare' => 'IN'
+        ),
+        array(
+            'key'     => '_buildout_listing_agent',
+            'value'   => $brokerIds,
+            'compare' => 'IN'
+        ),
+    );
+}
+
 
   if (!empty($_POST['property_price_range'])) {
 
@@ -1899,7 +1916,7 @@ function get_dropdown_select_options_drdown()
   }
 
   // Adding conditions for selected broker IDs if not empty
-  if (!empty($selected_broker_ids)) {
+/*   if (!empty($selected_broker_ids)) {
     $query .= " AND post_id IN (
             SELECT post_id 
             FROM $table_name 
@@ -1907,6 +1924,17 @@ function get_dropdown_select_options_drdown()
             AND meta_value IN ('" . implode("','", $selected_broker_ids) . "')
         )";
   }
+ */
+
+  if (!empty($selected_broker_ids)) {
+    $broker_ids_str = implode("','", $selected_broker_ids);
+    $query .= " AND post_id IN (
+          SELECT post_id 
+          FROM $table_name 
+          WHERE (meta_key = '_gsheet_listing_agent' AND meta_value IN ('$broker_ids_str'))
+             OR (meta_key = '_buildout_listing_agent' AND meta_value IN ('$broker_ids_str'))
+      )";
+}
 
   // Adding conditions for selected city if not empty
   if (!empty($selected_city)) {
@@ -2048,14 +2076,24 @@ function get_zip_dropdown_callback()
   } */
 
   // Adding conditions for selected broker IDs if not empty
-  if (!empty($selected_broker_ids)) {
+/*   if (!empty($selected_broker_ids)) {
     $query .= " AND post_id IN (
           SELECT post_id 
           FROM $table_name 
           WHERE meta_key = '_gsheet_listing_agent' 
           AND meta_value IN ('" . implode("','", $selected_broker_ids) . "')
       )";
-  }
+  } */
+
+  if (!empty($selected_broker_ids)) {
+    $broker_ids_str = implode("','", $selected_broker_ids);
+    $query .= " AND post_id IN (
+          SELECT post_id 
+          FROM $table_name 
+          WHERE (meta_key = '_gsheet_listing_agent' AND meta_value IN ('$broker_ids_str'))
+             OR (meta_key = '_buildout_listing_agent' AND meta_value IN ('$broker_ids_str'))
+      )";
+}
 
   $selected_type = isset($_POST['selected_type']) ? $_POST['selected_type'] : array();
   if (!empty($selected_type)) {
@@ -2184,6 +2222,11 @@ add_action('wp_ajax_get_gsheet_use_dropdown', 'get_gsheet_use_dropdown_callback'
 add_action('wp_ajax_nopriv_get_gsheet_use_dropdown', 'get_gsheet_use_dropdown_callback');
 
 // get zipcode dropdown
+// get gsheet_use dropdown
+add_action('wp_ajax_get_gsheet_use_dropdown', 'get_gsheet_use_dropdown_callback');
+add_action('wp_ajax_nopriv_get_gsheet_use_dropdown', 'get_gsheet_use_dropdown_callback');
+
+// get zipcode dropdown
 function get_gsheet_use_dropdown_callback()
 {
   // Collect input values
@@ -2247,8 +2290,25 @@ function get_gsheet_use_dropdown_callback()
     $conditions[] = $wpdb->prepare("post_id IN (SELECT post_id FROM $table_name WHERE meta_key = '_gsheet_zip' AND meta_value IN ('" . implode("','", $selected_zip) . "'))");
   }
 
-  if (!empty($selected_broker_ids)) {
+  /* if (!empty($selected_broker_ids)) {
     $conditions[] = $wpdb->prepare("post_id IN (SELECT post_id FROM $table_name WHERE meta_key = '_gsheet_listing_agent' AND meta_value IN ('" . implode("','", $selected_broker_ids) . "'))");
+  } */
+
+
+  if (!empty($selected_broker_ids)) {
+    $conditions[] = $wpdb->prepare("
+    (post_id IN (
+      SELECT post_id 
+      FROM $table_name 
+      WHERE meta_key = '_gsheet_listing_agent' 
+      AND meta_value IN ('" . implode("','", $selected_broker_ids) . "')
+    ) OR post_id IN (
+      SELECT post_id 
+      FROM $table_name 
+      WHERE meta_key = '_buildout_listing_agent' 
+      AND meta_value IN ('" . implode("','", $selected_broker_ids) . "')
+    ))
+  ");
   }
 
   if (!empty($selected_type)) {
@@ -2388,14 +2448,28 @@ function get_state_dropdown_cb_callback()
   }
 
   // Adding conditions for selected broker IDs if not empty
-  if (!empty($selected_broker_ids)) {
+/*   if (!empty($selected_broker_ids)) {
     $query .= " AND post_id IN (
           SELECT post_id 
           FROM $table_name 
           WHERE meta_key = '_gsheet_listing_agent' 
           AND meta_value IN ('" . implode("','", $selected_broker_ids) . "')
       )";
-  }
+  } */
+
+
+  if (!empty($selected_broker_ids)) {
+    $broker_ids_str = implode("','", $selected_broker_ids);
+    $query .= " AND post_id IN (
+          SELECT post_id 
+          FROM $table_name 
+          WHERE (meta_key = '_gsheet_listing_agent' AND meta_value IN ('$broker_ids_str'))
+             OR (meta_key = '_buildout_listing_agent' AND meta_value IN ('$broker_ids_str'))
+      )";
+}
+
+
+
 /*   $selected_type = isset($_POST['selected_type']) ? $_POST['selected_type'] : '';
   if (!empty($selected_type) && empty(isset($_POST['clear'])) ) {
     $query .= " AND post_id IN (SELECT post_id FROM $table_name WHERE meta_key = '_gsheet_listing_type' AND meta_value IN ('" . implode("','", $selected_type) . "'))";
@@ -2530,14 +2604,26 @@ function get_buildout_dropdown_cb_callback()
   }
 
   // Adding conditions for selected broker IDs if not empty
-  if (!empty($selected_broker_ids)) {
+/*   if (!empty($selected_broker_ids)) {
     $query .= " AND post_id IN (
           SELECT post_id 
           FROM $table_name 
           WHERE meta_key = '_gsheet_listing_agent' 
           AND meta_value IN ('" . implode("','", $selected_broker_ids) . "')
       )";
-  }
+  } */
+
+
+  if (!empty($selected_broker_ids)) {
+    $broker_ids_str = implode("','", $selected_broker_ids);
+    $query .= " AND post_id IN (
+          SELECT post_id 
+          FROM $table_name 
+          WHERE (meta_key = '_gsheet_listing_agent' AND meta_value IN ('$broker_ids_str'))
+             OR (meta_key = '_buildout_listing_agent' AND meta_value IN ('$broker_ids_str'))
+      )";
+}
+
 
   // Adding conditions for selected city if not empty
   /* if (!empty($selected_city)) {
@@ -2703,14 +2789,24 @@ function get_vented_dropdown_cb_callback()
   }
 
   // Adding conditions for selected broker IDs if not empty
-  if (!empty($selected_broker_ids)) {
+/*   if (!empty($selected_broker_ids)) {
     $query .= " AND post_id IN (
           SELECT post_id 
           FROM $table_name 
           WHERE meta_key = '_gsheet_listing_agent' 
           AND meta_value IN ('" . implode("','", $selected_broker_ids) . "')
       )";
-  }
+  } */
+
+  if (!empty($selected_broker_ids)) {
+    $broker_ids_str = implode("','", $selected_broker_ids);
+    $query .= " AND post_id IN (
+          SELECT post_id 
+          FROM $table_name 
+          WHERE (meta_key = '_gsheet_listing_agent' AND meta_value IN ('$broker_ids_str'))
+             OR (meta_key = '_buildout_listing_agent' AND meta_value IN ('$broker_ids_str'))
+      )";
+}
 
   // Adding conditions for selected city if not empty
   if (!empty($selected_city)) {
@@ -3014,15 +3110,24 @@ function get_neighborhood_dropdown_cb_callback()
   }
 
   // Adding conditions for selected broker IDs if not empty
-  if (!empty($selected_broker_ids)) {
+/*   if (!empty($selected_broker_ids)) {
     $query .= " AND post_id IN (
           SELECT post_id 
           FROM $table_name 
           WHERE meta_key = '_gsheet_listing_agent' 
           AND meta_value IN ('" . implode("','", $selected_broker_ids) . "')
       )";
-  }
+  } */
 
+  if (!empty($selected_broker_ids)) {
+    $broker_ids_str = implode("','", $selected_broker_ids);
+    $query .= " AND post_id IN (
+          SELECT post_id 
+          FROM $table_name 
+          WHERE (meta_key = '_gsheet_listing_agent' AND meta_value IN ('$broker_ids_str'))
+             OR (meta_key = '_buildout_listing_agent' AND meta_value IN ('$broker_ids_str'))
+      )";
+}
   // Adding conditions for selected city if not empty
   if (!empty($selected_city)) {
     $query .= " AND post_id IN (
@@ -3137,36 +3242,4 @@ function get_neighborhood_dropdown_cb_callback()
   // Send JSON response
   wp_send_json($data);
   wp_die();
-}
-
-
-
-
-
-//add_action('init', 'delete_posts_and_metadata',999);
-
-function delete_posts_and_metadata()
-{
-  $post_types_to_delete = array('cpm_properties', 'code_properties');
-
-  foreach ($post_types_to_delete as $post_type) {
-    $posts = get_posts(array(
-      'post_type' => $post_type,
-      'posts_per_page' => -1,
-      'fields' => 'ids'
-    ));
-
-    foreach ($posts as $post_id) {
-
-      $meta_keys = get_post_custom_keys($post_id);
-      if ($meta_keys) {
-        foreach ($meta_keys as $meta_key) {
-          delete_post_meta($post_id, $meta_key);
-        }
-      }
-
-      // Delete post
-      wp_delete_post($post_id, true);
-    }
-  }
 }

@@ -38,6 +38,127 @@ function drt_restrict_page_access()
   }
 }
 
+
+function get_property_broker_title($property_id) {
+
+  $broker_id = get_post_meta($property_id, '_buildout_broker_id', true);
+  if(!empty($broker_id)){
+    
+    global $wpdb;
+    
+    
+  }
+
+
+
+
+
+  // Step 3: Use WP_Query to find the broker post with the user_id meta key
+  $args = array(
+      'post_type' => 'brokers',
+      'meta_query' => array(
+          array(
+              'key' => 'user_id',
+              'value' => $user_id,
+              'compare' => '='
+          )
+      ),
+      'posts_per_page' => 1
+  );
+
+  $query = new WP_Query($args);
+
+  if ($query->have_posts()) {
+      $query->the_post();
+      $broker_title = get_the_title();
+      wp_reset_postdata(); // Reset the global post object
+      return $broker_title;
+  } else {
+      return null; // Broker post not found
+  }
+}
+function meta_of_api_sheet($propid,$metaKey){
+
+  $type = get_post_meta($propid,'_import_from',true);
+  
+  if($type == 'sheets'){
+  
+  }
+  
+  $g_sheet_meta = get_post_meta($propid,'_gsheet_'.$metaKey,true);
+  $buildout_meta = get_post_meta($propid,'_buildout_'.$metaKey,true);
+  return !empty($g_sheet_meta) ? $g_sheet_meta : (!empty($buildout_meta) ? $buildout_meta : '');
+}
+
+function tristate_get_marker_data($ID){
+
+  $sale_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/sale.webp';
+  $lease_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/lease.webp';
+  $title = meta_of_api_sheet($ID, 'sale_listing_web_title');
+  $buildout_lease = meta_of_api_sheet($ID, 'lease');
+  $buildout_sale = meta_of_api_sheet($ID, 'sale');
+  $streets = meta_of_api_sheet($ID, 'cross_street') ;
+  $state = meta_of_api_sheet($ID, 'state');
+  $zip = meta_of_api_sheet($ID, 'zip');
+  $city = meta_of_api_sheet($ID, 'city');
+  $subtitle = implode(', ', array_filter(array($streets, $city, $state, $zip), 'strlen'));
+  $address = meta_of_api_sheet($ID, 'address');
+  $county = meta_of_api_sheet($ID, 'county');
+  $country_code = meta_of_api_sheet($ID, 'country_code');
+  $address_c = implode(', ', array_filter(array($county, $country_code, ), 'strlen'));
+  $image = false;
+  if ($photos = get_post_meta($ID, '_buildout_photos', true)) {
+      $photo = reset($photos);
+      $image = $photo->formats->thumb ?? '';
+  }
+
+  $marker_img = ($buildout_lease == '1' && $buildout_sale == '1') ? $lease_marker :
+                (($buildout_lease == '1') ? $lease_marker :
+                (($buildout_sale == '1') ? $sale_marker : false));
+                
+  
+      
+  $type = ($buildout_lease == '1' && $buildout_sale == '1') ? 'FOR LEASE' :
+          (($buildout_lease == '1') ? 'FOR LEASE' :
+          (($buildout_sale == '1') ? 'FOR SALE' : false));
+          
+    if($buildout_lease == '1' && $buildout_sale == '1' ){
+      $selected_array = isset($_POST['selected_type']) ? $_POST['selected_type'] : array();
+      $selected_string = implode(', ', $selected_array);
+      if(!empty($selected_array)){
+        if($selected_string=='for Lease') {
+          $marker_img = $lease_marker;
+          $type= 'FOR LEASE';
+        }
+        if($selected_string=='for Sale') {
+          $marker_img = $sale_marker;
+          $type= 'FOR SALE';
+        }
+      }
+
+    }
+
+  $m_d = [
+    'lat' => get_post_meta($ID, '_buildout_latitude', true),
+    'long' => get_post_meta($ID, '_buildout_longitude', true),
+    'marker_image' => $marker_img,
+    'popup_data' => [
+        'title' => $title,
+        'sub_title' => [
+            'address_a' => $address,
+            'address_b' => $subtitle,
+            'address_c' => $address_c,
+        ],
+        'type' => $type,
+        'image' => $image,
+        'link' => get_the_permalink($ID)
+    ]
+  ];
+  
+  return $m_d;
+}
+
+
 function get_rent_minmax($type="min", $formatted=true) {
   global $wpdb;
   
@@ -108,6 +229,7 @@ function get_price_minmax($type="min", $formatted=true) {
   FROM $wpdb->postmeta pm
   INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
   WHERE pm.meta_key = '_buildout_sale_price_dollars'
+  
   AND p.post_type = 'properties'
 ");
 
@@ -952,7 +1074,7 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
                   $brokers->the_post();
                   $broker_id = get_the_ID();
                   $broker_name = get_the_title();
-                  echo '<option value="' . $broker_name . '" data-uid="' . $broker_id . '" data-agent_name="' . $broker_name . '"  >' . $broker_name . '</option>';
+                  echo '<option value="' . $broker_name . '" data-uid="' . $broker_id . '" data-agent_name="' . $broker_name . '"  >' . $broker_name . ' bb</option>';
                 }
                 echo '</select>';
                 wp_reset_postdata();
@@ -1238,198 +1360,14 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
           <div class="MuiBox-root">
             <div class="MuiStack-root property-filter css-12xuzbq" id="propertylisting-content">
 
-              <?php
-            
-
-
+            <?php
               // Output the search results
               if ($search_query->have_posts()) {
-                while ($search_query->have_posts()) {
-                  $search_query->the_post();
-
-                  /*  -------------------Start Meta data---------------- */
-
-
-                  $ID               = get_the_ID();
-                  $buildout_lease = get_post_meta($ID, '_buildout_lease', true);
-                  $buildout_sale =  get_post_meta($ID, '_buildout_sale', true);
-                  $buildout_id       = (int) get_post_meta($ID, '_buildout_id', true);
-                  $title             = get_post_meta($ID, '_buildout_sale_listing_web_title', true);
-                  $subtitle         = implode(', ', array(get_post_meta($ID, '_buildout_city', true), get_post_meta($ID, '_buildout_county', true), get_post_meta($ID, '_buildout_state', true)));
-                  $badges           = array(
-                    'use'         => get_post_meta($ID, '_gsheet_use', true),
-                    'type'         => ($buildout_lease == 1) ? 'for Lease' : (($buildout_sale == 1) ? 'for Sale' : ''),
-                    'price_sf'     => get_post_meta($ID, '_gsheet_price_sf', true),
-                    'commission'   => get_post_meta($ID, '_gsheet_commission', true)
-                  );
-                  $_price_sf         = get_post_meta($ID, '_gsheet_price_sf', true);
-                  $_price_sf         = preg_replace('/\.[0-9]+/', '', $_price_sf);
-                  $_price_sf         = (int) preg_replace('/[^0-9]/', '', $_price_sf);
-
-                  $min_size         = get_post_meta($ID, '_gsheet_min_size_fm', true);
-                  $max_size         = get_post_meta($ID, '_gsheet__max_size_fm', true);
-
-                  $zoning           = get_post_meta($ID, '_buildout_zoning', true);
-                  $key_tag           = get_post_meta($ID, '_gsheet_key_tag', true);
-                  $_agent           = get_post_meta($ID, '_gsheet_listing_agent', true);
-
-                  /*       $lease_conditions = get_post_meta($ID, '_buildout_lease_description', true);
-      $lease_conditions = get_post_meta($ID, '_gsheet_lease_conditions', true); */
-
-                  $bo_price         = get_post_meta($ID, '_buildout_sale_price_dollars', true);
-                  $price             = get_post_meta($ID, '_gsheet_monthly_rent', true);
-                  // Remove fractional units from the price
-                  $_price           = preg_replace('/\.[0-9]+/', '', $price);
-                  // Convert the price to integer value
-                  $_price = (int) preg_replace('/[^0-9]/', '', $_price);
-
-                  $neighborhood     = get_post_meta($ID, '_gsheet_neighborhood', true);
-                  $vented           = get_post_meta($ID, '_gsheet_vented', true);
-                  $borough           = get_post_meta($ID, '_gsheet_borough', true);
-
-                  //locations and addresses meta
-                  $streets           = get_post_meta($ID, '_gsheet_cross_street', true) ?? get_post_meta($ID, '_buildout_cross_street', true);
-                  // $state             = get_post_meta($ID, '_gsheet_state', true) ?? get_post_meta($ID, '_buildout_state', true);
-                  // $city             = get_post_meta($ID, '_buildout_city', true);
-
-                  /*      $state = !empty(get_post_meta($ID, '_gsheet_state', true)) ? get_post_meta($ID, '_gsheet_state', true) : (!empty(get_post_meta($ID, '_buildout_state', true)) ? get_post_meta($ID, '_buildout_state', true) : '');   
-$zip = !empty(get_post_meta($ID, '_gsheet_zip', true)) ? get_post_meta($ID, '_gsheet_zip', true) : (!empty(get_post_meta($ID, '_buildout_zip', true)) ? get_post_meta($ID, '_buildout_zip', true) : '');
-$city = !empty(get_post_meta($ID, '_gsheet_city', true)) ? get_post_meta($ID, '_gsheet_city', true) : (!empty(get_post_meta($ID, '_buildout_city', true)) ? get_post_meta($ID, '_buildout_city', true) : '');
- */
-
-                  $state = get_dynamic_post_meta($ID, ['_gsheet_state', '_buildout_state']);
-                  $zip = get_dynamic_post_meta($ID, ['_gsheet_zip', '_buildout_zip']);
-                  $city = get_dynamic_post_meta($ID, ['_gsheet_city', '_buildout_city']);
-                  $address = get_dynamic_post_meta($ID, ['_gsheet_address', '_buildout_address']);
-                  $county = get_dynamic_post_meta($ID, ['_gsheet_county', '_buildout_county']);
-                  $country_code = get_dynamic_post_meta($ID, ['_gsheet_country_code', '_buildout_country_code']);
-                  $lease_conditions = get_dynamic_post_meta($ID, ['_gsheet_lease_conditions', '_buildout_lease_description']);
-
-                  // $zip               = get_post_meta($ID, '_gsheet_zip', true) ?? get_post_meta($ID, '_buildout_zip', true);
-                  //_buildout_zip
-                  $title             = get_post_meta($ID, '_buildout_sale_listing_web_title', true);
-
-                  $subtitle         = implode(', ', array_filter(array($streets, $city, $state, $zip), 'strlen'));
-                  //$address          = get_post_meta($ID, '_buildout_address', true) ??  get_post_meta($ID, '_gsheet_address', true);
-                  // $county  =  get_post_meta($ID, '_buildout_county', true) ??  get_post_meta($ID, '_gsheet_county', true);
-                  //$country_code = get_post_meta($ID, '_buildout_country_code', true) ??  get_post_meta($ID, '_gsheet_country_code', true);
-                  $address_c =  implode(', ', array_filter(array($county, $country_code,), 'strlen'));
-                  $image             = false;
-                  if ($photos = get_post_meta($ID, '_buildout_photos', true)) {
-                    $photo = reset($photos);
-                    $image = $photo->formats->thumb ?? '';
-                  }
-
-
-                  $sale_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/sale.webp';
-                  $lease_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/lease.webp';
-                  $buildout_lease = get_post_meta($ID, '_buildout_lease', true);
-                  $buildout_sale =  get_post_meta($ID, '_buildout_sale', true);
-                  // var_dump($buildout_lease,$buildout_sale);
-                  $marker_img = ($buildout_lease == '1') ? $lease_marker : (($buildout_sale == '1') ? $sale_marker : false);
-                  // $type = $buildout_lease == '1' ? 'FOR LEASE' : 'FOR SALE';
-                  $type =  ($buildout_lease == 1) ? 'FOR LEASE' : (($buildout_sale == 1) ? 'FOR SALE' : '');
-                  $markers_data[] = [
-                    'lat' => get_post_meta($ID, '_buildout_latitude', true),
-                    'long' => get_post_meta($ID, '_buildout_longitude', true),
-                    'marker_image' => $marker_img,
-                    'popup_data' => [
-                      'title' => $title,
-                      'sub_title' => [
-                        'address_a' => $address,
-                        'address_b' => $subtitle,
-                        'address_c' => $address_c,
-                      ],
-                      'type' => $type,
-                      'image' => $image,
-                      'link' => get_the_permalink(get_the_ID())
-                    ]
-
-                  ];
-
-                  $meta_vrs = [
-                    'City' => $city,
-                    'State' => $state,
-                    'Min Size' => $min_size,
-                    'Max Size' => $max_size,
-                    'Zoning' => $zoning,
-                    'Key Tag' => $key_tag,
-                    'Listing Agent' => $_agent,
-                    'Vented' => $vented,
-                    'Borough' => $borough,
-                    'Neighborhood' => $neighborhood,
-                    'Zip Code' => $zip
-                  ];
-
-                  
-                  if(!empty($bo_price) && $bo_price !== '0' && $bo_price !==0){
-          
-                    $displaying_price= '$'.number_format($bo_price);
-                    
-                 }elseif(!empty($_price_sf) && $_price_sf !=='0' && $_price_sf !==0){
-                  
-                    $displaying_price = '$'.number_format($_price_sf);
-                    
-                 }else {
-                    
-                    $displaying_price = 'Call For Price';
-                 }
-              ?>
-
-                  <div class="propertylisting-content">
-                    <div class="plc-top">
-                      <h2><?php
-                          echo esc_html(get_the_title()); ?></h2>
-                      <h4><?php echo $subtitle; ?></h4>
-                      <div class="css-ajk2hm">
-                        <ul class="ul-buttons">
-                          <?php
-                          if (!empty($badges)) {
-                            foreach ($badges as $key => $value) {
-                              if (!empty($value)) {
-                                switch ($key) {
-                                  case 'use':
-                                    $class = 'bg-blue';
-                                    break;
-                                  case 'type':
-                                    $class = 'bg-green';
-                                    break;
-                                  case 'price_sf':
-                                    $class = 'bg-yellow';
-                                    break;
-                                  case 'commission':
-                                    $class = 'bg-red';
-                                    break;
-                                  default:
-                                    $class = '';
-                                }
-                                echo '<li class="' . $class . '"><span>' . $value . '</span></li>';
-                              }
-                            }
-                          }
-                          ?>
-
-
-                        </ul>
-                        <ul class="ul-content">
-                          <?php
-                          echo $lease_conditions;
-                          ?>
-                        </ul>
-                        <ul class="ul-content ul-features">
-                          <?php foreach ($meta_vrs as $k => $v) {
-                            echo !empty($v) ? ' <li><p>' . $k . ': <span>' . $v . '</span></p></li>' : '';
-                          } ?>
-                        </ul>
-                      </div>
-                    </div>
-                    <div class="plc-bottom">
-                      <p class="price"><?php echo 'Price: ' . $displaying_price; ?></p>
-                      <a href="<?php the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> More Info </a>
-                    </div>
-
-                  </div>
-              <?php
+                $loop = TRISTATECRLISTING_PLUGIN_DIR . 'templates/loop.php';
+                while ($search_query->have_posts()) {$search_query->the_post(); 
+                  $ID = get_the_id();
+                  if(file_exists($loop)){ load_template($loop,false, ['ID'=> $ID,'ajax'=>true]);}
+                    $markers_data[] = tristate_get_marker_data($ID);
 
                 }
                 wp_reset_postdata();
@@ -1710,13 +1648,13 @@ function live_search_callback()
         array(
           'key'     => '_buildout_sale_price_dollars',
           'value'   => $trimmed_range[0],
-          'compare' => '>',
+          'compare' => '>=',
           'type'    => 'NUMERIC',
         ),
         array(
           'key'     => '_buildout_sale_price_dollars',
           'value'   => $trimmed_range[1],
-          'compare' => '<',
+          'compare' => '<=',
           'type'    => 'NUMERIC',
         )
       );
@@ -1735,13 +1673,13 @@ function live_search_callback()
         array(
           'key'     => '_gsheet_min_size_fm',
           'value'   => $trimmed_range[0],
-          'compare' => '>',
+          'compare' => '>=',
           'type'    => 'NUMERIC',
         ),
         array(
           'key'     => '_gsheet__max_size_fm',
           'value'   => $trimmed_range[1],
-          'compare' => '<',
+          'compare' => '<=',
           'type'    => 'NUMERIC',
         )
       );
@@ -1760,13 +1698,13 @@ function live_search_callback()
         array(
           'key'     => '__gsheet__monthly_rent',
           'value'   => $trimmed_range[0],
-          'compare' => '>',
+          'compare' => '>=',
           'type'    => 'NUMERIC',
         ),
         array(
           'key'     => '__gsheet__monthly_rent',
           'value'   => $trimmed_range[1],
-          'compare' => '<',
+          'compare' => '<=',
           'type'    => 'NUMERIC',
         )
       );
@@ -1776,10 +1714,8 @@ function live_search_callback()
   // Run the query
   $drt_query = new WP_Query($args);
 
-  //print_r($drt_query);
   $total_search_results = $drt_query->found_posts;
   $totals = __total();
-  // Showing 716 of 716 Listing
 
   $results_string = "<div id='get_filter_results'><p>Showing {$total_search_results} of {$totals} listing</p></div>";
   $button_string = "SAVE " . $total_search_results . " RESULTS TO A NEW MAP LAYER";
@@ -1789,245 +1725,11 @@ function live_search_callback()
   $max_p_val = [0];
 
   if ($drt_query->have_posts()) {
-    while ($drt_query->have_posts()) {
-      $drt_query->the_post();
-
-      $ID               = get_the_ID();
-      $buildout_lease = get_post_meta($ID, '_buildout_lease', true);
-      $buildout_sale =  get_post_meta($ID, '_buildout_sale', true);
-      $buildout_id       = (int) get_post_meta($ID, '_buildout_id', true);
-      $title             = get_post_meta($ID, '_buildout_sale_listing_web_title', true);
-      $subtitle         = implode(', ', array(get_post_meta($ID, '_buildout_city', true), get_post_meta($ID, '_buildout_county', true), get_post_meta($ID, '_buildout_state', true)));
-      $badges           = array(
-        'use'         => get_post_meta($ID, '_gsheet_use', true),
-        'type'         => ($buildout_lease == 1) ? 'for Lease' : (($buildout_sale == 1) ? 'for Sale' : ''),
-        'price_sf'     => get_post_meta($ID, '_gsheet_price_sf', true),
-        'commission'   => get_post_meta($ID, '_gsheet_commission', true)
-      );
-      $_price_sf         = get_post_meta($ID, '_gsheet_price_sf', true);
-      $_price_sf         = preg_replace('/\.[0-9]+/', '', $_price_sf);
-      $_price_sf         = (int) preg_replace('/[^0-9]/', '', $_price_sf);
-
-      $min_size         = get_post_meta($ID, '_gsheet_min_size_fm', true);
-      $max_size         = get_post_meta($ID, '_gsheet__max_size_fm', true);
-
-      $zoning           = get_post_meta($ID, '_buildout_zoning', true);
-      $key_tag           = get_post_meta($ID, '_gsheet_key_tag', true);
-      $_agent           = get_post_meta($ID, '_gsheet_listing_agent', true);
-
-      /*       $lease_conditions = get_post_meta($ID, '_buildout_lease_description', true);
-              $lease_conditions = get_post_meta($ID, '_gsheet_lease_conditions', true); */
-
-      $bo_price         =  get_post_meta($ID, '_buildout_sale_price_dollars', true);
-      $price             = get_post_meta($ID, '_gsheet_monthly_rent', true);
-      // Remove fractional units from the price
-      $_price           = preg_replace('/\.[0-9]+/', '', $price);
-      // Convert the price to integer value
-      $_price = (int) preg_replace('/[^0-9]/', '', $_price);
-
-      $neighborhood     = get_post_meta($ID, '_gsheet_neighborhood', true);
-      $vented           = get_post_meta($ID, '_gsheet_vented', true);
-      $borough           = get_post_meta($ID, '_gsheet_borough', true);
-
-      //locations and addresses meta
-      $streets           = get_post_meta($ID, '_gsheet_cross_street', true) ?? get_post_meta($ID, '_buildout_cross_street', true);
-      // $state             = get_post_meta($ID, '_gsheet_state', true) ?? get_post_meta($ID, '_buildout_state', true);
-      // $city             = get_post_meta($ID, '_buildout_city', true);
-
-      /*      $state = !empty(get_post_meta($ID, '_gsheet_state', true)) ? get_post_meta($ID, '_gsheet_state', true) : (!empty(get_post_meta($ID, '_buildout_state', true)) ? get_post_meta($ID, '_buildout_state', true) : '');   
-        $zip = !empty(get_post_meta($ID, '_gsheet_zip', true)) ? get_post_meta($ID, '_gsheet_zip', true) : (!empty(get_post_meta($ID, '_buildout_zip', true)) ? get_post_meta($ID, '_buildout_zip', true) : '');
-        $city = !empty(get_post_meta($ID, '_gsheet_city', true)) ? get_post_meta($ID, '_gsheet_city', true) : (!empty(get_post_meta($ID, '_buildout_city', true)) ? get_post_meta($ID, '_buildout_city', true) : '');
-         */
-
-      $state = get_dynamic_post_meta($ID, ['_gsheet_state', '_buildout_state']);
-      $zip = get_dynamic_post_meta($ID, ['_gsheet_zip', '_buildout_zip']);
-      $city = get_dynamic_post_meta($ID, ['_gsheet_city', '_buildout_city']);
-      $address = get_dynamic_post_meta($ID, ['_gsheet_address', '_buildout_address']);
-      $county = get_dynamic_post_meta($ID, ['_gsheet_county', '_buildout_county']);
-      $country_code = get_dynamic_post_meta($ID, ['_gsheet_country_code', '_buildout_country_code']);
-      $lease_conditions = get_dynamic_post_meta($ID, ['_gsheet_lease_conditions', '_buildout_lease_description']);
-
-      // $zip               = get_post_meta($ID, '_gsheet_zip', true) ?? get_post_meta($ID, '_buildout_zip', true);
-      //_buildout_zip
-      $title             = get_post_meta($ID, '_buildout_sale_listing_web_title', true);
-
-      $subtitle         = implode(', ', array_filter(array($streets, $city, $state, $zip), 'strlen'));
-      //$address          = get_post_meta($ID, '_buildout_address', true) ??  get_post_meta($ID, '_gsheet_address', true);
-      // $county  =  get_post_meta($ID, '_buildout_county', true) ??  get_post_meta($ID, '_gsheet_county', true);
-      //$country_code = get_post_meta($ID, '_buildout_country_code', true) ??  get_post_meta($ID, '_gsheet_country_code', true);
-      $address_c =  implode(', ', array_filter(array($county, $country_code,), 'strlen'));
-      $image             = false;
-      if ($photos = get_post_meta($ID, '_buildout_photos', true)) {
-        $photo = reset($photos);
-        $image = $photo->formats->thumb ?? '';
-      }
-
-
-      $sale_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/sale.webp';
-      $lease_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/lease.webp';
-      $buildout_lease = get_post_meta($ID, '_buildout_lease', true);
-      $buildout_sale =  get_post_meta($ID, '_buildout_sale', true);
-      // var_dump($buildout_lease,$buildout_sale);
-      $current_checked = get_post_meta($ID, '_current_checked', true);
-      $type =  ($buildout_lease == 1) ? 'FOR LEASE' : (($buildout_sale == 1) ? 'FOR SALE' : '');
-      if ($buildout_lease == '1' && $buildout_sale == '1') {
-        // Assuming the POST data has been received
-$selected_array = isset($_POST['selected_type']) ? $_POST['selected_type'] : array();
-
-// Convert the array to a string
-$selected_string = implode(', ', $selected_array);
-if($selected_string=='for Lease') {
-  $marker_img = $lease_marker;
-  $type= $selected_string;
-}
-if($selected_string=='for Sale') {
-  $marker_img = $sale_marker;
-  $type= $selected_string;
-}
-        // Both have values, check the current checked value
-        $marker_img =  $marker_img;
-        $type = $type;
-
-    } else {
-        // Only one has a value, prioritize lease if it exists
-        $marker_img = ($buildout_lease == '1') ? $lease_marker : (($buildout_sale == '1') ? $sale_marker : false);
-    }
-
-    //  $marker_img = ($buildout_lease == '1') ? $lease_marker : (($buildout_sale == '1') ? $sale_marker : false);
-      // $type = $buildout_lease == '1' ? 'FOR LEASE' : 'FOR SALE';
-    
-      $mark_data[] = [
-        'lat' => get_post_meta($ID, '_buildout_latitude', true),
-        'long' => get_post_meta($ID, '_buildout_longitude', true),
-        'marker_image' => $marker_img,
-        'popup_data' => [
-          'title' => $title,
-          'sub_title' => [
-            'address_a' => $address,
-            'address_b' => $subtitle,
-            'address_c' => $address_c,
-          ],
-          'type' => $type,
-          'image' => $image,
-          'link' => get_the_permalink(get_the_ID())
-        ]
-
-      ];
-      
-      $meta_vrs = [
-        'City' => $city,
-        'State' => $state,
-        'Min Size' => $min_size,
-        'Max Size' => $max_size,
-        'Zoning' => $zoning,
-        'Key Tag' => $key_tag,
-        'Listing Agent' => $_agent,
-        'Vented' => $vented,
-        'Borough' => $borough,
-        'Neighborhood' => $neighborhood,
-        'Zip Code' => $zip
-      ];
-    
-       if(!empty($bo_price) && $bo_price !== '0' && $bo_price !==0){
-          
-          $displaying_price= '$'.number_format($bo_price);
-          $max_p_val[] = (int) $bo_price; 
-          
-       }elseif(!empty($_price_sf) && $_price_sf !=='0' && $_price_sf !==0){
-        
-          $displaying_price = '$'.number_format($_price_sf);
-          $max_p_val[] = (int) $_price_sf; 
-          
-       }else {
-          
-          $displaying_price = 'Call For Price';
-          $max_p_val[] = 0; 
-       }
-      
-      
-
-?>
-
-      <div class="propertylisting-content" data-price="<?php echo $buildout_id; ?>" >
-        <div class="plc-top">
-          <input type="hidden" name="get_properties_id" id="get_properties_id" value="<?php echo $ID; ?>">
-          <h2><?php
-              echo esc_html(get_the_title()); ?></h2>
-          <h4><?php echo $subtitle; ?></h4>
-          <div class="css-ajk2hm">
-            <ul class="ul-buttons">
-              <?php
-$selected_array = isset($_POST['selected_type']) ? $_POST['selected_type'] : array();
-
-          // Convert the array to a string
-          $selected_string = implode(', ', $selected_array);
-              if (!empty($badges)) {
-                foreach ($badges as $key => $value) {
-            
-                  if (!empty($value)) {
-
-                 
-                    switch ($key) {
-                      case 'use':
-                        $class = 'bg-blue';
-                   
-                 // Check conditions for buildout_lease and buildout_sale when key is 'use'
-        
-                        break;
-                      case 'type':
-                        $class = 'bg-green';
-                        if ($buildout_lease == '1' && $buildout_sale == '1') {
-                          if($selected_string=='for Lease') {
-                    
-                            $value= $selected_string;
-                          }
-                          if($selected_string=='for Sale') {
-                 
-                            $value= $selected_string;
-                          }
-                         
-                      }
-                        break;
-                      case 'price_sf':
-                        $class = 'bg-yellow';
-                        break;
-                      case 'commission':
-                        $class = 'bg-red';
-                        break;
-                      default:
-                        $class = '';
-                    }
-                      
-                   
-                 
-                    echo '<li class="' . $class . '"><span>' . $value .'</span></li>';
-                  
-                  }
-                }
-              }
-
-              ?>
-
-            </ul>
-            <ul class="ul-content">
-              <?php
-              echo $lease_conditions;
-              ?>
-            </ul>
-            <ul class="ul-content ul-features">
-              <?php foreach ($meta_vrs as $k => $v) {
-                echo !empty($v) ? ' <li><p>' . $k . ': <span>' . $v . '</span></p></li>' : '';
-              } ?>
-
-            </ul>
-          </div>
-        </div>
-        <div class="plc-bottom">
-          <p class="price"><?php echo 'Price: ' . $displaying_price; ?></p>
-          <a href="<?php the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> More Info </a>
-        </div>
-      </div>
-    <?php
+    $loop = TRISTATECRLISTING_PLUGIN_DIR . 'templates/loop.php';
+    while ($drt_query->have_posts()) { $drt_query->the_post();
+      $ID = get_the_id();
+      if(file_exists($loop)){ load_template($loop,false, ['ID'=> get_the_id()]);}
+        $mark_data[] = tristate_get_marker_data($ID);
     }
     wp_reset_postdata();
     ?>
@@ -2071,10 +1773,6 @@ $selected_array = isset($_POST['selected_type']) ? $_POST['selected_type'] : arr
   } else {
     $propertyListingContent.removeClass('column-two');
   }
-
-
-     
-
     });
   </script>
 <?php
@@ -3439,36 +3137,4 @@ function get_neighborhood_dropdown_cb_callback()
   // Send JSON response
   wp_send_json($data);
   wp_die();
-}
-
-
-
-
-
-//add_action('init', 'delete_posts_and_metadata',999);
-
-function delete_posts_and_metadata()
-{
-  $post_types_to_delete = array('cpm_properties', 'code_properties');
-
-  foreach ($post_types_to_delete as $post_type) {
-    $posts = get_posts(array(
-      'post_type' => $post_type,
-      'posts_per_page' => -1,
-      'fields' => 'ids'
-    ));
-
-    foreach ($posts as $post_id) {
-
-      $meta_keys = get_post_custom_keys($post_id);
-      if ($meta_keys) {
-        foreach ($meta_keys as $meta_key) {
-          delete_post_meta($post_id, $meta_key);
-        }
-      }
-
-      // Delete post
-      wp_delete_post($post_id, true);
-    }
-  }
 }

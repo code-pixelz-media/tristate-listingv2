@@ -198,30 +198,14 @@ if(!empty($selected_array)){
 
 
             </ul>
-            <ul class="ul-content" id="">
+            <ul class="ul-content">
                 <?php
                 echo $desc;
                 ?>
             </ul>
             <ul class="ul-content ul-features">
                 <?php foreach ($meta_vrs as $k => $v) {
-                if($k == 'Key Tag'){
-                ?>
-                <li class="span-wrap">
-                    <p>
-                    </p>
-                </li>
-                
-                <?php
-                
-                    // echo !empty($v) ? '<li class="span-wrap"><p>'.$k. ':
-                    // <span style="cursor: default;" class="key-show" data-text="'.$v.'">Show</span>
-                    // <div style="" class="tag-container">'.$v.'</div></li></p>':'';
-                }else{
                     echo !empty($v) ? ' <li><p>' . $k . ': <span>' . $v . '</span></p></li>' : '';
-                }
-              
-                   
                 } ?>
             </ul>
         </div>
