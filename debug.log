@@ -4334,3 +4334,63 @@ Results: Array
     [matched] => 6
 )
 
+Running tristatecr_datasync_cron_function at 2024-05-25 12:33:5656
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 382 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 282 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 187 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 32.764447927475 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 321
+    [imported] => 3
+    [skipped] => 57
+    [found] => 238
+    [missing] => 229
+    [matched] => 11
+)
+
+Running tristatecr_datasync_cron_function at 2024-05-27 12:33:2525
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 383 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 282 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 187 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 27.644802093506 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 0
+    [imported] => 0
+    [skipped] => 382
+    [found] => 239
+    [missing] => 228
+    [matched] => 2
+)
+
+Running tristatecr_datasync_cron_function at 2024-05-27 15:05:3232
+
+Reading Brokers...Brokers checksum changed. Updating...
+Reading Buildout JSON...Found 383 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 282 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 187 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 60.141484022141 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 367
+    [skipped] => 0
+    [found] => 239
+    [missing] => 228
+    [matched] => 239
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 367
+    [skipped] => 0
+    [found] => 239
+    [missing] => 228
+    [matched] => 239
+)
+

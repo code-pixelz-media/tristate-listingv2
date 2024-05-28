@@ -1,29 +1,36 @@
+jQuery(document).ready(function ($) {
+    
+    $('.key-show').on('click', function(){
+       alert($(this).attr('data-text'));
+       $(this).hide().text($(this).attr('data-text'));
+    })
+
+});
+
 jQuery(document).on('change','#map-layer-data', function(){
   jQuery("#save_map_layer").text($(this).val());
 
 });
+
+
 jQuery(document).ready(function () {
   var multipleSelects = jQuery(".js-example-basic-multiple").select2({
     theme: "default",
     tags: "true",
   });
-
-  jQuery("#filter-clear").click(function () {
-    multipleSelects.val(null).trigger("change");
-    multipleSelects.each(function (index, element) {
-      jQuery(element)
-        .find("option")
-        .each(function () {
-          jQuery(this).prop("disabled", false);
-        });
-    });
-    multipleSelects.destroy();
-
-    if (jQuery("#tristate-input").val() !== "") {
-      jQuery("#tristate-input").val("").trigger("keyup");
-    }
-  });
-
+  // jQuery(document).on('click','.key-show', function(e){
+ 
+  //   var parent = jQuery(this).parent('li');
+  //   console.log(parent);
+   
+  // });
+  
+//   jQuery('span-wrap>span').each(function() {
+//       jQuery(this).on('click', function(){
+//         // jQuery(this).next('.tag-container').toggle();
+//         alert('hellow');
+//       })
+// });
 
 
   jQuery("#js-example-basic-multiple option").attr("data-id");
@@ -185,6 +192,7 @@ jQuery(function () {
   );
   // size range
   jQuery("#price-range2").slider({
+    range: true,
     min: jQuery("#price-range2").data('min'),//get min val
     max: jQuery("#price-range2").data('max'),//get max val  
     values: [jQuery("#price-range2").data('min'), jQuery("#price-range2").data('max')],//postion slider val
@@ -214,6 +222,7 @@ jQuery(function () {
 
   //for rent range
   jQuery("#price-range3").slider({
+    range: true,
     min: jQuery("#price-range3").data('min'),//get min val
     max: jQuery("#price-range3").data('max'),//get max val  
     values: [jQuery("#price-range3").data('min'), jQuery("#price-range3").data('max')],

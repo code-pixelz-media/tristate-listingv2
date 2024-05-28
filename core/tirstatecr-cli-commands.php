@@ -198,7 +198,9 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                 }
 
                 if ($post_id) {
+    
                     update_post_meta($post_id, '_buildout_last_updated', time());
+                    
                 }
             }
         }
@@ -642,6 +644,43 @@ function tristatecr_datasync_cron_function()
   
     $message = "\nResults: " . print_r($result, 1) . "\n";
     error_log($message, 3, LOG_FILE);
+    
+    
+    $args = array(
+        'post_type' => 'properties',
+        'post_status' => 'publish',
+        'posts_per_page' => -1 
+    );
+    
+    $query = new WP_Query($args);
+    
+    if($query->have_posts()) {
+        while ($query->have_posts()) {$query->the_post();
+                $buildout_agent = get_post_meta(get_the_id(), '_buildout_broker_id', true);
+                if(!empty($buildout_agent)){
+                    global $wpdb;
+                    $agquery = $wpdb->prepare(
+                        "SELECT pm.post_id 
+                         FROM $wpdb->postmeta pm
+                         INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+                         WHERE pm.meta_key = 'user_id' 
+                           AND pm.meta_value = %s
+                           AND p.post_type = 'brokers'",
+                        $buildout_agent
+                    );
+                    $agent_id = $wpdb->get_var($agquery);
+                    
+                   $_agent = get_the_title($agent_id);
+                   
+                   update_post_meta(get_the_id(),'_buildout_listing_agent', $_agent);
+                }
+            }
+    }wp_reset_postdata();
+
+    
+  
+    $message = "\nResults: " . print_r($result, 1) . "\n";
+    error_log($message, 3, LOG_FILE);
 }
 
 
@@ -729,20 +768,6 @@ function tristatecr_insert_broker_data()
 
 
 
-/**
- * The function `tristate_get_broker_id` retrieves the ID of a broker post based on a specified meta
- * key and value.
- * 
- * @param meta_key The `meta_key` parameter in the `tristate_get_broker_id` function is used to specify
- * the meta key for which you want to search in the custom post type 'brokers'. This function retrieves
- * the post ID of the first post that matches the given `meta_key` and `
- * @param meta_value Meta_value is the value that you want to search for in the specified meta_key
- * field of the 'brokers' custom post type. When calling the tristate_get_broker_id function, you will
- * provide the meta_key and the meta_value you are looking for in the custom post type 'bro
- * 
- * @return int function `tristate_get_broker_id` is returning the ID of the first post that matches the
- * given meta key and meta value in the 'brokers' custom post type.
- */
 function tristate_get_broker_id($meta_key, $meta_value)
 {
 
