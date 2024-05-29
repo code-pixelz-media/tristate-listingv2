@@ -5,6 +5,7 @@
   --colorwhite: #fff;
   --colorblack: #333333;
   --colorblue: #1a76d2;
+  --colorbluedar: #184e78;
   --colorgreen: #00bf7a;
   --colorred: #cc6849;
   --coloryellow: #eebf47;
@@ -44,7 +45,12 @@
 .border-none {
   border: none !important;
 }
-
+.btn-forlease {
+  background: #184e78 !important;
+}
+.btn-forsale {
+  background: #d8631c !important;
+}
 h1,
 h2,
 h3,
@@ -430,6 +436,7 @@ div#search_count_area > div.column-select-result-count {
   width: 66.66%;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 div#search_count_area div#tristate-result-count {
   text-align: right;
@@ -505,7 +512,7 @@ div#search_count_area input {
   cursor: pointer;
   background-color: #fff;
   border: 1px solid var(--colorblue);
-  border-radius: 5px;
+  border-radius: 3px;
   display: inline-block;
   word-break: break-word;
   
@@ -517,6 +524,7 @@ div#search_count_area input {
     font-size: 12px;
     text-transform: uppercase;
     cursor: pointer;
+    border-radius: 3px;
     color: #fff;
 }
 
@@ -528,6 +536,7 @@ div#search_count_area input {
   text-transform: uppercase;
   cursor: pointer;
   color: #fff;
+  border-radius: 3px;
 }
 .border-primary-small {
   border: 1px solid var(--colorblue) !important;
@@ -562,7 +571,6 @@ input {
   display: inline-block;
   margin-right: -4px;
   vertical-align: top;
-  width: 30%;
 }
 
 input {

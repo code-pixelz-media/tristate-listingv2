@@ -142,7 +142,7 @@ function tristate_cr_single_scripts()
         
     }
 
-    wp_enqueue_style('single-styles', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/css/frontend-styles.css', array(), '1.0.0');
+    wp_enqueue_style('single-styles', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/css/frontend-styles.css', array(), time());
     wp_enqueue_style('allfontawesome', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/css/all.min.css', array(), '1.0.0');
     wp_enqueue_style('swipercss', 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.css', array(), '1.0.0');
     

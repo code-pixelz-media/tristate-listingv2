@@ -1,7 +1,5 @@
 <?php
 
-
-
 $ID             = $args['ID'];
 $buildout_lease = meta_of_api_sheet($ID ,'lease');
 $buildout_sale  =  meta_of_api_sheet($ID, 'sale');
@@ -13,9 +11,10 @@ $badges         = array(
                     'type' =>  ($buildout_lease == '1' && $buildout_sale == '1') ? 'for Lease' :
                     (($buildout_lease == '1') ? 'for Lease' :
                     (($buildout_sale == '1') ? 'for Sale' : false)),
-                    'price_sf' => meta_of_api_sheet($ID, 'price_sf'),
+                    // 'price_sf' => meta_of_api_sheet($ID, 'price_sf'),
                     'commission' => meta_of_api_sheet($ID, 'commission')
                 );
+                
 $_price_sf      = meta_of_api_sheet($ID, 'price_sf');
 $_price_sf      = preg_replace('/\.[0-9]+/', '', $_price_sf);
 $_price_sf      = (int) preg_replace('/[^0-9]/', '', $_price_sf);
@@ -85,6 +84,10 @@ if(empty($_agent)){
         
 }
 
+
+
+
+
 $meta_vrs = [
     'City' => $city,
     'State' => $state,
@@ -98,6 +101,8 @@ $meta_vrs = [
     'Neighborhood' => $neighborhood,
     'Zip Code' => $zip
 ];
+
+
 
 
 if (!empty($bo_price) && $bo_price !== '0' && $bo_price !== 0) {
@@ -147,14 +152,19 @@ if(!empty($selected_array)){
 $full_desc = $desc; 
 $trimmed_desc = wp_trim_words($desc, 10, '...&nbsp<span class="desc-more">More</span>');
 
-
+$lat = get_post_meta($ID, '_buildout_latitude', true);
+$long = get_post_meta($ID, '_buildout_longitude', true);
 ?>
 
-<div class="propertylisting-content" data-id="<?php echo $buildout_id ?>">
+<div class="propertylisting-content" 
+data-pid="<?php echo $ID?>" 
+data-lat="<?php echo $lat; ?>"  
+data-lng="<?php echo $long; ?>"  
+data-id="<?php echo $buildout_id; ?>">
+<input type="hidden" name="get_properties_id" id="get_properties_id" value="<?php echo $ID; ?>">
     <div class="plc-top">
         <h2><?php echo esc_html(get_the_title()); ?></h2>
         <h4><?php echo $subtitle; ?></h4>
-        <h2 style="displat:none"><?php //echo $_agent ?></h2>
         <div class="css-ajk2hm">
             <ul class="ul-buttons">
                 <?php
@@ -166,15 +176,22 @@ $trimmed_desc = wp_trim_words($desc, 10, '...&nbsp<span class="desc-more">More</
                                     $class = 'bg-blue';
                                     break;
                                 case 'type':
-                                    $class = 'bg-green';
+                                    if($value == 'for Lease'){
+                                        $class = 'btn-forlease';
+                                    }elseif($value== 'for Sale'){
+                                        $class = 'btn-forsale';
+                                    }
+                                    // $class ='';
                                     if ($buildout_lease == '1' && $buildout_sale == '1') {
                                         if($selected_string=='for Lease') {
                                   
                                           $value= $selected_string;
+                                          $class = 'btn-forlease';
                                         }
                                         if($selected_string=='for Sale') {
                                
                                           $value= $selected_string;
+                                          $class = 'btn-forsale';
                                         }
                                        
                                     }

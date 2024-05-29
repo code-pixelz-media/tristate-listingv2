@@ -92,8 +92,8 @@ function meta_of_api_sheet($propid,$metaKey){
 
 function tristate_get_marker_data($ID){
 
-  $sale_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/sale.webp';
-  $lease_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/lease.webp';
+  $sale_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/sale.png';
+  $lease_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/lease.png';
   $title = meta_of_api_sheet($ID, 'sale_listing_web_title');
   $buildout_lease = meta_of_api_sheet($ID, 'lease');
   $buildout_sale = meta_of_api_sheet($ID, 'sale');
@@ -141,6 +141,7 @@ function tristate_get_marker_data($ID){
   $m_d = [
     'lat' => get_post_meta($ID, '_buildout_latitude', true),
     'long' => get_post_meta($ID, '_buildout_longitude', true),
+    'post_id' => $ID,
     'marker_image' => $marker_img,
     'popup_data' => [
         'title' => $title,
@@ -370,6 +371,57 @@ function drt_shortcode($atts)
       $('#_gsheet_listing_type input[type="checkbox"]').trigger('click');
 
 
+            // search by tying startr
+/*       document.getElementById('search-by-text').addEventListener('input', function() {
+    var query = this.value.toLowerCase();
+    var listings = document.querySelectorAll('.propertylisting-content');
+
+    listings.forEach(function(listing) {
+        var text = listing.innerText.toLowerCase();
+        if (text.includes(query)) {
+            listing.style.display = '';
+        } else {
+            listing.style.display = 'none';
+        }
+    });
+}); */
+
+const searchInput = document.getElementById('search-by-text');
+    const propertyContent = document.getElementById('propertylisting-content');
+    const resultCount = document.getElementById('tristate-result-count');
+
+    // Function to update result count
+    function updateResultCount(count, total) {
+        resultCount.innerHTML = `Showing ${count} of ${total} Listing`;
+    }
+
+    // Function to filter property listings
+    function filterListings() {
+        const query = searchInput.value.toLowerCase();
+        const listings = propertyContent.getElementsByClassName('propertylisting-content');
+        let matchedCount = 0;
+
+        for (let listing of listings) {
+            const text = listing.innerText.toLowerCase();
+            if (text.includes(query)) {
+                listing.style.display = 'block';
+                matchedCount++;
+            } else {
+                listing.style.display = 'none';
+            }
+        }
+
+        updateResultCount(matchedCount, listings.length);
+    }
+
+    // Event listener for search input
+    searchInput.addEventListener('input', filterListings);
+
+    // Initially display all listings and set the result count
+    filterListings();
+      // search by typing end
+
+
       $('#filter-clear11').on('click', function() {
         //    alert('hello test');
         //$('#tristate-input').val("");
@@ -383,10 +435,7 @@ function drt_shortcode($atts)
           'left': '0%',
           'width': '100%'
         });
-        // Set the handle positions for the sliders
-        $('#price-range .ui-slider-handle, #price-range2 .ui-slider-handle, #price-range3 .ui-slider-handle').each(function() {
-          $(this).css('left', '0%'); // Adjust this percentage as needed
-        });
+
 
         $("#tristate-input").val("");
         // Remove disabled attributes from options
@@ -396,15 +445,21 @@ function drt_shortcode($atts)
         });
         var rangeHiddenFields = $("#price-range-selected,#rent-range-selected,#size-range-selected");
         rangeHiddenFields.attr("data-clear", "1");
-        $("#price-range").slider("values", [jQuery("#price-range").data('min'), jQuery("#price-range").data('max')]);
-        //  $("#priceRange").val("$0 - $4000000");
-        $("#price-range2").slider("values", [jQuery("#price-range2").data('min'), jQuery("#price-range2").data('max')]);
-        // $("#priceRange2").val("0 SF to 25000 SF");
-        $("#price-range3").slider("values", [jQuery("#price-range3").data('min'), jQuery("#price-range3").data('max')]);
+        // $("#price-range").slider("values", [jQuery("#price-range").data('min'), jQuery("#price-range").data('max')]);
+        // $("#price-range" ).slider( "option", "max",  jQuery("#price-range").data('max') );
+        // $("#price-range" ).slider( "option", "min",  jQuery("#price-range").data('min') );
+        // //  $("#priceRange").val("$0 - $4000000");
+        // $("#price-range2").slider("values", [jQuery("#price-range2").data('min'), jQuery("#price-range2").data('max')]);
+        // $("#price-range2" ).slider( "option", "max",  jQuery("#price-range2").data('max') );
+        // $("#price-range2" ).slider( "option", "min",  jQuery("#price-range2").data('min') );
+        // // $("#priceRange2").val("0 SF to 25000 SF");
+        // $("#price-range3").slider("values", [jQuery("#price-range3").data('min'), jQuery("#price-range3").data('max')]);
+        // $("#prie-range3" ).slider( "option", "max",  jQuery("#prie-range3").data('max') );
+        // $("#prie-range3" ).slider( "option", "min",  jQuery("#prie-range3").data('min') );
         // $("#priceRange3").val("$0 - $200000");
-        $(".range-inputs").each(function() {
-          $(this).val($(this).data("default"));
-        });
+        // $(".range-inputs").each(function() {
+        //   $(this).val($(this).data("default"));
+        // });
         $('#price-range-selected,#rent-range-selected,#size-range-selected').val("");
 
 
@@ -420,6 +475,11 @@ function drt_shortcode($atts)
           performAjaxRequest(data); // Make AJAX request
           rangeHiddenFields.attr("data-clear", "0");
         }
+        
+        // Set the handle positions for the sliders
+        $('#price-range .ui-slider-handle, #price-range2 .ui-slider-handle, #price-range3 .ui-slider-handle').each(function() {
+          $(this).css('left', '0%'); // Adjust this percentage as needed
+        });
       });
 
 
@@ -791,7 +851,9 @@ function drt_shortcode($atts)
             $('#propertylisting-content').html(response);
             if (!isDropdownsInitialized) {
           initializeDropdownsAndSelect2(currentClickId);
+          console.log(currentClickId);
           $('#' + currentClickId).select2('close');
+          //tri_agents
           isDropdownsInitialized = true; // Set the flag as true after initialization
         } else {
           // Ensure the current dropdown remains open
@@ -807,7 +869,7 @@ function drt_shortcode($atts)
 
       // Initialize dropdowns and Select2
       function initializeDropdownsAndSelect2(currentClickId) {
-        console.log(currentClickId);
+       // console.log(currentClickId);
         // Initialize tri_agents dropdown first
         const triAgentsData = getCachedData('tri_agents');
         if (triAgentsData) {
@@ -847,8 +909,9 @@ function drt_shortcode($atts)
         }).trigger('click');
 
         // Close Select2 dropdowns
-        closeSelect2('tri_agents');
+        
         selectIds.forEach(closeSelect2);
+        closeSelect2('tri_agents');
       }
 
 
@@ -981,10 +1044,13 @@ if (false === $cached_content) {
 
               // Replace 'wp_' with your WordPress table prefix if it's different
               $table_name = $wpdb->prefix . 'postmeta';
-
               $query = $wpdb->prepare("SELECT DISTINCT pm.meta_value FROM $table_name AS pm 
 INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s AND p.post_status = 'publish' AND p.post_type = 'properties' ORDER BY meta_value ASC", $meta_key);
 
+if($meta_key=='_gsheet_use') {
+  $query = $wpdb->prepare("SELECT DISTINCT pm.meta_value FROM $table_name AS pm 
+  INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s AND p.post_status = 'publish' AND p.post_type = 'properties' ORDER BY meta_value ASC", $meta_key);
+}
               // Custom SQL query to fetch unique trimmed values based on meta key
               if ($meta_key === '_gsheet_state122') {
                 $query = $wpdb->prepare("SELECT DISTINCT TRIM(meta_value) AS meta_value FROM $table_name WHERE meta_key = %s OR meta_key = %s ORDER BY meta_value ASC", $meta_key, '_buildout_state');
@@ -1164,7 +1230,7 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
                     <input type="text" class="range-inputs" id="price-range-max" data-default="<?php echo get_price_minmax('max');?>" name="price_range_max" value="<?php echo get_price_minmax('max'); ?>">
                   </div>
                   <div id="price-range" class="slider" data-min="<?php echo get_price_minmax('min',false) ?>" data-max="<?php echo get_price_minmax('max',false); ?>"></div>
-                  <input type="hidden" name="price-range" data-ajax="0" data-clear="0" id="price-range-selected" onchange="rangeChanged(this)">
+                  <input type="hidden" name="price-range" data-live="0" data-clear="0" id="price-range-selected" onchange="rangeChanged(this)">
                 </div>
 
               </div>
@@ -1172,7 +1238,7 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
        
               <div>
                 <div class="slider-box" id="for_lease">
-                  <label for="priceRange">Rent:</label>
+                  <label for="priceRange">Price per SF:</label>
                   <input style="display:none" type="text" id="priceRange3" readonly>
                   <div class="range-min-max">
                     <input type="text" class="range-inputs" id="rent-range-min"data-default="<?php echo get_rent_minmax(); ?>" name="price_range_min" value="<?php echo get_rent_minmax(); ?>">
@@ -1194,7 +1260,7 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
                   <input type="text" class="range-inputs" id="size-range-max"  data-default="<?php echo get_size_minmax('max');?>" name="price_range_max" value="<?php echo get_size_minmax('max'); ?>">
                 </div>
                 <div id="price-range2" class="slider" data-min="<?php echo get_size_minmax('min',false) ?>" data-max="<?php echo get_size_minmax('max',false); ?>"></div>
-                <input type="hidden" name="size-range" id="size-range-selected" data-clear="0" onchange="rangeChanged(this)">
+                <input type="hidden" name="size-range" id="size-range-selected" data-live="0" data-clear="0" onchange="rangeChanged(this)">
               </div>
             </div>
 
@@ -1230,7 +1296,7 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
 
                               </li>
                               <li>
-                                <label>Map Layer Title</label>
+                                <label>Layer Title</label>
                                 <input type="text" name="map_layer_title" id="map_layer_title" required>
                               </li>
                             </ul>
@@ -1351,6 +1417,10 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
 
         </div>
 
+        <div class="search-by-text">
+            <input aria-invalid="false" id="search-by-text" placeholder="search by text" type="text">
+          </div>
+
         <div class="post-output"></div>
 
 
@@ -1396,8 +1466,8 @@ INNER JOIN {$wpdb->prefix}posts AS p ON pm.post_id = p.ID WHERE pm.meta_key = %s
           return selectedTypes;
         }
         var checkClear = jQuery("#" + input.id).attr("data-clear");
-
-        if (checkClear == "0") {
+       
+        if (checkClear == "0" ) {
           $.ajax({
             url: '<?php echo admin_url('admin-ajax.php'); ?>',
             type: 'POST',
@@ -1535,7 +1605,9 @@ function live_search_callback()
     'meta_query'     => array('relation' => 'AND')
   );
   
-  $crs = false;
+
+  $crs = 'all';
+
   // Meta query conditions
   $meta_queries = array(
     '_gsheet_neighborhood',
@@ -1653,13 +1725,12 @@ if (!empty($brokerIds)) {
         ),
     );
 }
-
+  
 
   if (!empty($_POST['property_price_range'])) {
-
+    $crs = 'price-range';
     $range = explode('-', sanitize_text_field($_POST['property_price_range']));
     $trimmed_range = array_map('trim', $range);
-    $crs = 'price-range';
     if ($trimmed_range[0] == "0" && $trimmed_range[1] == get_price_minmax('max', false) ) {
     } else {
       $args['meta_query'][] = array(
@@ -1685,7 +1756,6 @@ if (!empty($brokerIds)) {
     $range = explode('-', sanitize_text_field($_POST['property_size_range']));
     $trimmed_range = array_map('trim', $range);
     $crs = 'price-range2';
-        
     if ($trimmed_range[0] == "0" && $trimmed_range[1] == get_size_minmax('max', false)) {
     } else {
       $args['meta_query'][] = array(
@@ -1709,7 +1779,7 @@ if (!empty($brokerIds)) {
 
     $range = explode('-', sanitize_text_field($_POST['property_rent_range']));
     $trimmed_range = array_map('trim', $range);
-    $crs = 'price-range2';
+    $crs = 'price-range3';
 
     if ($trimmed_range[0] == "0" &&  $trimmed_range[1] == get_rent_minmax('max', false)) {
     } else {
@@ -1744,41 +1814,37 @@ if (!empty($brokerIds)) {
 
   $max_p_val = [0];
   $max_r_val = [0];
-  
   $min_size_max = [0];
-  $max_size_max = [0];
-
+  $max_size_max=[0];
   if ($drt_query->have_posts()) {
     $loop = TRISTATECRLISTING_PLUGIN_DIR . 'templates/loop.php';
     while ($drt_query->have_posts()) { $drt_query->the_post();
       $ID = get_the_id();
-      if(file_exists($loop)){ load_template($loop,false, ['ID'=> get_the_id() ]);}
+      if(file_exists($loop)){ load_template($loop,false, ['ID'=> get_the_id()]);}
+      
         $mark_data[] = tristate_get_marker_data($ID);
         $_price_sf   = meta_of_api_sheet($ID, 'price_sf');
         // for sf price
         $new_max_p_sf= preg_replace('/\$?(\d+)\.\d{2}/', '$1', $_price_sf);
-        if($_price_sf !=='0' && !empty($_price_sf))  $max_p_val[] = $new_max_p_sf;
+        if($_price_sf !=='0' && !empty($_price_sf))  $max_p_val[] = (int) $new_max_p_sf;
         
         // for buildout price
         $bo_price    = meta_of_api_sheet($ID, 'sale_price_dollars');
-       
         if($bo_price !== '0' && !empty($bo_price)) $max_p_val[] = (int) $bo_price;
         
         // for rent 
         $rent = get_post_meta($ID,'__gsheet__monthly_rent',true);
         $new_rent =  preg_replace('/\$?(\d+)\.\d{2}/', '$1', $rent);
     
-        if($new_rent !== '0' && !empty($new_rent)) $max_r_val[] = $new_rent;
+        if($new_rent !== '0' && !empty($new_rent)) $max_r_val[] = (int) $new_rent;
         
         // for maximum value of minimum size
         $min_size       = get_post_meta($ID, '_gsheet_min_size_fm',true);
-        if(!empty($min_size)) $min_size_max[] = $min_size;
+        if(!empty($min_size)) $min_size_max[] = (int) $min_size;
         
         // for maximum value of minimum size
         $max_size       = get_post_meta($ID, '_gsheet__max_size_fm',true);
-        if(!empty($max_size)) $max_size_max[] = $max_size;
-
-
+        if(!empty($max_size)) $max_size_max[] = (int) $max_size;
     }
     wp_reset_postdata();
     ?>
@@ -1789,11 +1855,13 @@ if (!empty($brokerIds)) {
     echo '<p id="not-found" data-results="0">No results found.</p>';
     
   }
+  
 
   ?>
   <!-- text data 2 -->
   <input type="hidden" id="manage-sliders" data-current="<?php echo !empty($crs)?$crs : 'all';  ?>" data-maxprice="<?php echo max($max_p_val) ?>" data-maxrent="<?php echo max($max_r_val) ?>" data-maxsize="<?php echo max($max_size_max ) ?>" value="ajax" >
   <textarea style="display: none;" id="ajax-marker-data" rows="4" cols="50"> <?php echo json_encode($mark_data); ?> </textarea>
+  
   <script>
     document.getElementById("save_map_layer").innerText = "<?php echo $button_string ?>";
     jQuery(document).ready(function($) {
@@ -1809,40 +1877,32 @@ if (!empty($brokerIds)) {
       $("#ajax-marker-data").trigger('change');
 
       var total_search_results = <?php echo $total_search_results; ?>; // Assuming $total_search_results is a PHP variable containing the total search results
-      var $propertyListingContent = $('#propertylisting-content');
-    
-      if (total_search_results == 1) {
-        $propertyListingContent.addClass('column-one');
-      } else {
-        $propertyListingContent.removeClass('column-one');
-      }
-    
-      if (total_search_results == 2) {
-        $propertyListingContent.addClass('column-two');
-      } else {
-        $propertyListingContent.removeClass('column-two');
-      }
-      
-      
+  
+  var $propertyListingContent = $('#propertylisting-content');
+
+  if (total_search_results == 1) {
+    $propertyListingContent.addClass('column-one');
+  } else {
+    $propertyListingContent.removeClass('column-one');
+  }
+
+  if (total_search_results == 2) {
+    $propertyListingContent.addClass('column-two');
+  } else {
+    $propertyListingContent.removeClass('column-two');
+  }
     });
   </script>
-    <script>
+  <!-- Different Script for making dynamica range sliders -->
+  <script>
+
     jQuery(document).ready(function($){
-    
-       var rangeChanged = '<?php echo $crs; ?>';
-       
-       $('#manage-sliders').trigger('change');
-      
-      // console.log(rangeChanged);
-    
-      // $("#price-range").slider("values", [0,4000000]);
-        // //  $("#priceRange").val("$0 - $4000000");
-        // $("#price-range2").slider("values", [jQuery("#price-range2").data('min'), jQuery("#price-range2").data('max')]);
-        // // $("#priceRange2").val("0 SF to 25000 SF");
-        // $("#price-range3").slider("values", [jQuery("#price-range3").data('min'), jQuery("#price-range3").data('max')]);
+      $('#manage-sliders').trigger('change');
+
     });
   
   </script>
+
 <?php
 
 

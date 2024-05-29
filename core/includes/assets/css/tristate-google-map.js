@@ -10,6 +10,7 @@ function markersLatLng(tId) {
   var markerData = [];
   if(allMarkers.length > 0){
     var markersArray = JSON.parse(allMarkers);
+    console.log(typeof markersArray);
     if(markersArray){
       markersArray.forEach(function(input) {
         var latitude = parseFloat(input.lat);
@@ -27,7 +28,7 @@ function markersLatLng(tId) {
           var image = input.popup_data.image ;
           var link = input.popup_data.link ?? '#';
           var listingType= input.popup_data.type;
-          var markerDataObject = { lat: latitude, lng: longitude, imgIcon:img, title: title , subtitle:subs, type: listingType , img:image ,link :link };
+          var markerDataObject = { mkid: input.post_id ,lat: latitude, lng: longitude, imgIcon:img, title: title , subtitle:subs, type: listingType , img:image ,link :link };
           markerData.push(markerDataObject);
         }
       });
@@ -38,11 +39,28 @@ function markersLatLng(tId) {
   return markerData;
 }
 
+
+  jQuery(document).on('keyup', '#search-by-text', function() {
+
+    let arr = [];
+    $('.propertylisting-content').each(function() {
+      if ($(this).css('display') === 'block') {
+        var dataId = $(this).attr('data-pid');
+        arr.push(dataId);
+      }
+    });
+
+    markers.forEach(function(marker) {
+      marker.setMap(null); 
+    });
+    
+  });
+  
+
+
 jQuery(document).on('change', '#ajax-marker-data', function() {
 
-  markers.forEach(function(marker) {
-    marker.setMap(null);
-  });
+
   markers = []; 
   var newMarkerData = markersLatLng('ajax-marker-data');
   if(newMarkerData.length > 0){
@@ -70,7 +88,7 @@ jQuery(document).on('change', '#ajax-marker-data', function() {
     "</div>";
     var markerIcon = {
       url: markerInfo.imgIcon,
-      scaledSize: new google.maps.Size(38, 38) // Adjust the size as per your requirement
+      // scaledSize: new google.maps.Size(38, 38) // Adjust the size as per your requirement
     };
     
     var marker = new google.maps.Marker({
@@ -79,8 +97,9 @@ jQuery(document).on('change', '#ajax-marker-data', function() {
       title: markerInfo.title,
       icon : markerIcon,
     });
-
-
+    
+    marker.set('PID',markerInfo.mkid);
+    
     markers.push(marker);
     const infoWindow = new google.maps.InfoWindow({
       content: contentString,
@@ -139,7 +158,7 @@ function initMap() {
     
     var markerIcon = {
       url: markerInfo.imgIcon,
-      scaledSize: new google.maps.Size(38, 38) 
+      // scaledSize: new google.maps.Size(38, 38) 
     };
     
     var marker = new google.maps.Marker({
@@ -148,6 +167,7 @@ function initMap() {
       title: markerInfo.title,
       icon : markerIcon,
     });
+    marker.set('PID',markerInfo.mkid);
     markers.push(marker);
     const infoWindow = new google.maps.InfoWindow({
       content: contentString,
