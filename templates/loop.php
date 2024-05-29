@@ -84,10 +84,6 @@ if(empty($_agent)){
         
 }
 
-
-
-
-
 $meta_vrs = [
     'City' => $city,
     'State' => $state,
@@ -102,15 +98,20 @@ $meta_vrs = [
     'Zip Code' => $zip
 ];
 
+$new_max_p_sf= preg_replace('/\$?(\d+)\.\d{2}/', '$1', $_price_sf);
+if($_price_sf !=='0' && !empty($_price_sf))  $max_p_val[] = (int) $new_max_p_sf;
 
+// // for buildout price
+// $bo_price    = meta_of_api_sheet($ID, 'sale_price_dollars');
+// if($bo_price !== '0' && !empty($bo_price)) $max_p_val[] = (int) $bo_price;
 
 
 if (!empty($bo_price) && $bo_price !== '0' && $bo_price !== 0) {
-
+    $data_price = $bo_price;
     $displaying_price = '$' . number_format($bo_price);
 
 } elseif (!empty($_price_sf) && $_price_sf !== '0' && $_price_sf !== 0) {
-
+    $data_price = $_price_sf;
     $displaying_price = '$' . number_format($_price_sf);
 
 } else {
@@ -154,14 +155,23 @@ $trimmed_desc = wp_trim_words($desc, 10, '...&nbsp<span class="desc-more">More</
 
 $lat = get_post_meta($ID, '_buildout_latitude', true);
 $long = get_post_meta($ID, '_buildout_longitude', true);
+
+ $m_d = tristate_get_marker_data($ID);
+$json_data = json_encode($m_d);
 ?>
 
-<div class="propertylisting-content" 
-data-pid="<?php echo $ID?>" 
-data-lat="<?php echo $lat; ?>"  
-data-lng="<?php echo $long; ?>"  
-data-id="<?php echo $buildout_id; ?>">
-<input type="hidden" name="get_properties_id" id="get_properties_id" value="<?php echo $ID; ?>">
+<div 
+    class="propertylisting-content" 
+    data-pid="<?php echo $ID?>" 
+    data-lat="<?php echo $lat; ?>"  
+    data-lng="<?php echo $long; ?>"  
+    data-id="<?php echo $buildout_id;?>"
+    data-json = "<?php echo htmlspecialchars($json_data, ENT_QUOTES, 'UTF-8');?>" 
+    data-price="<?php echo ""; ?>"
+    data-rent=""
+    data-size=""
+>
+<input type="hidden" name="get_properties_id" id="get_properties_id"  value="<?php echo $ID; ?>">
     <div class="plc-top">
         <h2><?php echo esc_html(get_the_title()); ?></h2>
         <h4><?php echo $subtitle; ?></h4>
