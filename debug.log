@@ -4394,3 +4394,31 @@ Results: Array
     [matched] => 239
 )
 
+Running tristatecr_datasync_cron_function at 2024-05-29 13:23:0808
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 392 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 282 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 187 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 35.5074198246 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 323
+    [imported] => 10
+    [skipped] => 58
+    [found] => 249
+    [missing] => 218
+    [matched] => 16
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 323
+    [imported] => 10
+    [skipped] => 58
+    [found] => 249
+    [missing] => 218
+    [matched] => 16
+)
+

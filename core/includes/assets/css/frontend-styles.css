@@ -445,6 +445,9 @@ div#search_count_area div#tristate-result-count {
   flex-direction: column;
   align-items: flex-end;
 }
+#selectcolumn {
+  margin-top: 0;
+}
 .tristate-column-select select {
   padding: 2px;
     border: 1px solid #aaa;
@@ -460,8 +463,7 @@ div#search_count_area div#tristate-result-count {
     padding-right: 25px;
     color: #fff;
 }
-.tristate-column-select select:focus, .tristate-column-select select:active, .tristate-column-select select:focus-visible {
-  border: none !important;
+.tristate-column-select select:focus, .tristate-column-select select:active, .tristate-column-select select:focus-visible, div#search_count_area input:focus, div#search_count_area input:active, div#search_count_area input:focus-visible, #bodyContent .listing-more:focus, #bodyContent .listing-more:active, #bodyContent .listing-more:focus-visible   {
   outline: none;
 }
 .tristate-column-select select option {
@@ -476,7 +478,6 @@ div#search_count_area input {
   line-height: 5px;
   position: relative;
 }
-
 .slider-box {
   width: 100%;
   padding: 0 10px;

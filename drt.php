@@ -371,6 +371,87 @@ function drt_shortcode($atts)
       $('#_gsheet_listing_type input[type="checkbox"]').trigger('click');
 
 
+
+$('#tri_agents').on('change', function() {
+    filterListings1();
+    $('#search-by-text').trigger('keyup');
+    // alert('Hellow');
+});
+
+function filterListings1() {
+    var selectedAgents = $('#tri_agents').val();
+    // Trim each agent name in the selectedAgents array
+    selectedAgents = selectedAgents.map(agent => agent.trim());
+//    console.log("Selected Agents: ", selectedAgents); // Debugging
+
+    var totalListings = $('.propertylisting-content').length;
+    var displayedListings = 0;
+
+    $('.propertylisting-content').each(function() {
+        var listingContent = $(this).text().trim();
+        //console.log("Listing Content: ", listingContent); // Debugging
+
+        var matchFound = selectedAgents.some(agent => listingContent.includes(agent));
+        
+        if (selectedAgents.length === 0 || matchFound) {
+            $(this).show();
+            displayedListings++;
+        } else {
+            $(this).hide();
+        }
+    });
+
+    updateResultCount1(displayedListings, totalListings);
+}
+
+function updateResultCount1(displayed, total) {
+    $('#tristate-result-count').text('Showing ' + displayed + ' of ' + total + ' Listing');
+}
+
+filterListings1();
+
+/* for sale/lease */
+function saleLeaseFilter() {
+    var filters = {
+        sale: $('#type_for_sale').is(':checked'),
+        lease: $('#type_for_lease').is(':checked')
+    };
+
+    var totalListings = $('.propertylisting-content').length;
+    var displayedListings = 0;
+
+    $('.propertylisting-content').each(function() {
+        var isForSale = $(this).find('li.btn-forsale span').text().trim() === 'for Sale';
+        var isForLease = $(this).find('li.btn-forlease span').text().trim() === 'for Lease';
+
+        // Check if either filter is active and matches the listing type, or if no filters are active and all should be hidden
+        if ((filters.sale && isForSale) || (filters.lease && isForLease)) {
+            $(this).show();
+            displayedListings++;
+        } else {
+            $(this).hide();
+        }
+    });
+
+    // Update result count with the number of displayed listings
+    $('#tristate-result-count').text('Showing ' + displayedListings + ' of ' + totalListings + ' Listings');
+
+}
+
+// Event listeners for checkboxes
+//$('#type_for_sale, #type_for_lease').on('change', saleLeaseFilter);
+
+$('#type_for_sale, #type_for_lease').on('change', function() {
+  saleLeaseFilter();
+    $('#search-by-text').trigger('keyup');
+    // alert('Hellow');
+});
+
+// Initial filter update
+saleLeaseFilter();
+/* end for sale/lease */
+
+
             // search by tying startr
 /*       document.getElementById('search-by-text').addEventListener('input', function() {
     var query = this.value.toLowerCase();
@@ -386,7 +467,7 @@ function drt_shortcode($atts)
     });
 }); */
 
-const searchInput = document.getElementById('search-by-text');
+    const searchInput = document.getElementById('search-by-text');
     const propertyContent = document.getElementById('propertylisting-content');
     const resultCount = document.getElementById('tristate-result-count');
 
@@ -445,9 +526,15 @@ const searchInput = document.getElementById('search-by-text');
         });
         var rangeHiddenFields = $("#price-range-selected,#rent-range-selected,#size-range-selected");
         rangeHiddenFields.attr("data-clear", "1");
-        // $("#price-range").slider("values", [jQuery("#price-range").data('min'), jQuery("#price-range").data('max')]);
-        // $("#price-range" ).slider( "option", "max",  jQuery("#price-range").data('max') );
-        // $("#price-range" ).slider( "option", "min",  jQuery("#price-range").data('min') );
+        
+        
+        
+        $("#price-range" ).slider( "option", "max",  jQuery("#price-range").data('max') );
+        $("#price-range" ).slider( "option", "min",  jQuery("#price-range").data('min') );
+        $("#price-range").slider("values", [jQuery("#price-range").data('min'), jQuery("#price-range").data('max')]);
+        
+        console.log(jQuery("#price-range").data('min'));
+       console.log(jQuery("#price-range").data('max'));
         // //  $("#priceRange").val("$0 - $4000000");
         // $("#price-range2").slider("values", [jQuery("#price-range2").data('min'), jQuery("#price-range2").data('max')]);
         // $("#price-range2" ).slider( "option", "max",  jQuery("#price-range2").data('max') );
@@ -817,7 +904,8 @@ const searchInput = document.getElementById('search-by-text');
 
       var isDropdownsInitialized = false;
       // Attach input event handler to relevant elements
-      $('#tri_agents,#_gsheet_use,#_gsheet_zip,#_gsheet_state,#_buildout_city,#_gsheet_vented,#_gsheet_neighborhood,#_gsheet_listing_type').on('input', function() {
+      //,#_gsheet_listing_type
+      $('#_gsheet_use,#_gsheet_zip,#_gsheet_state,#_buildout_city,#_gsheet_vented,#_gsheet_neighborhood').on('input', function() {
         // Send a single AJAX request with combined data
         const currentClickId = $(this).attr('id');
         $.ajax({
@@ -1122,6 +1210,8 @@ if($meta_key=='_gsheet_use') {
               <!--   <select id="tri_agents" class="js-example-basic-multiple" name="agents[]" multiple="multiple">
               </select> -->
               <input type="text" class="dropdown_agents">
+
+
               <div id="dropdown_agents">
               <?php
          
@@ -1148,6 +1238,35 @@ if($meta_key=='_gsheet_use') {
                 // No brokers found
                 echo '<p>No brokers found.</p>';
               }
+              ?>
+              </div>
+
+              <div id="dropdown_agents_old">
+              <?php
+         
+       /*        $args = array(
+                'post_type' => 'brokers',
+                'posts_per_page' => -1, // Get all brokers
+                'orderby'        => 'title', // Sort by title (broker name)
+                'order'          => 'ASC',   // Sort in ascending order
+              );
+
+              $brokers = new WP_Query($args);
+
+              if ($brokers->have_posts()) {
+                echo '<select id="tri_agents" class="js-example-basic-multiple" name="agents[]" multiple="multiple">';
+                while ($brokers->have_posts()) {
+                  $brokers->the_post();
+                  $broker_id = get_the_ID();
+                  $broker_name = get_the_title();
+                  echo '<option value="' . $broker_name . '" data-uid="' . $broker_id . '" data-agent_name="' . $broker_name . '"  >' . $broker_name . ' </option>';
+                }
+                echo '</select>';
+                wp_reset_postdata();
+              } else {
+                // No brokers found
+                echo '<p>No brokers found.</p>';
+              } */
               ?>
               </div>
 
@@ -1221,6 +1340,7 @@ if($meta_key=='_gsheet_use') {
             </div>
 
             <div id="sale_lease">
+            <!-- For Price -->
             <div>
                 <div class="slider-box" id="for_sale">
                   <label for="priceRange">Price :</label>
@@ -1249,7 +1369,7 @@ if($meta_key=='_gsheet_use') {
                 </div>
               </div>
             </div>
-
+            <!-- For size -->
             <div>
               <div class="slider-box">
                 <label for="priceRange">Size:</label>
@@ -1398,9 +1518,12 @@ if($meta_key=='_gsheet_use') {
           <div id="tristate-map" style="height:600px; width:100%;position:relative;display:block;"></div>
         </div>
         <div id="search_count_area">
-          <div class="MuiFormControl-root MuiTextField-root css-i44wyl">
-            <input aria-invalid="false" id="tristate-input" placeholder="search by keyword" type="text" class="MuiInputBase-input MuiOutlinedInput-input css-1x5jdmq">
+        <div class="search-by-text MuiFormControl-root MuiTextField-root css-i44wyl">
+            <input class="MuiInputBase-input MuiOutlinedInput-input css-1x5jdmq" aria-invalid="false" id="search-by-text" placeholder="search by keyword" type="text">
           </div>
+          <!-- <div class="MuiFormControl-root MuiTextField-root css-i44wyl">
+            <input aria-invalid="false" id="tristate-input" placeholder="search by keyword old" type="text" class="MuiInputBase-input MuiOutlinedInput-input css-1x5jdmq">
+          </div> -->
           <div class="column-select-result-count">
       <div id="tristate-result-count" data-count="<?php echo __total(); ?>">
             <?php echo 'Showing ' . $default_found_results . ' of ' .$default_found_results . ' Listing' ?>
@@ -1417,9 +1540,9 @@ if($meta_key=='_gsheet_use') {
 
         </div>
 
-        <div class="search-by-text">
+     <!--    <div class="search-by-text">
             <input aria-invalid="false" id="search-by-text" placeholder="search by text" type="text">
-          </div>
+          </div> -->
 
         <div class="post-output"></div>
 
@@ -1467,7 +1590,7 @@ if($meta_key=='_gsheet_use') {
         }
         var checkClear = jQuery("#" + input.id).attr("data-clear");
        
-        if (checkClear == "0" ) {
+        if (checkClear == "0"  && true === false) {
           $.ajax({
             url: '<?php echo admin_url('admin-ajax.php'); ?>',
             type: 'POST',

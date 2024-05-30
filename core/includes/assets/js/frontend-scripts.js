@@ -81,6 +81,54 @@ jQuery(document).ready(function($){
         $("#size-range-max").val(maxs.toLocaleString() + ' SF');
       }
 });
+
+  
+  $(document).on('keyup','#search-by-text' , function(){
+      
+    var priceArray =[] , pricesfArray=[] , minsizeArray=[] , maxsizeArray= [] ;
+    $('.propertylisting-content').each(function() {
+        if ($(this).css('display') === 'block') {
+            var price = $(this).data('price'),
+            pricesf = $(this).data('pricesf'),
+            minsize = $(this).data('minsize'),
+            maxsize = $(this).data('maxsize');
+           
+            if(price){
+              priceArray.push(price);
+            }
+            if(pricesf){
+              pricesfArray.push(pricesf);
+            }
+            if(minsize ){
+              minsizeArray.push(minsize);
+            }
+            
+            if(maxsize){
+              maxsizeArray.push(maxsize);
+            }
+         
+        }
+    });
+
+    var maxPrice = ((max = priceArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range" ).data('max')),
+    maxPriceSf =  ((max = pricesfArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range3" ).data('max')),
+    minSize  = ((max = minsizeArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : 5),
+    maxSize  = ((max = maxsizeArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range2" ).data('max'));
+   //price
+    $( "#price-range" ).slider( "option", "max", maxPrice );
+    $('#price-range-max').val('$' + maxPrice.toLocaleString());
+  // rent 
+    $( "#price-range3" ).slider( "option", "max", maxPriceSf );
+    $('#rent-range-max').val('$' + maxPriceSf.toLocaleString());
+    
+    // size
+    $( "#price-range2" ).slider( "option", "max", maxSize );
+    $('#size-range-max').val( maxSize.toLocaleString() + 'SF');
+    
+    
+  });
+  
+
  
 });
    

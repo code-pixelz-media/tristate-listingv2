@@ -156,8 +156,21 @@ $trimmed_desc = wp_trim_words($desc, 10, '...&nbsp<span class="desc-more">More</
 $lat = get_post_meta($ID, '_buildout_latitude', true);
 $long = get_post_meta($ID, '_buildout_longitude', true);
 
- $m_d = tristate_get_marker_data($ID);
+$m_d = tristate_get_marker_data($ID);
 $json_data = json_encode($m_d);
+
+$_price_sf   = meta_of_api_sheet($ID, 'price_sf');
+$_price_sf_fm= preg_replace('/\$?(\d+)\.\d{2}/', '$1', $_price_sf);
+
+
+
+
+$bo_price    = meta_of_api_sheet($ID, 'sale_price_dollars');
+
+$min_size       = get_post_meta($ID, '_gsheet_min_size_fm',true);
+$max_size       = get_post_meta($ID, '_gsheet__max_size_fm',true);
+
+
 ?>
 
 <div 
@@ -167,11 +180,15 @@ $json_data = json_encode($m_d);
     data-lng="<?php echo $long; ?>"  
     data-id="<?php echo $buildout_id;?>"
     data-json = "<?php echo htmlspecialchars($json_data, ENT_QUOTES, 'UTF-8');?>" 
-    data-price="<?php echo ""; ?>"
-    data-rent=""
-    data-size=""
+    data-price="<?php echo esc_attr(!empty($bo_price) ? $bo_price : '0'); ?>"
+    data-pricesf="<?php echo esc_attr(!empty($_price_sf_fm) ? $_price_sf_fm : '0'); ?>"
+    data-minsize="<?php echo esc_attr(!empty($min_size) ? $min_size : '0');?>"
+    data-maxsize="<?php  echo esc_attr(!empty($max_size) ? $max_size : '0');?>"
+
 >
-<input type="hidden" name="get_properties_id" id="get_properties_id"  value="<?php echo $ID; ?>">
+<input type="hidden" name="get_properties_id" id="get_properties_id"  value="<?php echo $ID; ?>"
+   
+>
     <div class="plc-top">
         <h2><?php echo esc_html(get_the_title()); ?></h2>
         <h4><?php echo $subtitle; ?></h4>

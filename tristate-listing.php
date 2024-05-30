@@ -137,7 +137,7 @@ function tristate_cr_single_scripts()
     wp_enqueue_style('select2js-style', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', array(), '1.0.0');
 
     if (!is_single()) {
-        wp_enqueue_script('traistate-google-map', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/css/tristate-google-map.js', array(), time(), true);
+        wp_enqueue_script('traistate-google-map', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/css/tristate-google-map.js', array('jquery'), time(), true);
         wp_enqueue_script('traistate-google-map-api', 'https://maps.googleapis.com/maps/api/js?key=' . $get_google_map_api_key . '&libraries=geometry&callback=initMap', array(), '1.0.0', true);
         
     }
