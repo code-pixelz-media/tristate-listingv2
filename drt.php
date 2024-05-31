@@ -42,16 +42,6 @@ function drt_restrict_page_access()
 function get_property_broker_title($property_id) {
 
   $broker_id = get_post_meta($property_id, '_buildout_broker_id', true);
-  if(!empty($broker_id)){
-    
-    global $wpdb;
-    
-    
-  }
-
-
-
-
 
   // Step 3: Use WP_Query to find the broker post with the user_id meta key
   $args = array(
@@ -59,7 +49,7 @@ function get_property_broker_title($property_id) {
       'meta_query' => array(
           array(
               'key' => 'user_id',
-              'value' => $user_id,
+              'value' => $broker_id,
               'compare' => '='
           )
       ),
@@ -160,7 +150,7 @@ function tristate_get_marker_data($ID){
 }
 
 
-function get_rent_minmax($type="min", $formatted=true) {
+function get_pricesf_minmax($type="min", $formatted=true) {
   global $wpdb;
   
   $max_rent= $wpdb->get_var("
@@ -368,145 +358,242 @@ function drt_shortcode($atts)
 
     jQuery(document).ready(function($) {
 
-      $('#_gsheet_listing_type input[type="checkbox"]').trigger('click');
-
-
-
-$('#tri_agents').on('change', function() {
-    filterListings1();
-    $('#search-by-text').trigger('keyup');
-    // alert('Hellow');
-});
-
-function filterListings1() {
-    var selectedAgents = $('#tri_agents').val();
-    // Trim each agent name in the selectedAgents array
-    selectedAgents = selectedAgents.map(agent => agent.trim());
-//    console.log("Selected Agents: ", selectedAgents); // Debugging
-
-    var totalListings = $('.propertylisting-content').length;
-    var displayedListings = 0;
-
-    $('.propertylisting-content').each(function() {
-        var listingContent = $(this).text().trim();
-        //console.log("Listing Content: ", listingContent); // Debugging
-
-        var matchFound = selectedAgents.some(agent => listingContent.includes(agent));
-        
-        if (selectedAgents.length === 0 || matchFound) {
-            $(this).show();
-            displayedListings++;
-        } else {
-            $(this).hide();
-        }
+    $('#_gsheet_listing_type input[type="checkbox"]').trigger('click');
+    
+    $("#price-range").slider({
+    range: true,
+    min: $("#price-range").data('min'),//get min val
+    max: $("#price-range").data('max'),//get max val  
+    values: [$("#price-range").data('min'), $("#price-range").data('max')],//postion slider val
+    step: 1,
+    slide: function (event, ui) {
+      $("#priceRange").val("$" + ui.values[0] + " - $" + ui.values[1]);
+      $("#price-range-min").val('$'+ui.values[0].toLocaleString());
+      $("#price-range-max").val('$'+ui.values[1].toLocaleString());
+       
+    },
+    change: function (event, ui) {
+      $("#price-range-selected").val(ui.values[0] + "-" + ui.values[1]);
+   
+    },
     });
 
-    updateResultCount1(displayedListings, totalListings);
-}
 
-function updateResultCount1(displayed, total) {
-    $('#tristate-result-count').text('Showing ' + displayed + ' of ' + total + ' Listing');
-}
-
-filterListings1();
-
-/* for sale/lease */
-function saleLeaseFilter() {
+/* agent,lisiting type and search box start */
+      function combinedFilter() {
     var filters = {
         sale: $('#type_for_sale').is(':checked'),
         lease: $('#type_for_lease').is(':checked')
     };
+    
+    
 
-    var totalListings = $('.propertylisting-content').length;
+    var searchQuery = $('#search-by-text').val().toLowerCase();
+    var selectedAgents = $('#tri_agents').val();
+    selectedAgents = selectedAgents ? selectedAgents.map(agent => agent.trim().toLowerCase()) : [];
+    // var minMaxPrice = { maXi : parseFloat($('#price-range-max').val())  , miNi : parseFloat($("#price-range-min").val()) },
+    //     minMaxPriceSf = { maXi : parseFloat($('#rent-range-max').val())  , miNi : parseFloat($("#rent-range-min").val()) },
+    //     minMaxSize = { maXi : parseFloat($('#size-range-max').val())  , miNi : parseFloat($("#size-range-min").val()) };
+    //var totalListings = $('.propertylisting-content').length;
+    var totalListings = $('#total_listings').val();
     var displayedListings = 0;
+    var priceRange = $('#price-range-selected').val().split('-').map(Number);
+    console.log(priceRange);
+    var values = $("#price-range" ).slider( "option", "values" );
 
     $('.propertylisting-content').each(function() {
         var isForSale = $(this).find('li.btn-forsale span').text().trim() === 'for Sale';
         var isForLease = $(this).find('li.btn-forlease span').text().trim() === 'for Lease';
+        var listingText = $(this).text().toLowerCase();
+        var textMatch = listingText.includes(searchQuery);
+        var agentMatch = selectedAgents.length === 0 || selectedAgents.some(agent => listingText.includes(agent));
+        var price   = parseFloat($(this).data('price'));
+        var isBetweenMaxMinPrice = (price >= priceRange[0]) && (price <= priceRange[1]);
 
-        // Check if either filter is active and matches the listing type, or if no filters are active and all should be hidden
-        if ((filters.sale && isForSale) || (filters.lease && isForLease)) {
-            $(this).show();
+        // Check if the listing matches the sale/lease filters, search query, and agent selection(ravi backup)
+        if (((filters.sale && isForSale) || (filters.lease && isForLease)) && textMatch && agentMatch) {
+            $(this).css('display','block');
             displayedListings++;
         } else {
-            $(this).hide();
+          $(this).css('display','none');
         }
+        // // new code filtering priceRange
+        // if (((filters.sale && isForSale) || (filters.lease && isForLease)) && textMatch && agentMatch || isBetweenMaxMinPrice) {
+        //     $(this).css('display', 'block');
+        //     displayedListings++;
+        // } else {
+        //     $(this).css('display', 'none');
+        // }
     });
+    
+    // $('#search-by-text').trigger('keyup');
+  // Add class to property-filter based on the number of displayed listings
+  var propertyFilter = $('.property-filter');
+console.log(displayedListings);
+$('#save_map_layer').text('SAVE ' + displayedListings + ' RESULTS TO A NEW MAP LAYER');
+    if (displayedListings === 1) {
+      propertyFilter.removeClass('column-one column-two'); // Remove previous classes
+        propertyFilter.addClass('column-one');
+    } else if (displayedListings === 2) {
+      propertyFilter.removeClass('column-one column-two'); // Remove previous classes
+        propertyFilter.addClass('column-two');
+    }
+    else if (displayedListings > 2) {
+      propertyFilter.removeClass('column-one column-two column-three'); // Remove previous classes
+        var selectedOption = $('#selectcolumn').val();
+        console.log("selectedOption: "+selectedOption);
+        var selectedOptionClass = 'column-three';
+        
+        if (selectedOption == 1) {
+            selectedOptionClass = 'column-one';
+        } else if (selectedOption == 2) {
+            selectedOptionClass = 'column-two';
+        } else if (selectedOption == 3) {
+            selectedOptionClass = 'column-three';
+        }
+
+        propertyFilter.addClass(selectedOptionClass);
+    }
 
     // Update result count with the number of displayed listings
     $('#tristate-result-count').text('Showing ' + displayedListings + ' of ' + totalListings + ' Listings');
-
+  
 }
 
-// Event listeners for checkboxes
-//$('#type_for_sale, #type_for_lease').on('change', saleLeaseFilter);
-
+//Event listeners for checkboxes and search input
 $('#type_for_sale, #type_for_lease').on('change', function() {
-  saleLeaseFilter();
-    $('#search-by-text').trigger('keyup');
-    // alert('Hellow');
+  $('#search-by-text').trigger('keyup');
+  combinedFilter();
+  
 });
 
-// Initial filter update
-saleLeaseFilter();
-/* end for sale/lease */
-
-
-            // search by tying startr
-/*       document.getElementById('search-by-text').addEventListener('input', function() {
-    var query = this.value.toLowerCase();
-    var listings = document.querySelectorAll('.propertylisting-content');
-
-    listings.forEach(function(listing) {
-        var text = listing.innerText.toLowerCase();
-        if (text.includes(query)) {
-            listing.style.display = '';
-        } else {
-            listing.style.display = 'none';
+// Event listener for search input
+$('#search-by-text').on('keyup', function() {
+    combinedFilter();
+      var priceArray =[] , pricesfArray=[] , minsizeArray=[] , maxsizeArray= [] ;
+    $('.propertylisting-content').each(function() {
+  
+        if ($(this).css('display') === 'block') {
+            var price = $(this).data('price'),
+            pricesf = $(this).data('pricesf'),
+            minsize = $(this).data('minsize'),
+            maxsize = $(this).data('maxsize');
+           
+            if(price){
+              priceArray.push(price);
+            }
+            if(pricesf){
+              pricesfArray.push(pricesf);
+            }
+            if(minsize ){
+              minsizeArray.push(minsize);
+            }
+            if(maxsize){
+              maxsizeArray.push(maxsize);
+            }
+         
         }
     });
-}); */
+    
+    var maxPrice = ((max = priceArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range" ).data('max')),
+    maxPriceSf =  ((max = pricesfArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range3" ).data('max')),
+    minSize  = ((max = minsizeArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : 5),
+    maxSize  = ((max = maxsizeArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range2" ).data('max'));
+    $( "#price-range" ).slider( "option", "values", [ 0, maxPrice ] );
+    $("#price-range-max").val('$' + maxPrice.toLocaleString());
 
-    const searchInput = document.getElementById('search-by-text');
-    const propertyContent = document.getElementById('propertylisting-content');
-    const resultCount = document.getElementById('tristate-result-count');
+});
 
-    // Function to update result count
-    function updateResultCount(count, total) {
-        resultCount.innerHTML = `Showing ${count} of ${total} Listing`;
-    }
+// Event listener for agent selection
+$('#tri_agents').on('change', function() {
+    $('#search-by-text').trigger('keyup');
+    combinedFilter();
+    
+});
 
-    // Function to filter property listings
-    function filterListings() {
-        const query = searchInput.value.toLowerCase();
-        const listings = propertyContent.getElementsByClassName('propertylisting-content');
-        let matchedCount = 0;
 
-        for (let listing of listings) {
-            const text = listing.innerText.toLowerCase();
-            if (text.includes(query)) {
-                listing.style.display = 'block';
-                matchedCount++;
-            } else {
-                listing.style.display = 'none';
+function getListings(){
+
+  var priceArray =[] , pricesfArray=[] , minsizeArray=[] , maxsizeArray= [] ;
+    $('.propertylisting-content').each(function() {
+  
+        if ($(this).css('display') === 'block') {
+            var price = $(this).data('price'),
+            pricesf = $(this).data('pricesf'),
+            minsize = $(this).data('minsize'),
+            maxsize = $(this).data('maxsize');
+           
+            if(price){
+              priceArray.push(price);
             }
+            if(pricesf){
+              pricesfArray.push(pricesf);
+            }
+            if(minsize ){
+              minsizeArray.push(minsize);
+            }
+            if(maxsize){
+              maxsizeArray.push(maxsize);
+            }
+         
         }
+    });
+    
+    
+}
 
-        updateResultCount(matchedCount, listings.length);
-    }
+// $('#search-by-text').on('keyup', function(){
 
-    // Event listener for search input
-    searchInput.addEventListener('input', filterListings);
+//   var priceArray =[] , pricesfArray=[] , minsizeArray=[] , maxsizeArray= [] ;
+//     $('.propertylisting-content').each(function() {
+  
+//         if ($(this).css('display') === 'block') {
+//             var price = $(this).data('price'),
+//             pricesf = $(this).data('pricesf'),
+//             minsize = $(this).data('minsize'),
+//             maxsize = $(this).data('maxsize');
+           
+//             if(price){
+//               priceArray.push(price);
+//             }
+//             if(pricesf){
+//               pricesfArray.push(pricesf);
+//             }
+//             if(minsize ){
+//               minsizeArray.push(minsize);
+//             }
+//             if(maxsize){
+//               maxsizeArray.push(maxsize);
+//             }
+         
+//         }
+//     });
+    
+//     var maxPrice = ((max = priceArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range" ).data('max')),
+//     maxPriceSf =  ((max = pricesfArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range3" ).data('max')),
+//     minSize  = ((max = minsizeArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : 5),
+//     maxSize  = ((max = maxsizeArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range2" ).data('max'));
+//     $( "#price-range" ).slider( "option", "values", [ 0, maxPrice ] );
+//     $("#price-range-max").val('$' + maxPrice.toLocaleString());
+// });
 
-    // Initially display all listings and set the result count
-    filterListings();
-      // search by typing end
+
+/* 
+$('#type_for_sale, #type_for_lease, #search-by-text, #tri_agents, #selectcolumn').on('change', function () {
+  $('#tristate-result-count').text('Showing ' + displayedListings + ' of ' + totalListings + ' Listings');
+        combinedFilter();
+    }); */
+
+combinedFilter();
+
+/* agent,lisiting type and search box end */
+
 
 
       $('#filter-clear11').on('click', function() {
         //    alert('hello test');
         //$('#tristate-input').val("");
-        $('#_gsheet_use, #tri_agents, #_gsheet_neighborhood, #_gsheet_zip,#_buildout_city, #_gsheet_state, #_gsheet_vented,#price-range2,#price-range,#price-range3').val(null).trigger('change');
+        $('#_gsheet_use, #tri_agents, #_gsheet_neighborhood,#search-by-text, #_gsheet_zip,#_buildout_city, #_gsheet_state, #_gsheet_vented,#price-range2,#price-range,#price-range3').val(null).trigger('change');
         // Reset Select2 select by ID ('tri_agents')
         //$('#tri_agents,#_gsheet_use').val(null).trigger('change');
         $('#_gsheet_listing_type input[type="checkbox"]').prop('checked', true);
@@ -528,28 +615,25 @@ saleLeaseFilter();
         rangeHiddenFields.attr("data-clear", "1");
         
         
+        // price
+        $("#price-range" ).slider( "option", "max",  $("#price-range").data('max') );
+        $("#price-range" ).slider( "option", "min",  $("#price-range").data('min') );
+        $("#price-range").slider("values", [$("#price-range").data('min'), $("#price-range").data('max')]);
         
-        $("#price-range" ).slider( "option", "max",  jQuery("#price-range").data('max') );
-        $("#price-range" ).slider( "option", "min",  jQuery("#price-range").data('min') );
-        $("#price-range").slider("values", [jQuery("#price-range").data('min'), jQuery("#price-range").data('max')]);
+        // rent 
+        $("#price-range3" ).slider( "option", "max",  $("#price-range3").data('max') );
+        $("#price-range3" ).slider( "option", "min",  $("#price-range3").data('min') );
+        $("#price-range3").slider("values", [$("#price-range3").data('min'), $("#price-range3").data('max')]);
         
-        console.log(jQuery("#price-range").data('min'));
-       console.log(jQuery("#price-range").data('max'));
-        // //  $("#priceRange").val("$0 - $4000000");
-        // $("#price-range2").slider("values", [jQuery("#price-range2").data('min'), jQuery("#price-range2").data('max')]);
-        // $("#price-range2" ).slider( "option", "max",  jQuery("#price-range2").data('max') );
-        // $("#price-range2" ).slider( "option", "min",  jQuery("#price-range2").data('min') );
-        // // $("#priceRange2").val("0 SF to 25000 SF");
-        // $("#price-range3").slider("values", [jQuery("#price-range3").data('min'), jQuery("#price-range3").data('max')]);
-        // $("#prie-range3" ).slider( "option", "max",  jQuery("#prie-range3").data('max') );
-        // $("#prie-range3" ).slider( "option", "min",  jQuery("#prie-range3").data('min') );
-        // $("#priceRange3").val("$0 - $200000");
-        // $(".range-inputs").each(function() {
-        //   $(this).val($(this).data("default"));
-        // });
-        $('#price-range-selected,#rent-range-selected,#size-range-selected').val("");
-
-
+        // size
+        $("#price-range2" ).slider( "option", "max",  $("#price-range2").data('max') );
+        $("#price-range2" ).slider( "option", "min",  $("#price-range2").data('min') );
+        $("#price-range2").slider("values", [$("#price-range2").data('min'), $("#price-range2").data('max')]);
+        
+        // resetting inputs
+        $('.range-inputs').each(function(){
+            $(this).val($(this).attr('data-default'));
+        });
         // Perform any additional actions if needed
         var data = {
           action: 'live_search',
@@ -564,9 +648,9 @@ saleLeaseFilter();
         }
         
         // Set the handle positions for the sliders
-        $('#price-range .ui-slider-handle, #price-range2 .ui-slider-handle, #price-range3 .ui-slider-handle').each(function() {
-          $(this).css('left', '0%'); // Adjust this percentage as needed
-        });
+        // $('#price-range .ui-slider-handle, #price-range2 .ui-slider-handle, #price-range3 .ui-slider-handle').each(function() {
+        //   $(this).css('left', '0%'); // Adjust this percentage as needed
+        // });
       });
 
 
@@ -1053,6 +1137,7 @@ saleLeaseFilter();
 
       jQuery("#submit_map_layer").on("click", function(e) {
         e.preventDefault();
+      
         var search_id = $('#previous_map_post_id').val();
         var user_id = $('#map_layer_user_id').val();
         var timestamp = $('#map_layer_timestamp').val();
@@ -1061,8 +1146,11 @@ saleLeaseFilter();
         var viewSearch = $('#layers-link-button');
         var get_filter_poist_id = [];
         $('input[name="get_properties_id"]').each(function() {
-          var value = $(this).val();
-          get_filter_poist_id.push(value);
+          var parent = $(this).parent('.propertylisting-content');
+          if (parent.css('display') === 'block') {
+              var value = $(this).val();
+              get_filter_poist_id.push(value);
+          }
         });
 
         var final_listing_ids = get_filter_poist_id.join();
@@ -1206,6 +1294,7 @@ if($meta_key=='_gsheet_use') {
 
             </style>
             <div>
+            <input type="hidden" value="<?php  echo  __total();?>" id="total_listings">
               <label>Agents</label>
               <!--   <select id="tri_agents" class="js-example-basic-multiple" name="agents[]" multiple="multiple">
               </select> -->
@@ -1271,6 +1360,8 @@ if($meta_key=='_gsheet_use') {
               </div>
 
             </div>
+
+        
 
             <div class="drt-uses" id="filter-dropdown">
               <label>Uses</label>
@@ -1340,7 +1431,6 @@ if($meta_key=='_gsheet_use') {
             </div>
 
             <div id="sale_lease">
-            <!-- For Price -->
             <div>
                 <div class="slider-box" id="for_sale">
                   <label for="priceRange">Price :</label>
@@ -1350,7 +1440,7 @@ if($meta_key=='_gsheet_use') {
                     <input type="text" class="range-inputs" id="price-range-max" data-default="<?php echo get_price_minmax('max');?>" name="price_range_max" value="<?php echo get_price_minmax('max'); ?>">
                   </div>
                   <div id="price-range" class="slider" data-min="<?php echo get_price_minmax('min',false) ?>" data-max="<?php echo get_price_minmax('max',false); ?>"></div>
-                  <input type="hidden" name="price-range" data-live="0" data-clear="0" id="price-range-selected" onchange="rangeChanged(this)">
+                  <input type="hidden" name="price-range" data-live="0" data-clear="0" id="price-range-selected">
                 </div>
 
               </div>
@@ -1361,15 +1451,15 @@ if($meta_key=='_gsheet_use') {
                   <label for="priceRange">Price per SF:</label>
                   <input style="display:none" type="text" id="priceRange3" readonly>
                   <div class="range-min-max">
-                    <input type="text" class="range-inputs" id="rent-range-min"data-default="<?php echo get_rent_minmax(); ?>" name="price_range_min" value="<?php echo get_rent_minmax(); ?>">
-                    <input type="text" class="range-inputs" id="rent-range-max" data-default="<?php echo get_rent_minmax('max');?>" name="price_range_max" value="<?php echo get_rent_minmax('max'); ?>">
+                    <input type="text" class="range-inputs" id="rent-range-min"data-default="<?php echo get_pricesf_minmax(); ?>" name="price_range_min" value="<?php echo get_pricesf_minmax(); ?>">
+                    <input type="text" class="range-inputs" id="rent-range-max" data-default="<?php echo get_pricesf_minmax('max');?>" name="price_range_max" value="<?php echo get_pricesf_minmax('max'); ?>">
                   </div>
-                  <div id="price-range3" class="slider" data-min="<?php echo get_rent_minmax('min',false) ?>" data-max="<?php echo get_rent_minmax('max',false); ?>"></div>
-                  <input type="hidden" name="rent-range" data-clear="0" id="rent-range-selected" onchange="rangeChanged(this)">
+                  <div id="price-range3" class="slider" data-min="<?php echo get_pricesf_minmax('min',false) ?>" data-max="<?php echo get_pricesf_minmax('max',false); ?>"></div>
+                  <input type="hidden" name="rent-range" data-clear="0" id="rent-range-selected">
                 </div>
               </div>
             </div>
-            <!-- For size -->
+
             <div>
               <div class="slider-box">
                 <label for="priceRange">Size:</label>
@@ -1380,7 +1470,7 @@ if($meta_key=='_gsheet_use') {
                   <input type="text" class="range-inputs" id="size-range-max"  data-default="<?php echo get_size_minmax('max');?>" name="price_range_max" value="<?php echo get_size_minmax('max'); ?>">
                 </div>
                 <div id="price-range2" class="slider" data-min="<?php echo get_size_minmax('min',false) ?>" data-max="<?php echo get_size_minmax('max',false); ?>"></div>
-                <input type="hidden" name="size-range" id="size-range-selected" data-live="0" data-clear="0" onchange="rangeChanged(this)">
+                <input type="hidden" name="size-range" id="size-range-selected" data-live="0" data-clear="0">
               </div>
             </div>
 
@@ -1526,7 +1616,7 @@ if($meta_key=='_gsheet_use') {
           </div> -->
           <div class="column-select-result-count">
       <div id="tristate-result-count" data-count="<?php echo __total(); ?>">
-            <?php echo 'Showing ' . $default_found_results . ' of ' .$default_found_results . ' Listing' ?>
+            <?php //echo 'Showing ' . $default_found_results . ' of ' .$default_found_results . ' Listing' ?>
           
           </div>
       <div class="tristate-column-select">
@@ -1590,7 +1680,7 @@ if($meta_key=='_gsheet_use') {
         }
         var checkClear = jQuery("#" + input.id).attr("data-clear");
        
-        if (checkClear == "0"  && true === false) {
+        if (checkClear == "0" ) {
           $.ajax({
             url: '<?php echo admin_url('admin-ajax.php'); ?>',
             type: 'POST',
@@ -1904,7 +1994,7 @@ if (!empty($brokerIds)) {
     $trimmed_range = array_map('trim', $range);
     $crs = 'price-range3';
 
-    if ($trimmed_range[0] == "0" &&  $trimmed_range[1] == get_rent_minmax('max', false)) {
+    if ($trimmed_range[0] == "0" &&  $trimmed_range[1] == get_pricesf_minmax('max', false)) {
     } else {
       $args['meta_query'][] = array(
         'relation' => 'AND',
