@@ -1506,6 +1506,10 @@ if($meta_key=='_gsheet_use') {
         <div class="search-by-text MuiFormControl-root MuiTextField-root css-i44wyl">
             <input class="MuiInputBase-input MuiOutlinedInput-input css-1x5jdmq" aria-invalid="false" id="search-by-text" placeholder="search by keyword" type="text">
           </div>
+
+          <div class="search-by-text-new MuiFormControl-root MuiTextField-root css-i44wyl">
+            <input class="MuiInputBase-input MuiOutlinedInput-input css-1x5jdmq" aria-invalid="false" id="search-by-text-new" placeholder="search by keyword" type="text">
+          </div>
           <!-- <div class="MuiFormControl-root MuiTextField-root css-i44wyl">
             <input aria-invalid="false" id="tristate-input" placeholder="search by keyword old" type="text" class="MuiInputBase-input MuiOutlinedInput-input css-1x5jdmq">
           </div> -->
@@ -1578,6 +1582,8 @@ $(document).ready(function() {
     var states = new Set();
     var vented = new Set();
 
+      
+
     $(".propertylisting-content").each(function() {
         agents.add($(this).find("#tri_listing_agent").text().trim());
         uses.add($(this).find(".tri_use").text().trim());
@@ -1624,12 +1630,12 @@ $(document).ready(function() {
             data: options,
             placeholder: ''
         }).on('change', function() {
-            filterListings();
+            filterListings(key);
         });
     });
 
-    // Function to filter listings based on selected options
-    function filterListings() {
+    // Function to filter listings based on selected options and keyword
+    function filterListings(changedSelect) {
         var selectedAgents = $('#select2_agents').val() || [];
         var selectedUses = $('#select2_uses').val() || [];
         var selectedNeighborhoods = $('#select2_neighborhoods').val() || [];
@@ -1637,6 +1643,7 @@ $(document).ready(function() {
         var selectedCities = $('#select2_cities').val() || [];
         var selectedStates = $('#select2_states').val() || [];
         var selectedVented = $('#select2_vented').val() || [];
+        var keyword = $('#search-by-text-new').val().toLowerCase();
 
         var displayedListings = 0;
 
@@ -1672,6 +1679,10 @@ $(document).ready(function() {
                 showListing = false;
             }
 
+            if (keyword && !$listing.text().toLowerCase().includes(keyword)) {
+                showListing = false;
+            }
+
             if (showListing) {
                 $listing.show();
                 displayedListings++;
@@ -1683,11 +1694,67 @@ $(document).ready(function() {
         // Update displayed listings count
         var totalListings = $(".propertylisting-content").length;
         $('#tristate-result-count').text('Showing ' + displayedListings + ' of ' + totalListings + ' Listings');
+
+        // Update select2 options based on current filters
+        updateSelect2Options(changedSelect);
+    }
+
+    function updateSelect2Options(changedSelect) {
+        var selectedAgents = $('#select2_agents').val() || [];
+        var selectedUses = $('#select2_uses').val() || [];
+        var selectedNeighborhoods = $('#select2_neighborhoods').val() || [];
+        var selectedZipcodes = $('#select2_zipcodes').val() || [];
+        var selectedCities = $('#select2_cities').val() || [];
+        var selectedStates = $('#select2_states').val() || [];
+        var selectedVented = $('#select2_vented').val() || [];
+
+        var filterValues = {
+            agents: new Set(),
+            uses: new Set(),
+            neighborhoods: new Set(),
+            zipcodes: new Set(),
+            cities: new Set(),
+            states: new Set(),
+            vented: new Set()
+        };
+
+        $(".propertylisting-content:visible").each(function() {
+            filterValues.agents.add($(this).find("#tri_listing_agent").text().trim());
+            filterValues.uses.add($(this).find(".tri_use").text().trim());
+            filterValues.neighborhoods.add($(this).find("#tri_neighborhood").text().trim());
+            filterValues.zipcodes.add($(this).find("#tri_zip_code").text().trim());
+            filterValues.cities.add($(this).find("#tri_city").text().trim());
+            filterValues.states.add($(this).find("#tri_state").text().trim());
+            filterValues.vented.add($(this).find("#tri_vented").text().trim());
+        });
+
+        $.each(filterValues, function(key, values) {
+            if (key !== changedSelect) {
+                var select = $('#select2_' + key);
+                var options = select.find('option');
+                options.each(function() {
+                    if (values.has($(this).val()) || $(this).val() === '') {
+                        $(this).prop('disabled', false);
+                    } else {
+                        $(this).prop('disabled', true);
+                    }
+                });
+                select.trigger('change.select2');
+            }
+        });
     }
 
     // Initially filter listings based on selected options
     filterListings();
+
+    // Attach keyup event to search box to filter listings on input
+    $('#search-by-text-new').on('keyup', function() {
+        filterListings();
+    });
 });
+
+
+
 
 
 
