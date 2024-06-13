@@ -140,40 +140,72 @@ $doc_name = $_buildout_documents[0]->name;
         <div id="tcr_tab1" class="tcr_tab_content">
           <div class="tcr_tab_wrapper tristate_cr_d-flex">
             <div class="tristate_cr_col_8">
-              <?php
-              if ($property_img_gallerys) {
-              ?>
 
-                <div class="gallery">
-                  <div class="swiper-container gallery-slider">
-                    <div class="swiper-wrapper">
-                      <?php
-                      foreach ($property_img_gallerys as $key => $property_img_gallery) {
-                       
-                        
-                        echo '<div class="swiper-slide"><img src="' . $property_img_gallery->url . '" alt="" width="792px"></div>';
-                      }
-                      ?>
+  <?php
+if ($property_img_gallerys) {
+?>
+    <swiper-container style="--swiper-navigation-color: #1a76d2; --swiper-pagination-color:#1a76d2" class="mySwiper" thumbs-swiper=".mySwiper2" loop="true" space-between="10" navigation="true">
+       
+            <?php
+            foreach ($property_img_gallerys as $key => $property_img_gallery) {
+                echo '<swiper-slide><img src="' . $property_img_gallery->url . '" alt="" width="792px"></swiper-slide>';
+            }
+            ?>
+       
+     
+    </swiper-container>
 
-                    </div>
-                    <div class="swiper-container gallery-thumbs">
-                      <div class="swiper-wrapper">
-                        <?php
+    <swiper-container class="mySwiper2" loop="true" space-between="10" slides-per-view="4" free-mode="true" watch-slides-progress="true">
+        
+            <?php
+            foreach ($property_img_gallerys as $key => $property_img_gallery) {
+                echo '<swiper-slide><img src="' . $property_img_gallery->url . '" alt=""></swiper-slide>';
+            }
+            ?>
+       
+    </swiper-container>
+<?php
+}
+?>
 
-                        //var_dump($property_img_gallerys);
-                        foreach ($property_img_gallerys as $key => $property_img_gallery) {
-                          # code...
-                          echo '<div class="swiper-slide"><img src="' . $property_img_gallery->url . '" alt=""></div>';
-                        }
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-element-bundle.min.js"></script>
+<?php
+if ($property_img_gallerys=='test') {
+?>
+    <div class="gallery">
+        <!-- Main slider -->
+        <div class="swiper-container gallery-slider">
+            <div class="swiper-wrapper">
+                <?php
+                foreach ($property_img_gallerys as $key => $property_img_gallery) {
+                    echo '<div class="swiper-slide"><img src="' . $property_img_gallery->url . '" alt="" width="792px"></div>';
+                }
+                ?>
+            </div>
+            <div class="swiper-button-prev swiper-button-prev01"></div>
+            <div class="swiper-button-next swiper-button-next01"></div>
+        </div>
+        
+        <!-- Thumbnails slider -->
+        <div class="swiper-container gallery-thumbs">
+            <div class="swiper-wrapper">
+                <?php
+                foreach ($property_img_gallerys as $key => $property_img_gallery) {
+                    echo '<div class="swiper-slide"><img src="' . $property_img_gallery->url . '" alt=""></div>';
+                }
+                ?>
+            </div>
+        </div>
+    </div>
+<?php
+}
+?>
 
-                        ?>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="swiper-button-prev swiper-button-prev0"></div>
-                  <div class="swiper-button-next swiper-button-next0"></div>
-                </div>
-              <?php } ?>
+
+
+
+
+
 
 
               <div class="tcr_property_content">
@@ -542,6 +574,15 @@ $settings = get_option('tristate_cr_settings');
 $get_google_map_api_key = $settings['google_maps_api_key'];
 ?>
 <script>
+
+
+
+
+
+
+
+
+
   (g => {
     var h, a, k, p = "The Google Maps JavaScript API",
       c = "google",
@@ -573,6 +614,12 @@ $get_google_map_api_key = $settings['google_maps_api_key'];
 </script>
 
 <script>
+
+
+
+
+
+
   function createMap(div, lat, lng) {
     let map;
 

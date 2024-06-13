@@ -211,9 +211,11 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
     np_log($message);
     $filenames = array(
         // https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/edit#gid=0
-        'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0',
+        //'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0',
         // https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/edit#gid=1067035268
-        'https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0',
+        //'https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0',
+       'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=ny',
+       'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=pa'
     );
     if (!in_array('csv', $skip))
         foreach ($filenames as $fn) {
@@ -295,6 +297,13 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                         if ($key == '_gsheet_min_size') {
                             $new_min_val = (float) preg_replace('/[^0-9.]/', '', $value);
                             update_post_meta($post_id, '_gsheet_min_size_fm',$new_min_val);
+                        }
+                        if ($key == '_gsheet_min_size') {
+                            $new_min_val = (float) preg_replace('/[^0-9.]/', '', $value);
+                            update_post_meta($post_id, '_gsheet_min_size_fm',$new_min_val);
+                        }
+                        if($key == '_gsheet_state'){
+                            update_post_meta($post_id, '_gsheet_state',strtoupper($value));
                         }
                         if ($key == '_gsheet_max_size') {
                             $new_max_val =    (float) preg_replace('/[^0-9.]/', '', $value);
@@ -686,22 +695,6 @@ function tristatecr_datasync_cron_function()
 
 /* ----------------------------------Broker stup code form api data----------------------- */
 
-
-/* insert broker name and Id to brokers CPT */
-
-// Check if user already exists as a broker
-/**
- * The function checks if a user exists as a broker based on their user ID in WordPress.
- * 
- * @param user_id The `user_id` parameter is the ID of the user you want to check if they exist as a
- * broker in the WordPress database. The function `user_exists_as_broker` takes this `user_id` as input
- * and queries the database to check if there is a broker post associated with this user
- * 
- * @return The function `user_exists_as_broker()` is checking if a user with the given
- * `` exists as a broker in the WordPress database. It does this by querying the 'brokers' post
- * type and checking if there is a post with the meta key 'user_id' matching the provided ``.
- * The function returns a boolean value - `true` if the user
- */
 function user_exists_as_broker($user_id)
 {
     $args = array(

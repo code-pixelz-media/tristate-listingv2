@@ -5,6 +5,7 @@
 
 <section id="container">
 
+
     <?php if (have_posts()) : the_post(); ?>
 
         <h1 class="page-title"><?php echo get_the_title(); ?></h1>
@@ -19,7 +20,7 @@
             $layers[] = $IDs = explode(',', $listing_layer);
         endforeach;
 
-        //var_dump($layers);
+       
         ?>
 
         <div class="layers">
@@ -34,8 +35,15 @@
 
     <?php endif; ?>
 
-    <?php if (current_user_can('edit_posts')) : ?>
-        <p><a class="button" href="<?php echo home_url('/drt/'); ?>/?search_id=<?php echo get_the_id(); ?>" target="_blank">Add layers to this search</a></p>
+    <?php if (current_user_can('edit_posts')) :
+      if(isset($_GET['redirectId']) && !empty($_GET['redirectId'])){
+        $redirect_page_link = get_the_permalink($_GET['redirectId']);
+        $new_link =  add_query_arg(['search_id'=>get_the_id()], $redirect_page_link);
+        }else{
+            $new_link= "#";
+        }
+    ?>
+        <p><a class="button" href="<?php echo $new_link; ?>" target="_blank">Add layers to this search</a></p>
     <?php endif; ?>
 
     <section id="content">
@@ -44,7 +52,7 @@
         <template id="listing-template">
             <div class="listing">
                 <div class="listing--title"></div>
-                <!-- <div class="listing--subtitle"></div> -->
+                <div class="listing--subtitle"></div>
                 <div class="listing--meta">
                     <span class="listing--type"></span>
                     <span class="listing--price"></span>
@@ -139,7 +147,13 @@
                     }
 
                     let listing = results[0];
-                    console.log(listing);
+                    
+                    var markerIcon = {
+                        url:listing._icon,
+                        scaledSize: new google.maps.Size(38, 38) 
+                      };
+                    
+                   
                     const marker = new google.maps.Marker({
                         position: {
                             lat: parseFloat(listing.lat),
@@ -147,9 +161,7 @@
                         },
                         map,
                         title: "google.maps.Marker:title",
-                        icon: {
-                            url: markerColorUrl,
-                        }
+                        icon: markerIcon
                     });
 
                     listingsMarkers[listingId] = marker;
@@ -158,21 +170,21 @@
 
                     let thumbImage = listing.image ? '<img src="' + listing.image + '" />' : '';
 
-                    let thirdHeading = [listing._type];
-                    if (listing._type.toLowerCase() === 'for sale') {
-                        thirdHeading.push(listing.price);
-                    }
-                    if (listing._type.toLowerCase() === 'for lease') {}
-                    thirdHeading = thirdHeading.filter(Boolean);
+                    let thirdHeading = listing._type_str;
+                    // console.log(thirdHeading);
+                    // if (listing._type_str.toLowerCase() === 'for sale') {
+                    //     thirdHeading.push(listing.price);
+                    // }
+                    // if (listing._type_str.toLowerCase() === 'for lease') {}
+                    // thirdHeading = thirdHeading.filter(Boolean);
 
                     const contentString =
-                        '<div id="content">' +
+                        '<div class="search-results-map" id="content">' +
                         '<div id="siteNotice">' + '</div>' +
                         '<h1 class="firstHeading">' + listing.title + '</h1>' +
                         '<h2 class="secondHeading">' + listing.subtitle + '</h2>' +
-                        '<h3 class="thirdHeading">' + thirdHeading.join(' | ') + '</h3>' +
                         '<hr/>' +
-                        '<div id="bodyContent">' +
+                        '<div id="bodyContent"><h3 class="thirdHeading">' + thirdHeading + '</h3>' +
                         thumbImage + "<div class='single-search'>" +
                         '<p>' + listing.summary + '</p>' +
                         '<p><a class="listing-more" href="' + listing.get_page_link + '" target="_blank">More Info</a></p>' +
@@ -219,15 +231,18 @@
 
                     let listing = results[0];
 
+                    let listingType = listing._type_str;
                     let template = document.querySelector('#listing-template');
                     let clone = template.content.cloneNode(true);
                     let listingElement = clone.querySelector('.listing');
                     listingElement.setAttribute('data-listing-id', listing.id);
                     listingElement.querySelector('.listing--title').innerHTML = listing.title;
-                    // listingElement.querySelector('.listing--subtitle').innerHTML = listing.subtitle;
+                     listingElement.querySelector('.listing--subtitle').innerHTML = listingType;
                     listingElement.querySelector('.listing--type').innerHTML = listing._type;
                     listingElement.querySelector('.listing--price').innerHTML = listing.price ? listing.price : '';
                     listingsList.appendChild(listingElement);
+  
+
 
                     let marker = listingsMarkers[listing.id];
                     listingElement.addEventListener('click', () => {
@@ -240,6 +255,16 @@
                             google.maps.event.trigger(marker, 'click');
                         }
                     });
+
+                    var listingSubtitle = listingElement.querySelector('.listing--subtitle');
+
+                    if (listingType == "FOR SALE") {
+                    listingSubtitle.classList.add('type_for_sale_listing');
+                    } else if (listingType== "FOR LEASE") {
+                    listingSubtitle.classList.add('type_for_lease_listing');
+                    }
+
+
                 });
             });
         }

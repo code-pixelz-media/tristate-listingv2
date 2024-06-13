@@ -4422,3 +4422,319 @@ Results: Array
     [matched] => 16
 )
 
+Running tristatecr_datasync_cron_function at 2024-05-31 11:53:0202
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 390 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 281 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 188 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 76.881433010101 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 331
+    [imported] => 0
+    [skipped] => 58
+    [found] => 247
+    [missing] => 220
+    [matched] => 35
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 331
+    [imported] => 0
+    [skipped] => 58
+    [found] => 247
+    [missing] => 220
+    [matched] => 35
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-03 07:41:4949
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 393 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 281 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 188 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 55.183451890945 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 336
+    [imported] => 4
+    [skipped] => 52
+    [found] => 248
+    [missing] => 219
+    [matched] => 6
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 336
+    [imported] => 4
+    [skipped] => 52
+    [found] => 248
+    [missing] => 219
+    [matched] => 6
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-04 12:42:5252
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 398 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 284 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 188 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 39.502204179764 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 331
+    [imported] => 8
+    [skipped] => 58
+    [found] => 254
+    [missing] => 216
+    [matched] => 30
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 331
+    [imported] => 8
+    [skipped] => 58
+    [found] => 254
+    [missing] => 216
+    [matched] => 30
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-06 13:24:4747
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 399 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 292 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 188 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 43.254017114639 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 337
+    [imported] => 4
+    [skipped] => 57
+    [found] => 255
+    [missing] => 223
+    [matched] => 18
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 337
+    [imported] => 4
+    [skipped] => 57
+    [found] => 255
+    [missing] => 223
+    [matched] => 18
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-08 12:37:2121
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 400 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 293 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 188 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 35.99248290062 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 339
+    [imported] => 3
+    [skipped] => 57
+    [found] => 258
+    [missing] => 221
+    [matched] => 10
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 339
+    [imported] => 3
+    [skipped] => 57
+    [found] => 258
+    [missing] => 221
+    [matched] => 10
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-10 12:36:5151
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 403 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 293 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 188 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 39.134959220886 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 340
+    [imported] => 3
+    [skipped] => 59
+    [found] => 261
+    [missing] => 218
+    [matched] => 5
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 340
+    [imported] => 3
+    [skipped] => 59
+    [found] => 261
+    [missing] => 218
+    [matched] => 5
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-12 04:26:0909
+
+Reading Brokers...Brokers checksum changed. Updating...
+Reading Buildout JSON...Found 407 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 295 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 186 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Found 295 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Done in 61.91996717453 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 520
+    [missing] => 253
+    [matched] => 520
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 520
+    [missing] => 253
+    [matched] => 520
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-12 05:18:2828
+
+Reading Brokers...Brokers checksum changed. Updating...
+Reading Buildout JSON...Found 407 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 295 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Done in 57.382363796234 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 260
+    [missing] => 34
+    [matched] => 260
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 260
+    [missing] => 34
+    [matched] => 260
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-12 06:39:1111
+
+Reading Brokers...Brokers checksum changed. Updating...
+Reading Buildout JSON...Found 407 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Running tristatecr_datasync_cron_function at 2024-06-12 06:43:3030
+
+Reading Brokers...Brokers checksum changed. Updating...
+Reading Buildout JSON...Found 407 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Running tristatecr_datasync_cron_function at 2024-06-12 06:54:3232
+
+Reading Brokers...Brokers checksum changed. Updating...
+Reading Buildout JSON...Found 407 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 295 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0.Found 186 records in https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0.Done in 72.001511096954 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 260
+    [missing] => 219
+    [matched] => 260
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 260
+    [missing] => 219
+    [matched] => 260
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-12 07:51:5959
+
+Reading Brokers...Brokers checksum changed. Updating...
+Reading Buildout JSON...Found 407 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 295 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=ny.Found 186 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=pa.Done in 66.641662836075 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 330
+    [missing] => 149
+    [matched] => 330
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 330
+    [missing] => 149
+    [matched] => 330
+)
+
+Running tristatecr_datasync_cron_function at 2024-06-12 12:44:0606
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 407 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 295 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=ny.Found 186 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=pa.Done in 23.889086008072 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 4
+    [imported] => 0
+    [skipped] => 402
+    [found] => 330
+    [missing] => 149
+    [matched] => 4
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 4
+    [imported] => 0
+    [skipped] => 402
+    [found] => 330
+    [missing] => 149
+    [matched] => 4
+)
+

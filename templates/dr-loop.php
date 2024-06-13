@@ -21,7 +21,8 @@ $_price_sf      = (int) preg_replace('/[^0-9]/', '', $_price_sf);
 
 $min_size       = get_post_meta($ID, '_gsheet_min_size_fm',true);
 $max_size       = get_post_meta($ID, '_gsheet__max_size_fm',true);
-
+$max_lease_sf_value       = get_post_meta($ID, '_gsheet_price_sf',true);
+$max_lease_sf = (float) preg_replace('/[^0-9.]/', '', $max_lease_sf_value);
 $zoning         = meta_of_api_sheet($ID, 'zoning');
 $key_tag        = meta_of_api_sheet($ID, 'key_tag');
 $_agent         = meta_of_api_sheet($ID, 'listing_agent');
@@ -83,6 +84,94 @@ if(empty($_agent)){
     }
         
 }
+
+if(!empty($state)){
+    
+    if(strpos(trim(strtolower($state)) , 'newj') ){
+        $state = 'NJ';
+    }
+    
+    if(strpos(trim(strtolower($state)) , 'penn') ){
+        $state = 'PA';
+    }
+    
+    if($state == "PENNSYLVANIA"){
+        $state = 'PA';
+    }
+    
+    if(trim($state) == 'NEW JERSERY'){
+        $state = 'NJ';
+    }
+    
+    if(strpos(strtolower(trim($state)) , 'penn')){
+        $state = 'PA';
+    }
+    
+    if(strpos(strtolower(trim($state)) , 'newj')){
+        $state = 'NJ';
+    }
+}
+
+if(!empty($city)){
+        
+    if(preg_match("/\bPhil?\b/i" , trim($city))){
+        $city = "Philadelphia";
+    }
+    
+    if(strtolower(trim($city)) == 'phiadelphia'){
+        $city = "Philadelphia";
+    }
+    if(strtolower(trim($city)) == 'philadelphia'){
+        $city = "Philadelphia";
+    }
+    
+    if(strtolower(trim($city)) == 'phildelphia'){
+        $city = "Philadelphia";
+    }
+    
+    if(strpos(trim(strtolower($city)) , 'york') ){
+        $city = 'New York';
+    }
+        
+}
+
+if(!empty($neighborhood)){
+
+
+    
+    if(strtolower(trim($neighborhood)) == 'south phildelpha'){
+        $neighborhood = "South Philadelphia";
+    }
+    
+    if(strtolower(trim($neighborhood)) == 'south philadelpha'){
+        $neighborhood = "South Philadelphia";
+    }
+    if(strtolower($neighborhood) == 'south philly'){
+        $neighborhood = "South Philadelphia";
+    }
+    if(trim($neighborhood) == "#VALUE!"){
+       unset($neighborhood);
+    }
+}
+
+if(!empty($badges['use'])){
+    
+     if(strpos($badges['use'],'mixed')){
+        $badges['use'] = 'Mixed Use';
+     }
+     
+     if(trim($badges['use']) == "Mixed-use"){
+        $badges['use'] = 'Mixed Use';
+     }
+     
+     if(strtolower(trim($badges['use'])) == "retail/ restaurant "){
+        $badges['use'] = 'Retail/Restaurant';
+     }
+     if (preg_match("/Retail\/ Restaurant/i",  $badges['use'])) {
+        $badges['use'] = 'Retail/Restaurant';
+     }
+}
+
 
 $meta_vrs = [
     'City' => $city,
@@ -157,7 +246,14 @@ $lat = get_post_meta($ID, '_buildout_latitude', true);
 $long = get_post_meta($ID, '_buildout_longitude', true);
 
  $m_d = tristate_get_marker_data($ID);
+ if($buildout_lease == '1' && $_price !==0 && !empty($_price) ){
+        
+        $displaying_price ='$' . number_format($_price).'/month';
+ }
 $json_data = json_encode($m_d);
+$date_created = get_post_meta($ID,'_buildout_created_at',true);
+$date_upd = get_post_meta($id,'_buildout_updated_at',true);
+
 ?>
 
 <div 
@@ -168,14 +264,40 @@ $json_data = json_encode($m_d);
     data-id="<?php echo $buildout_id;?>"
     data-json = "<?php echo htmlspecialchars($json_data, ENT_QUOTES, 'UTF-8');?>" 
     data-price="<?php echo esc_attr(!empty($bo_price) ? $bo_price : '0'); ?>"
-    data-pricesf="<?php echo esc_attr(!empty($_price_sf_fm) ? $_price_sf_fm : '0'); ?>"
+    data-pricesf="<?php echo esc_attr(!empty($max_lease_sf) ? $max_lease_sf : '0'); ?>"
     data-minsize="<?php echo esc_attr(!empty($min_size) ? $min_size : '0');?>"
     data-maxsize="<?php  echo esc_attr(!empty($max_size) ? $max_size : '0');?>"
+    data-dateupdated="<?php echo strtotime($date_upd); ?>",
+    data-datecreated="<?php echo strtotime($date_created); ?>"
+    data-title = "<?php echo esc_html(get_the_title()); ?>"
 >
+
+<?php
+
+if($args['state']) { ?>
+<a href="<?php the_permalink(); ?>">
+<?php } ?>
+<div class="lisiting-feature-img" style="display:none;">
+<img src="<?php echo $image; ?>" alt=""> 
+<span class="listing-type-state <?php echo $type=='FOR LEASE' ? 'state-lease' : 'state-sale' ?>"><?php echo $type;?></span>
+</div>
 <input type="hidden" name="get_properties_id" id="get_properties_id"  value="<?php echo $ID; ?>">
     <div class="plc-top">
-        <h2><?php echo esc_html(get_the_title()); ?></h2>
+    <?php if($args['state']) { ?>
+    <div id="state-layout-head">
+        
+             <h2 class="lisiitng__title">
+ 
+    <?php echo esc_html(get_the_title()); ?>
+</h2>
+    </div>
+
+    <?php }else { ?>
+        
+        <h2 class="lisiitng__title_state"><?php echo esc_html(get_the_title()); ?></h2> 
+    <?php } ?>
         <h4><?php echo $subtitle; ?></h4>
+        <?php //var_dump($neighborhood); ?>
         <div class="css-ajk2hm">
             <ul class="ul-buttons">
                 <?php
@@ -236,10 +358,10 @@ $json_data = json_encode($m_d);
             </div>
             <?php endif; ?>
             </ul>
-            <ul class="ul-content ul-features">
+            <ul class="ul-content ul-features">   
     <?php foreach ($meta_vrs as $k => $v) {
         if($k == 'Key Tag'){
-            echo !empty($v) ? ' <li><p>' . $k . ': <span id="tri_' . strtolower(str_replace(' ', '_', $k)) . '" data-text="'.$v.'">Show</span>
+            echo !empty($v) ? ' <li><p>' . $k . ': <span id="tri_' . strtolower(str_replace(' ', '_', $k)) . '" data-text="'.$v.'"class="key-show">Show</span>
             <div class="tag-container"></div></p></li>' : '';
         } else {
             echo !empty($v) ? ' <li><p>' . $k . ': <span id="tri_' . strtolower(str_replace(' ', '_', $k)) . '" >' . $v . '</span></p></li>' : '';
@@ -252,6 +374,9 @@ $json_data = json_encode($m_d);
         <p class="price"><?php echo 'Price: ' . $displaying_price; ?></p>
         <a href="<?php the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> More Info </a>
     </div>
+    <?php if($args['state']) { ?>
+</a>
+<?php } ?>
 </div>
 
 

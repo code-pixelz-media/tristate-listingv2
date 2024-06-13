@@ -30,7 +30,7 @@ function tristate_save_results_as_layer()
 	$map_name 	= $_POST['get_map_title'] ?? '';
 	$layer_name 	= sanitize_text_field($layer_name);
 	$map_name_title 	= sanitize_text_field($map_name);
-
+	$page_id = $_POST['page_id'];
 	// Create a post if the search_id is empty
 	if (empty($search_id)) {
 		$post_name 	= substr(md5('search-' . $timestamp), 0, 12);
@@ -52,16 +52,21 @@ function tristate_save_results_as_layer()
 	// $listing_ids = implode(',', $listing_ids);
 	$result = add_post_meta($search_id, 'listing_ids', $listing_ids);
 	$result = add_post_meta($search_id, 'layer_name', $layer_name);
+	$search_permalink =  get_the_permalink($search_id);
+	if($page_id){
+		$search_permalink = add_query_arg(['redirectId' => $page_id], $search_permalink);
+	}
+
+	
 
 	$result = array(
 		'search_id' 		=> $search_id,
-		'recent_link'       => get_the_permalink($search_id), //need to add permalink for view search
+		'recent_link'       =>$search_permalink, //need to add permalink for view search
 		'search_url' 		=> get_permalink($search_id),
 		'map_name' 			=> get_the_title($search_id),
 		'listing_ids' 	=> $listing_ids,
 		'message' 			=> 'Sucessfully saved the results as a layer',
 	);
-
 	wp_send_json_success($result, 200);
 }
 

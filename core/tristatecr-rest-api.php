@@ -82,7 +82,7 @@ function tristatectr_rest_listings($data)
 			'commission' 	=> get_post_meta($ID, '_gsheet_commission', true)
 		);
 		$_use 						= get_post_meta($ID, '_gsheet_use', true);
-		$_type 						= get_post_meta($ID, '_gsheet_listing_type', true);
+		$_type 						= meta_of_api_sheet($ID, '_gsheet_listing_type', true);
 		$_price_sf 				= get_post_meta($ID, '_gsheet_price_sf', true);
 		$_price_sf 				= preg_replace('/\.[0-9]+/', '', $_price_sf);
 		$_price_sf 				= (int) preg_replace('/[^0-9]/', '', $_price_sf);
@@ -134,6 +134,16 @@ function tristatectr_rest_listings($data)
 
 		$buildout_synced 	= get_post_meta($ID, '_buildout_last_updated', true) ?? false;
 		$sheets_synced 		= get_post_meta($ID, '_gsheet_last_updated', true) ?? false;
+		$buildout_lease = meta_of_api_sheet($ID ,'lease');
+		$buildout_sale  =  meta_of_api_sheet($ID, 'sale');
+		$sale_marker = TRISTATECRLISTING_PLUGIN_URL . 'assets/img/sale.png';
+		$lease_marker = TRISTATECRLISTING_PLUGIN_URL . 'assets/img/lease.png';
+
+		$marker_icon = ($buildout_lease == '1' && $buildout_sale == '1') ? $lease_marker :
+              (($buildout_lease == '1') ? $lease_marker :
+              (($buildout_sale == '1') ? $sale_marker : false));
+              
+		$type_str = ($buildout_lease == '1' && $buildout_sale == '1') ? 'FOR LEASE' : (($buildout_lease == '1') ? 'FOR LEASE' : (($buildout_sale == '1') ? 'FOR SALE' : false));
 
 		$results[] = array(
 			'id' 						=> $ID,
@@ -143,8 +153,10 @@ function tristatectr_rest_listings($data)
 			'badges' 				=> $badges,
 			'_use' 					=> $_use,
 			'_type' 				=> $_type,
+			'_icon'                  => $marker_icon,
+			'_type_str'         => $type_str,
 			'_price_sf' 		=> $_price_sf,
-			'_commission' 	=> $_commission,
+			'_commission' 	    => $_commission,
 			'summary' 			=> $summary,
 			'min_size' 			=> $min_size,
 			'max_size' 			=> $max_size,
