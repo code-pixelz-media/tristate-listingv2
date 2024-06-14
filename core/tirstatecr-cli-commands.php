@@ -3,17 +3,17 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('CRON_STATUS_OPTION', 'tristate_cron_status');
+define('NEW_CRON_STATUS_OPTION', 'tristate_cron_status');
 
-define('CRON_LAST_RESULT_OPTION', 'tristate_cron_last_result');
-define('LOG_FILE', TRISTATECRLISTING_PLUGIN_DIR . 'debug.log');
+define('NEW_CRON_LAST_RESULT_OPTION', 'tristate_cron_last_result');
+define('NEW_LOG_FILE', TRISTATECRLISTING_PLUGIN_DIR . 'debug.log');
 /**
  * Imports and syncs Buildout and Google Sheets data.
  */
 function tristatectr_datasync_command_v2($args, $aargs = array())
 {
 
-    defined('DOING_CRON') && update_option(CRON_STATUS_OPTION, 'Starting');
+    defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Starting');
 
     global $wpdb;
     $start = microtime(true);
@@ -53,10 +53,10 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
     // Load the Brokers
     $message = "\nReading Brokers...";
     if (array_intersect(['json'], $skip)) $message .= ' Skipping';
-    np_log($message);
+    NEW_np_log($message);
 
     if (!array_intersect(['json'], $skip)) :
-        defined('DOING_CRON') && update_option(CRON_STATUS_OPTION, 'Reading Brokers');
+        defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Reading Brokers');
         $fn = 'https://buildout.com/api/v1/' . $get_buildout_api_key . '/brokers.json?limit=999';
         $contents = file_get_contents($fn);
         // $data         = json_decode($contents, false);
@@ -64,9 +64,9 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
         $brokers_checksum = md5($contents);
 
         if ($brokers_checksum != get_option('tristatecr_datasync_brokers_checksum')) {
-            defined('DOING_CRON') && update_option(CRON_STATUS_OPTION, 'Updating Brokers');
+            defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Updating Brokers');
             $message = "Brokers checksum changed. Updating...";
-            np_log($message);
+            NEW_np_log($message);
 
             // $brokers = array();
             // foreach ((array) $data->brokers as $item) {
@@ -113,40 +113,40 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
             update_option('tristatecr_datasync_brokers_checksum', $brokers_checksum);
             update_option('tristatecr_datasync_brokers', $brokers_array);
         } else {
-            defined('DOING_CRON') && update_option(CRON_STATUS_OPTION, 'Brokers unchanged');
+            defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Brokers unchanged');
             $message = "Brokers checksum unchanged. Skipping...";
             $brokers = get_option('tristatecr_datasync_brokers');
-            np_log($message);
+            NEW_np_log($message);
         }
     endif;
 
     // Buildout JSON
     $message = "\nReading Buildout JSON...";
     if (array_intersect(['json'], $skip)) $message .= ' Skipping';
-    np_log($message);
+    NEW_np_log($message);
     $filenames = array(
         'https://buildout.com/api/v1/' . $get_buildout_api_key . '/properties.json?limit=999',
     );
     if (!array_intersect(['json'], $skip))
         foreach ($filenames as $fn) {
-            defined('DOING_CRON') && update_option(CRON_STATUS_OPTION, 'Reading Buildout JSON');
+            defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Reading Buildout JSON');
             $context     = stream_context_create(['http' => ['ignore_errors' => false]]);
             $contents = file_get_contents($fn, false, $context);
             $data     = json_decode($contents, false);
             $count     = count($data->properties ?? array());
 
             $message = 'Found ' . $count . ' records in ' . $fn . '.';
-            np_log($message);
+            NEW_np_log($message);
 
             foreach ($data->properties as $item) {
                 if($item->proposal ) continue;
-                $id     = np_generate_buildout_item_id($item);
+                $id     = NEW_np_generate_buildout_item_id($item);
                 $name = $item->name;
                 $checksum = md5(json_encode($item));
                 $message = "Processing #$id: \"$name\"";
                 defined('WP_CLI') && WP_CLI::log($message);
 
-                $postarr = np_process_buildout_item($item);
+                $postarr = new_np_process_buildout_item($item);
 
                 $post_id = false;
 
@@ -208,7 +208,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
     // Sheets CSV
     $message = "\nReading Sheets CSV...";
     if (in_array('csv', $skip)) $message .= ' Skipping';
-    np_log($message);
+    NEW_np_log($message);
     $filenames = array(
         // https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/edit#gid=0
         //'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0',
@@ -219,7 +219,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
     );
     if (!in_array('csv', $skip))
         foreach ($filenames as $fn) {
-            defined('DOING_CRON') && update_option(CRON_STATUS_OPTION, 'Reading Sheets CSV');
+            defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Reading Sheets CSV');
             defined('WP_CLI') && WP_CLI::log('Reading ' . $fn . '...');
             if (($handle = fopen($fn, "r")) !== FALSE) {
                 $row = 0;
@@ -238,7 +238,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
 
                     // Data row
                     $item         = (object) array_combine($header, $data);
-                    $id             = np_generate_google_csv_item_id($item);
+                    $id             = new_np_generate_google_csv_item_id($item);
                     $checksum = md5(json_encode($item));
                     $message = "- Processing #$id";
                     defined('WP_CLI') && WP_CLI::log($message);
@@ -280,7 +280,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                         defined('WP_CLI') && WP_CLI::log($message);
                     }
 
-                    $sheet_meta = np_process_google_csv_item_meta($item);
+                    $sheet_meta = new_np_process_google_csv_item_meta($item);
 
                     // Update the post meta
                     $message = "--- Updating post_meta for post_id:$post_id buildout_id:$buildout_id";
@@ -325,37 +325,37 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
             }
 
             $message = 'Found ' . $row . ' records in ' . $fn . '.';
-            np_log($message);
+            NEW_np_log($message);
         }
 
     $message = "Counters: " . print_r($counter, true);
     defined('WP_CLI') && WP_CLI::log($message);
     // add brokers into custom post type called brokers
-    tristatecr_insert_broker_data();
-    defined('DOING_CRON') && update_option(CRON_STATUS_OPTION, 'Done');
-    defined('DOING_CRON') && update_option(CRON_LAST_RESULT_OPTION, $counter);
+    new_tristatecr_insert_broker_data();
+    defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Done');
+    defined('DOING_CRON') && update_option(NEW_CRON_LAST_RESULT_OPTION, $counter);
 
     $secs = microtime(true) - $start;
     $message = "Done in $secs seconds.";
-    np_log($message);
+    NEW_np_log($message);
 
     return $counter;
 }
 defined('WP_CLI') && WP_CLI::add_command('datasync', 'tristatectr_datasync_command_v2');
 
 
-function np_log($message, $data = null)
+function NEW_np_log($message, $data = null)
 {
     if (!is_null($data)) $message . ' ' . print_r($data, 1);
 
     if (defined('WP_CLI')) {
         WP_CLI::log($message);
     } else {
-        error_log($message, 3, LOG_FILE);
+        error_log($message, 3, NEW_LOG_FILE);
     }
 }
 
-function tristatectr_get_brokers_with_excluded($broker_ids = array())
+function new_tristatectr_get_brokers_with_excluded($broker_ids = array())
 {
     $brokers = (array) get_option('tristatecr_datasync_brokers');
     $excluded_brokers = array('Shlomi Bagdadi');
@@ -371,13 +371,13 @@ function tristatectr_get_brokers_with_excluded($broker_ids = array())
 }
 
 
-function np_generate_buildout_item_id($data = null)
+function NEW_np_generate_buildout_item_id($data = null)
 {
     return (int) $data->id;
 }
 
 
-function np_process_buildout_item($data = null)
+function new_np_process_buildout_item($data = null)
 {
     $result = array();
     $result['post_title']     = $data->name ?? '';
@@ -386,17 +386,17 @@ function np_process_buildout_item($data = null)
     $result['post_status']     = 'publish';
     $result['post_type']     = 'properties';
     $result['tax_input']     = array();
-    $result['meta_input']     = np_process_buildout_item_meta($data);
+    $result['meta_input']     = new_np_process_buildout_item_meta($data);
 
     // defined('WP_CLI') && WP_CLI::log(print_r(array_keys((array) $data), 1));
     return $result;
 }
 
-function np_process_buildout_item_meta($data = null)
+function new_np_process_buildout_item_meta($data = null)
 {
     $checksum = md5(json_encode($data));
     $result = array(
-        '_import_buildout_id'             => np_generate_buildout_item_id($data),
+        '_import_buildout_id'             => NEW_np_generate_buildout_item_id($data),
         '_import_from'                             => 'buildout',
         '_import_buildout_checksum' => $checksum,
     );
@@ -580,7 +580,7 @@ function np_process_buildout_item_meta($data = null)
     return array_filter($result);
 }
 
-function np_generate_google_csv_item_id($data = null)
+function new_np_generate_google_csv_item_id($data = null)
 {
     $fields = array(
         $data->address ?? '',
@@ -591,7 +591,7 @@ function np_generate_google_csv_item_id($data = null)
     return sanitize_title(implode('-', $fields));
 }
 
-function np_process_google_csv_item_meta($data = null)
+function new_np_process_google_csv_item_meta($data = null)
 {
     $checksum = md5(json_encode($data));
     $result = array(
@@ -610,9 +610,9 @@ function np_process_google_csv_item_meta($data = null)
 }
 
 // Schedule our cron actions
-add_filter('cron_schedules', 'tristatecr_datasync_cron_schedules');
+add_filter('cron_schedules', 'new_tristatecr_datasync_cron_schedules');
 
-function tristatecr_datasync_cron_schedules($schedules)
+function new_tristatecr_datasync_cron_schedules($schedules)
 {
    
     $schedules['every_2_days'] = array(
@@ -623,26 +623,24 @@ function tristatecr_datasync_cron_schedules($schedules)
 }
 
 
-add_filter('cron_schedules', 'tristatecr_datasync_cron_schedules');
 
-
-if (!wp_next_scheduled('tristatecr_datasync_cron')) {
+if (!wp_next_scheduled('new_tristatecr_datasync_cron')) {
  
-    wp_schedule_event(time(), 'every_2_days', 'tristatecr_datasync_cron');
+    wp_schedule_event(time(), 'every_2_days', 'new_tristatecr_datasync_cron');
 }
 
 
-add_action('tristatecr_datasync_cron', 'tristatecr_datasync_cron_function');
+add_action('new_tristatecr_datasync_cron', 'new_tristatecr_datasync_cron_function');
 
-function tristatecr_datasync_cron_function()
+function new_tristatecr_datasync_cron_function()
 {
     update_option('tristatecr_datasync_cron_last_started', time());
 
     $time = time();
     $datetime = date('Y-m-d H:i:ss', $time);
 
-    $message = "Running tristatecr_datasync_cron_function at $datetime\n";
-    error_log($message, 3, LOG_FILE);
+    $message = "Running new_tristatecr_datasync_cron_function at $datetime\n";
+    error_log($message, 3, NEW_LOG_FILE);
 
     $args = array();
     $aargs = array(
@@ -652,7 +650,7 @@ function tristatecr_datasync_cron_function()
     // insert broker data to brokers post type using cron
   
     $message = "\nResults: " . print_r($result, 1) . "\n";
-    error_log($message, 3, LOG_FILE);
+    error_log($message, 3, NEW_LOG_FILE);
     
     
     $args = array(
@@ -689,13 +687,13 @@ function tristatecr_datasync_cron_function()
     
   
     $message = "\nResults: " . print_r($result, 1) . "\n";
-    error_log($message, 3, LOG_FILE);
+    error_log($message, 3, NEW_LOG_FILE);
 }
 
 
 /* ----------------------------------Broker stup code form api data----------------------- */
 
-function user_exists_as_broker($user_id)
+function new_user_exists_as_broker($user_id)
 {
     $args = array(
         'post_type' => 'brokers',
@@ -716,7 +714,7 @@ function user_exists_as_broker($user_id)
  * The function `insert_broker_data` inserts broker data into a custom post type if the broker does not
  * already exist.
  */
-function tristatecr_insert_broker_data()
+function new_tristatecr_insert_broker_data()
 {
 
     $datas = get_option('tristatecr_datasync_brokers');
@@ -733,7 +731,7 @@ function tristatecr_insert_broker_data()
 
 
             // Check if user already exists as a broker
-            if (!user_exists_as_broker($user_id)) {
+            if (!new_user_exists_as_broker($user_id)) {
                 // User does not exist as a broker, insert data into "brokers" custom post type
                 $post_data = array(
                     'post_title' => $broker_user_title,
@@ -761,7 +759,7 @@ function tristatecr_insert_broker_data()
 
 
 
-function tristate_get_broker_id($meta_key, $meta_value)
+function new_tristate_get_broker_id($meta_key, $meta_value)
 {
 
     $posts = get_posts(array(

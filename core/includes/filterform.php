@@ -175,7 +175,7 @@
                 $size             = (int) preg_replace('/[^0-9]/', '', $size);
                 $zoning           = get_post_meta($ID, '_buildout_zoning', true);
                 $key_tag           = get_post_meta($ID, '_gsheet_key_tag', true);
-                //$agents           = (array) tristatectr_get_brokers_with_excluded(get_post_meta($ID, '_buildout_broker_ids', true));
+                //$agents           = (array) new_tristatectr_get_brokers_with_excluded(get_post_meta($ID, '_buildout_broker_ids', true));
                 $_agent           = get_post_meta($ID, '_gsheet_listing_agent', true);
                 $lease_out         = get_post_meta($ID, '_gsheet_lease_out', true);
 

@@ -285,14 +285,15 @@ if($args['state']) { ?>
     <div class="plc-top">
     <?php if($args['state']) { ?>
     <div id="state-layout-head">
+    <h2 class="lisiitng__title" id="state_property_title" style="display:none"><a href="<?php the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> <?php echo esc_html(get_the_title()); ?></a>  </h2>
         
-             <h2 class="lisiitng__title">
+             <h2 class="lisiitng__state_title" >
  
     <?php echo esc_html(get_the_title()); ?>
 </h2>
     </div>
 
-    <?php }else { ?>
+    <?php } else { ?>
         
         <h2 class="lisiitng__title_state"><?php echo esc_html(get_the_title()); ?></h2> 
     <?php } ?>

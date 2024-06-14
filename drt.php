@@ -247,7 +247,7 @@ function __total()
 
 add_shortcode('TSC-inventory-pub', 'drt_shortcode');
 
-add_shortcode('drt', 'drt_shortcode');
+//add_shortcode('drt', 'drt_shortcode');
 
 function drt_shortcode($_atts)
 {
@@ -275,7 +275,7 @@ function drt_shortcode($_atts)
 
 
            // Find all elements with the class 'lisiitng__title'
-           var listingTitles = document.querySelectorAll('.ts-state-page .lisiitng__title');
+           var listingTitles = document.querySelectorAll('.ts-state-page .lisiitng__state_title');
 
 // Loop through each element and truncate the text
 listingTitles.forEach(function(title) {
@@ -441,7 +441,7 @@ listingTitles.forEach(function(title) {
             url: '<?php echo admin_url('admin-ajax.php'); ?>',
             type: 'POST',
             data: {
-              action: 'tristate_save_results_as_layer',
+              action: 'new_tristate_save_results_as_layer',
               search_id: search_id,
               user_id: user_id,
               timestamp: timestamp,
@@ -480,13 +480,7 @@ listingTitles.forEach(function(title) {
   </script>
 
 
-  <!-- -------------------------- -->
-  <?php
-  /*   $cached_content = get_transient('property_listing_content');
 
-if (false === $cached_content) {
-    ob_start();  */
-  ?>
 
   <div class="filter-wrapper <?php echo !empty($atts['state']) ? 'ts-state-page': ''; ?>" id="filter-wrapper"  <?php if (!empty($atts['state'])) : ?>
          data-current_state="<?php echo strtoupper($atts['state']); ?>"
@@ -1137,7 +1131,7 @@ if (tsStatePageDiv) {
          isBetweenMaxMinPriceSf = (priceSf >= priceRangeSf[0]) && (priceSf <= priceRangeSf[1]),
          isBetweenMaxMinSize = (sizeMax >= sizeRangeSf[0]) && (sizeMax <= sizeRangeSf[1]);
 
-       if (selectedAgents.length > 0 && !selectedAgents.includes($listing.find("#tri_listing_agent").text().trim())) {
+/*        if (selectedAgents.length > 0 && !selectedAgents.includes($listing.find("#tri_listing_agent").text().trim())) {
          showListing = false;
        }
 
@@ -1163,11 +1157,77 @@ if (tsStatePageDiv) {
 
        if (selectedVented.length > 0 && !selectedVented.includes($listing.find("#tri_vented").text().trim())) {
          showListing = false;
-       }
+       } */
+       function getSelectedOptions(selector) {
+    return $(selector)
+        .find('.select2-selection__choice')
+        .map(function() {
+            return $(this).attr('title').trim();
+        }).get();
+}
 
-       if (keyword && !$listing.text().toLowerCase().includes(keyword)) {
+// Fetch all selected options for each criterion
+const selectedAgents = getSelectedOptions('#select2-select2_agents-container');
+const selectedUses = getSelectedOptions('#select2-select2_uses-container');
+const selectedNeighborhoods = getSelectedOptions('#select2-select2_neighborhoods-container');
+const selectedZipcodes = getSelectedOptions('#select2-select2_zipcodes-container');
+const selectedCities = getSelectedOptions('#select2-select2_cities-container');
+const selectedStates = getSelectedOptions('#select2-select2_states-container');
+const selectedVented = getSelectedOptions('#select2-select2_vented-container');
+
+// Get the respective fields from the listing
+const listingAgent = $listing.find("#tri_listing_agent").text().trim();
+const listingUse = $listing.find(".tri_use").text().trim();
+const listingNeighborhood = $listing.find("#tri_neighborhood").text().trim();
+const listingZipcode = $listing.find("#tri_zip_code").text().trim();
+const listingCity = $listing.find("#tri_city").text().trim();
+const listingState = $listing.find("#tri_state").text().trim();
+const listingVented = $listing.find("#tri_vented").text().trim();
+const listingText = $listing.text().toLowerCase();
+
+// Check if each respective field is in the corresponding selected array
+if (selectedAgents.length > 0 && !selectedAgents.includes(listingAgent)) {
+    showListing = false;
+}
+
+if (selectedUses.length > 0 && !selectedUses.includes(listingUse)) {
+    showListing = false;
+}
+
+if (selectedNeighborhoods.length > 0 && !selectedNeighborhoods.includes(listingNeighborhood)) {
+    showListing = false;
+}
+
+if (selectedZipcodes.length > 0 && !selectedZipcodes.includes(listingZipcode)) {
+    showListing = false;
+}
+
+if (selectedCities.length > 0 && !selectedCities.includes(listingCity)) {
+    showListing = false;
+}
+
+if (selectedStates.length > 0 && !selectedStates.includes(listingState)) {
+    showListing = false;
+}
+
+if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
+    showListing = false;
+}
+
+
+/*        if (keyword && !$listing.text().toLowerCase().includes(keyword)) {
          showListing = false;
-       }
+       } */
+
+       if (keyword) {
+    const keywords = keyword.toLowerCase().split(' ');
+    for (const word of keywords) {
+        if (!listingText.includes(word)) {
+            showListing = false;
+            break;
+        }
+    }
+}
 
        if (!isBetweenMaxMinPrice) {
          showListing = false;

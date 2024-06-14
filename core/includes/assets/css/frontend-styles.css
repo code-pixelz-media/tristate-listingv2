@@ -161,6 +161,7 @@ div#filter-wrapper {
   display: block;
   margin: 8px 0 3px 0;
   font-size: 12px;
+  color: var(--colorblack);
 }
 
 .Filterform input[type="text"] {
@@ -1486,13 +1487,31 @@ div.listings .listing--meta {
   justify-content: space-between;
   font-size: 14px;
 }
-
+.gm-style-iw-chr {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.gm-style .gm-style-iw-d {
+  padding-top: 12px;
+}
+.gm-style-iw-chr .gm-ui-hover-effect {
+width: 24px !important;
+height: 24px !important;
+}
+.gm-style-iw-chr .gm-ui-hover-effect  span {
+  width: 14px !important;
+  height: 14px !important;
+  margin: 5px !important;
+}
 div.listings .listing--type {
 }
 
 div.listings .listing--price {
 }
-
+.gm-style-iw-ch {
+  display: none !important;
+}
 .firstHeading {
   font-size: 16px !important;
   margin-bottom: 5px;
@@ -1513,7 +1532,12 @@ div.listings .listing--price {
   font-weight: bold;
   font-family: "Poppins", sans-serif;
 }
-
+.lease-bgopacity {
+  background-color: rgba(24, 78, 120, 0.7) !important;
+}
+.sale-bgopacity {
+  background-color: rgba(204, 104, 73, 0.7) !important;
+}
 .thirdHeading {
   margin-bottom: 10px;
   line-height: 1.2;
@@ -1579,6 +1603,20 @@ div.listings .listing--price {
 #content hr {
   margin: 1em 0;
 }
+#content-bottom {
+  display: flex;
+  width: 100%;
+  align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+#content-bottom p {
+  margin-bottom: 0;
+}
+#content-bottom span {
+  min-width: 25px;
+  text-align: center;
+}
 
 /* section.elementor-element-44b80298 {
   position: static !important;
@@ -1603,7 +1641,7 @@ button:hover {
   max-width: 100% !important;
 }
 .ts-state-page.filter-wrapper .Filterform label {
-  font-size: 0.65rem;
+  font-size: 10px;
   letter-spacing: 0.1rem;
   text-transform: uppercase;
   color: #6c757d;
@@ -1711,6 +1749,7 @@ button:hover {
 }
 .ts-state-page.filter-wrapper .MuiBox-root .propertylisting-content a {
   text-decoration: none;
+  width: 30%;
 }
 .ts-state-page.filter-wrapper .MuiBox-root .propertylisting-content {
   flex-direction: row;
@@ -1720,7 +1759,7 @@ button:hover {
 .ts-state-page.filter-wrapper .MuiBox-root .lisiting-feature-img {
   display: block !important;
   float: left;
-  width: 30%;
+  width: 100%;
   line-height: 0;
   position: relative;
 }
@@ -1746,7 +1785,7 @@ button:hover {
   background-color: rgba(24, 78, 120, 0.7);
 }
 .ts-state-page.filter-wrapper .MuiBox-root .lisiting-feature-img img {
-  width: 150px;
+  width: 100%;
   height: 100px;
   object-fit: cover;
   max-width: -webkit-fill-available;

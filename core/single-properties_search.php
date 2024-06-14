@@ -177,9 +177,7 @@
                     // }
                     // if (listing._type_str.toLowerCase() === 'for lease') {}
                     // thirdHeading = thirdHeading.filter(Boolean);
-                    
                     const backGround = thirdHeading ==='FOR LEASE' ? 'lease-bgopacity' : 'sale-bgopacity';
-
                     const contentString =
                         '<div class="search-results-map" id="content">' +
                         '<div id="siteNotice">' + '</div>' +

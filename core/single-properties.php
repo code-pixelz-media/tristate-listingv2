@@ -1,10 +1,8 @@
 <?php
-// Exit if accessed directly.
 if (!defined('ABSPATH')) {
   exit;
 }
 get_header();
-
 
 /* ---------------------Start of Meta Keys------------------------- */
 $ID               = get_the_ID();
@@ -31,7 +29,7 @@ $size             = preg_replace('/\.[0-9]+/', '', $size);
 $size             = (int) preg_replace('/[^0-9]/', '', $size);
 $zoning           = get_post_meta($ID, '_buildout_zoning', true);
 $key_tag           = get_post_meta($ID, '_gsheet_key_tag', true);
-$agents           = (array) tristatectr_get_brokers_with_excluded(get_post_meta($ID, '_buildout_broker_ids', true));
+$agents           = (array) new_tristatectr_get_brokers_with_excluded(get_post_meta($ID, '_buildout_broker_ids', true));
 $_agent           = get_post_meta($ID, '_gsheet_listing_agent', true);
 
 
@@ -325,7 +323,7 @@ if ($property_img_gallerys=='test') {
               if ($agents) {
                 foreach ($agents as $key => $agent) {
                   $get_agent_id = $agent;
-                  $get_broker_id =  tristate_get_broker_id('user_id', $get_agent_id);
+                  $get_broker_id =  new_tristate_get_broker_id('user_id', $get_agent_id);
                   if ($get_broker_id) {
                     $get_broker_full_name = get_the_title($get_broker_id);
                     $get_broker_email = get_post_meta($get_broker_id, 'broker_email', true);

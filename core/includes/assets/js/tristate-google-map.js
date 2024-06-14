@@ -96,17 +96,17 @@ function getCarouselInfowindowHtml(markersInfo) {
 function get_infowindow_html(markerInfo, currentIndex = 0, totalMarkers = 1) {
   const navigation = totalMarkers > 1 ? `
   <div id="content-bottom">
-      <span class="prev" ${currentIndex === 0 ? 'style="display: none;"' : ''} onclick="showPreviousMarker(${currentIndex})">&#8592;</span>
-      <span class="next" ${currentIndex === totalMarkers - 1 ? 'style="display: none;"' : ''} onclick="showNextMarker(${currentIndex})">&#8594;</span>
-      <p class="carousel-count">${currentIndex + 1} of ${totalMarkers}</p>
+      <span class="prev" ${currentIndex === 0 ? 'style="opacity: 0;"' : ''} onclick="showPreviousMarker(${currentIndex})">&#8592;</span>
+       <p class="carousel-count">${currentIndex + 1} of ${totalMarkers}</p>
+       <span class="next" ${currentIndex === totalMarkers - 1 ? 'style="opacity: 0;"' : ''} onclick="showNextMarker(${currentIndex})">&#8594;</span>
   </div>` : '';
-
+  const backGround = markerInfo.type ==='FOR LEASE' ? 'lease-bgopacity' : 'sale-bgopacity';
   const contentString = `
       <div id="content" data-mkid="${markerInfo.pid}">
           <div id="bodyContent">
               <div id="content-left">
                   <img src="${markerInfo.img}" />
-                  <h3 class="thirdHeading">${markerInfo.type}</h3>
+                  <h3 class="thirdHeading ${backGround}">${markerInfo.type}</h3>
               </div>
               <div id="content-right">
                   <div id="siteNotice"></div>
@@ -264,16 +264,32 @@ jQuery(document).on('mouseenter','.propertylisting-content',function(){
   if(jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')){
       const pid = jQuery(this).data('pid');
       const marker = markers.find(m => m.pid === pid);
-      const overlapped = findOverlappingMarkers(marker.getPosition());
-      overlapped.forEach(function(mk){
-      
-      });
-      if (marker) {
-        new google.maps.event.trigger( marker, 'click' );
+      var overlappingMarkers = findOverlappingMarkers(marker.getPosition());
+      console.log(overlappingMarkers.length);
+      if(overlappingMarkers.length>1){
+            
+        overlappingMarkers.forEach(function(mak) {
+            // if(mak.pid == pid){
+            
+            //     new google.maps.event.trigger( marker, 'click' );
+                
+            
+            // }
+            
+            if(mak.pid === pid){
+              new google.maps.event.trigger( mak, 'click' );
+            }
+        });
+      }else{
+        if(marker){
+          new google.maps.event.trigger( marker, 'click' );
+        }
       }
+     
+
   }
 
-})
+});
 
 
 //jQuery('.propertylisting-content:visible').on('mouseleave', function() {

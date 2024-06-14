@@ -1,14 +1,14 @@
 <?php
 
-// tristate_save_results_as_layer ajax action saves the data as a 
+// new_tristate_save_results_as_layer ajax action saves the data as a 
 // database option and retuns a message to the client
 
-add_action('wp_ajax_tristate_save_results_as_layer', 'tristate_save_results_as_layer');
+add_action('wp_ajax_new_tristate_save_results_as_layer', 'new_tristate_save_results_as_layer');
 
-function tristate_save_results_as_layer()
+function new_tristate_save_results_as_layer()
 {
 	//$nonce = $_POST['nonce'];
-	// if (!wp_verify_nonce($nonce, 'tristate_save_results_as_layer')) {
+	// if (!wp_verify_nonce($nonce, 'new_tristate_save_results_as_layer')) {
 	// 	return wp_send_json_error(array(
 	// 		'message' => 'Invalid nonce',
 	// 	), 403);

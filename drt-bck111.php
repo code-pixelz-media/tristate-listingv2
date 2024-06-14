@@ -928,7 +928,7 @@ $('#type_for_sale, #type_for_lease').on('change', function() {
             url: '<?php echo admin_url('admin-ajax.php'); ?>',
             type: 'POST',
             data: {
-              action: 'tristate_save_results_as_layer',
+              action: 'new_tristate_save_results_as_layer',
               search_id: search_id,
               user_id: user_id,
               timestamp: timestamp,

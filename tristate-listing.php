@@ -100,9 +100,9 @@ function tristatecr_cpt_single_template($single_template)
     if ('brokers' === $post->post_type) {
         $single_template = plugin_dir_path(__FILE__) . '/core/single-brokers.php';
     }
-    if ('properties' === $post->post_type) {
-        $single_template = plugin_dir_path(__FILE__) . '/core/single-properties.php';
-    }
+    // if ('properties' === $post->post_type) {
+    //     $single_template = plugin_dir_path(__FILE__) . '/core/single-properties.php';
+    // }
     if ('properties_search' === $post->post_type) {
         $single_template = plugin_dir_path(__FILE__) . '/core/single-properties_search.php';
     }
@@ -112,6 +112,20 @@ function tristatecr_cpt_single_template($single_template)
 
 add_filter('single_template', 'tristatecr_cpt_single_template');
 
+function my_plugin_override_single_template($template) {
+    if (is_singular('properties')) {
+        // Path to the custom template in the plugin directory
+        $plugin_template = plugin_dir_path(__FILE__) . '/core/single-properties.php';
+        
+        // Check if the template file exists in the plugin directory
+        if (file_exists($plugin_template)) {
+            return $plugin_template;
+        }
+    }
+    return $template;
+}
+add_filter('template_include', 'my_plugin_override_single_template');
+
 
 /**
  * The function `tristate_cr_single_scripts` enqueues various CSS and JavaScript files for a WordPress
@@ -119,6 +133,7 @@ add_filter('single_template', 'tristatecr_cpt_single_template');
  */
 function tristate_cr_single_scripts()
 {
+    if (is_singular() && has_shortcode(get_post()->post_content, 'TSC-inventory-pub')) {
 
     $settings = get_option('tristate_cr_settings');
     $get_google_map_api_key = $settings['google_maps_api_key'];
@@ -154,7 +169,8 @@ function tristate_cr_single_scripts()
         wp_enqueue_style('fancyboxcss', 'https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css', array(), '1.0.0');
     }
 }
-add_action('wp_enqueue_scripts', 'tristate_cr_single_scripts');
+}
+add_action('wp_enqueue_scripts', 'tristate_cr_single_scripts',999);
 
 
 

@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Check if the nonce matches
-function tristatecr_has_private_data_access()
+function new_tristatecr_has_private_data_access()
 {
 	return is_user_logged_in();
 	if (!isset($_REQUEST['wp_rest'])) {
@@ -19,25 +19,25 @@ function tristatecr_has_private_data_access()
 }
 
 // Register WP REST API routes
-add_action('rest_api_init', 'tristatectr_rest_api_init');
+add_action('rest_api_init', 'new_tristatectr_rest_api_init');
 
-function tristatectr_rest_api_init()
+function new_tristatectr_rest_api_init()
 {
 	register_rest_route('tristatectr/v1', '/listings', array(
 		'methods' => 'GET',
-		'callback' => 'tristatectr_rest_listings',
+		'callback' => 'new_tristatectr_rest_listings',
 	));
 	register_rest_route('tristatectr/v1', '/brokers', array(
 		'methods' => 'GET',
-		'callback' => 'tristatectr_rest_brokers',
+		'callback' => 'new_tristatectr_rest_brokers',
 	));
 	register_rest_route('tristatectr/v2', '/brokers', array(
 		'methods' => 'GET',
-		'callback' => 'tristatectr_rest_brokers_v2',
+		'callback' => 'new_tristatectr_rest_brokers_v2',
 	));
 }
 
-function tristatectr_rest_listings($data)
+function new_tristatectr_rest_listings($data)
 {
 	$posts = get_posts(array(
 		'post_type' => 'properties',
@@ -90,7 +90,7 @@ function tristatectr_rest_listings($data)
 		$size 						= (int) preg_replace('/[^0-9]/', '', $size);
 		$zoning 					= get_post_meta($ID, '_buildout_zoning', true);
 		$key_tag 					= get_post_meta($ID, '_gsheet_key_tag', true);
-		$agents 					= (array) tristatectr_get_brokers_with_excluded(get_post_meta($ID, '_buildout_broker_ids', true));
+		$agents 					= (array) new_tristatectr_get_brokers_with_excluded(get_post_meta($ID, '_buildout_broker_ids', true));
 		$_agent 					= get_post_meta($ID, '_gsheet_listing_agent', true);
 		$lease_out 				= get_post_meta($ID, '_gsheet_lease_out', true);
 
@@ -145,11 +145,11 @@ function tristatectr_rest_listings($data)
 			'max_size' 			=> $max_size,
 			'size' 					=> $size,
 			'zoning' 				=> $zoning,
-			'key_tag' 			=> tristatecr_has_private_data_access() ? $key_tag : 'Log in to view',
+			'key_tag' 			=> new_tristatecr_has_private_data_access() ? $key_tag : 'Log in to view',
 			'agents' 				=> $agents,
 			'_agent' 				=> array_keys($agents)[0],
-			'lease_out' 		=> tristatecr_has_private_data_access() ? $lease_out : 'Log in to view',
-			'lease_conditions' => tristatecr_has_private_data_access() ? $lease_conditions : 'Log in to view',
+			'lease_out' 		=> new_tristatecr_has_private_data_access() ? $lease_out : 'Log in to view',
+			'lease_conditions' => new_tristatecr_has_private_data_access() ? $lease_conditions : 'Log in to view',
 			'price' 				=> $price,
 			'_price' 				=> $_price,
 			'rent' 					=> $_price,
@@ -169,11 +169,11 @@ function tristatectr_rest_listings($data)
 			'lat' 					=> $lat,
 			'lng' 					=> $lng,
 
-			'buildout_notes' 	=> tristatecr_has_private_data_access() ? $buildout_notes : 'Log in to view',
-			'gsheet_notes' 		=> tristatecr_has_private_data_access() ? $gsheet_notes : 'Log in to view',
+			'buildout_notes' 	=> new_tristatecr_has_private_data_access() ? $buildout_notes : 'Log in to view',
+			'gsheet_notes' 		=> new_tristatecr_has_private_data_access() ? $gsheet_notes : 'Log in to view',
 
-			'buildout_synced' 	=> tristatecr_has_private_data_access() ? (int) $buildout_synced : false,
-			'sheets_synced' 		=> tristatecr_has_private_data_access() ? (int) $sheets_synced : false,
+			'buildout_synced' 	=> new_tristatecr_has_private_data_access() ? (int) $buildout_synced : false,
+			'sheets_synced' 		=> new_tristatecr_has_private_data_access() ? (int) $sheets_synced : false,
 			'get_page_link'   => get_permalink($ID),
 		);
 	}
@@ -181,13 +181,13 @@ function tristatectr_rest_listings($data)
 	return $results;
 }
 
-function tristatectr_rest_brokers()
+function new_tristatectr_rest_brokers()
 {
 	$brokers = get_option('tristatecr_datasync_brokers') ?? array();
 	return (array) $brokers;
 }
 
-function tristatectr_rest_brokers_v2()
+function new_tristatectr_rest_brokers_v2()
 {
 	$brokers = get_option('tristatecr_datasync_brokers') ?? array();
 	$results = array();
