@@ -4,9 +4,6 @@ let markers = [];
 let infoWindows = [];
 let markerCluster;
 
-var preV = '<path fill="currentColor" d="M31.7 239l136-136c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9L127.9 256l96.4 96.4c9.4 9.4 9.4 24.6 0 33.9L201.7 409c-9.4 9.4-24.6 9.4-33.9 0l-136-136c-9.5-9.4-9.5-24.6-.1-34z"></path>';
-var nxT = ''
-
 function markersLatLng(tId , ID) {
 
   if(ID){
@@ -98,15 +95,15 @@ function getCarouselInfowindowHtml(markersInfo) {
 
 function get_infowindow_html(markerInfo, currentIndex = 0, totalMarkers = 1) {
   const navigation = totalMarkers > 1 ? `
+  <div id="content-bottom">
       <span class="prev" ${currentIndex === 0 ? 'style="display: none;"' : ''} onclick="showPreviousMarker(${currentIndex})">&#8592;</span>
       <span class="next" ${currentIndex === totalMarkers - 1 ? 'style="display: none;"' : ''} onclick="showNextMarker(${currentIndex})">&#8594;</span>
       <p class="carousel-count">${currentIndex + 1} of ${totalMarkers}</p>
-  ` : '';
+  </div>` : '';
 
   const contentString = `
       <div id="content" data-mkid="${markerInfo.pid}">
           <div id="bodyContent">
-              ${navigation}
               <div id="content-left">
                   <img src="${markerInfo.img}" />
                   <h3 class="thirdHeading">${markerInfo.type}</h3>
@@ -120,6 +117,7 @@ function get_infowindow_html(markerInfo, currentIndex = 0, totalMarkers = 1) {
                   <p><a class="listing-more" href="${markerInfo.link}" target="_blank">View Listing</a></p>
               </div>
           </div>
+          ${navigation}
       </div>
   `;
 
@@ -142,7 +140,6 @@ function get_markerData(fromId=true ,id){
     var bounds = new google.maps.LatLngBounds();
     markerData.forEach(function(markerInfo) {
   
-
       var markerIcon = {
         url: markerInfo.imgIcon,
         scaledSize: new google.maps.Size(38, 38) // Adjust the size as per your requirement
@@ -267,6 +264,10 @@ jQuery(document).on('mouseenter','.propertylisting-content',function(){
   if(jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')){
       const pid = jQuery(this).data('pid');
       const marker = markers.find(m => m.pid === pid);
+      const overlapped = findOverlappingMarkers(marker.getPosition());
+      overlapped.forEach(function(mk){
+      
+      });
       if (marker) {
         new google.maps.event.trigger( marker, 'click' );
       }

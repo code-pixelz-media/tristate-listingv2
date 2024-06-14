@@ -177,6 +177,8 @@
                     // }
                     // if (listing._type_str.toLowerCase() === 'for lease') {}
                     // thirdHeading = thirdHeading.filter(Boolean);
+                    
+                    const backGround = thirdHeading ==='FOR LEASE' ? 'lease-bgopacity' : 'sale-bgopacity';
 
                     const contentString =
                         '<div class="search-results-map" id="content">' +
@@ -184,7 +186,7 @@
                         '<h1 class="firstHeading">' + listing.title + '</h1>' +
                         '<h2 class="secondHeading">' + listing.subtitle + '</h2>' +
                         '<hr/>' +
-                        '<div id="bodyContent"><h3 class="thirdHeading">' + thirdHeading + '</h3>' +
+                        '<div id="bodyContent"><h3 class="thirdHeading '+backGround+'">' + thirdHeading + '</h3>' +
                         thumbImage + "<div class='single-search'>" +
                         '<p>' + listing.summary + '</p>' +
                         '<p><a class="listing-more" href="' + listing.get_page_link + '" target="_blank">More Info</a></p>' +
