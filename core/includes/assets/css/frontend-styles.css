@@ -71,6 +71,7 @@ div#filter-wrapper {
   max-width: 1000px;
   margin: 0 auto;
   margin-top: 90px;
+  font-family: "Poppins", sans-serif;
 }
 
 #filter-wrapper .MuiBox-root .property-filter,
@@ -170,6 +171,7 @@ div#filter-wrapper {
   border-radius: 3px;
   transition: all 0.3s;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .slider-box input[type="text"] {
@@ -185,11 +187,13 @@ div#filter-wrapper {
 .select2-container--default .select2-results__option--disabled {
   font-size: 12px !important;
   padding: 2px 6px !important;
+  font-family: "Poppins", sans-serif;
 }
 .select2-results__option--selectable {
   cursor: pointer;
   font-size: 12px;
   padding: 2px 6px !important;
+  font-family: "Poppins", sans-serif;
 }
 .Filterform .multi-select > div {
   min-height: 25px;
@@ -323,7 +327,7 @@ ul {
   padding: 4px 12px;
   border-radius: 4px;
   color: var(--colorwhite);
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .ul-content li {
@@ -359,6 +363,7 @@ ul.ul-features li span {
 }
 .property-list-wrapper {
   margin: 20px 0;
+  color: var(--colorblack);
 }
 
 .property-filter-wrapper {
@@ -383,7 +388,9 @@ ul.ul-features li span {
   flex-direction: column;
   gap: 10px;
 }
-
+.plc-top .description-container {
+  font-size: 14px;
+}
 .propertylisting-content h2 {
   font-size: 14px;
   font-weight: 600;
@@ -458,6 +465,7 @@ div#search_count_area div#tristate-result-count {
   gap: 10px;
   flex-direction: column;
   align-items: flex-end;
+  font-family: "Poppins", sans-serif;
 }
 #selectcolumn {
   margin-top: 0;
@@ -472,6 +480,7 @@ div#search_count_area div#tristate-result-count {
   appearance: none;
   background: url(../select-icon.png) no-repeat;
   text-indent: -9993em;
+  height: auto;
   /* text-align: right; */
   background-position: right center;
   padding-right: 25px;
@@ -488,7 +497,13 @@ div#search_count_area input:focus-visible,
 #bodyContent .listing-more:active,
 #bodyContent .listing-more:focus-visible,
 #search-by-text-new,
-#state-sorting {
+#state-sorting,
+a.listing-more:active,
+a.listing-more:focus,
+a.listing-more:focus-visible,
+a.button:active,
+a.button:focus,
+a.button:focus-visible {
   outline: none;
 }
 .tristate-column-select select option {
@@ -502,6 +517,7 @@ div#search_count_area input {
   padding: 5px;
   line-height: 5px;
   position: relative;
+  height: auto;
 }
 .slider-box {
   width: 100%;
@@ -1204,11 +1220,16 @@ a.button {
   color: rgb(25, 118, 210);
   width: auto;
 }
-
+.plc-bottom .MuiButton-colorPrimary:hover {
+  color: #184e78 !important;
+}
+.plc-bottom p.price {
+  margin-bottom: 12px;
+}
 button#save_map_layer {
   background: var(--colorblue) !important;
   color: #fff;
-  padding: 5px 15px;
+  padding: 5px 12px;
   width: 100%;
 }
 
@@ -1339,7 +1360,7 @@ a.button:hover {
 .tcr-popup-content ul {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
@@ -1349,7 +1370,9 @@ a.button:hover {
   gap: 0px;
   text-align: left;
 }
-
+.tcr-popup-content input[type='text'] {
+  height: 26px;
+}
 .tcr-button {
   width: 100%;
   display: block;
@@ -1393,7 +1416,9 @@ li.tab_last {
   flex-direction: row;
   flex-wrap: wrap;
 }
-
+.price-range-btm > .MuiBox-root > div {
+  width: 100%;
+}
 /* ------------Map Popups -------------- */
 #container {
   max-width: 1100px;
@@ -1953,7 +1978,14 @@ a.button {
   body.single-properties .tristate_cr_wrapper {
     margin-top: 0;
   }
-
+  div#search_count_area {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+  div#search_count_area > div, div#search_count_area input {
+    width: 100% !important;
+  }
   .left-content {
     display: none;
   }
@@ -2012,7 +2044,7 @@ a.button {
   #menu-btn {
     display: block;
     position: fixed;
-    top: 135px;
+    top: 180px;
     right: 0;
     padding: 0 10px 0px 10px;
     border: 1px solid transparent;

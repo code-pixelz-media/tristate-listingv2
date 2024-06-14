@@ -471,7 +471,7 @@ if ($property_img_gallerys=='test') {
 
                     foreach ($property_img_gallerys as $key => $property_img_gallery) {
                       # code...
-                      echo '<div class="swiper-slide"><a data-fancybox="gallery" href="' . $property_img_gallery->url . '  "><img src="' . $property_img_gallery->url . '" alt=""></a></div>';
+                      echo '<div class="swiper-slide"><a data-fancybox="gallery" onclick="event.preventDefault()"  href="' . $property_img_gallery->url . '  "><img src="' . $property_img_gallery->url . '" alt=""></a></div>';
                     }
 
                     ?>
@@ -612,10 +612,6 @@ $get_google_map_api_key = $settings['google_maps_api_key'];
 </script>
 
 <script>
-
-
-
-
 
 
   function createMap(div, lat, lng) {

@@ -645,7 +645,7 @@ listingTitles.forEach(function(title) {
                 <p style="display: none;" id="layers-link-buttonp">
                   <a class="button" id="layers-link-button" href="#" target="_blank">View Custom Map</a>
                 </p>
-                <?php if(!isset($_GET['search_id'])) : ?>
+                <?php if(!isset($_GET['search_id']) && !empty($_GET['search_id'])) : ?>
                 <script>
                   if (sessionStorage.getItem('latest_search_link')) {
                
