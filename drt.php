@@ -817,6 +817,8 @@ listingTitles.forEach(function(title) {
             <div class="MuiStack-root property-filter css-12xuzbq" id="propertylisting-content">
 
               <?php
+              
+            
               // Output the search results
               if ($search_query->have_posts()) {
                 $loop = TRISTATECRLISTING_PLUGIN_DIR . 'templates/dr-loop.php';
@@ -825,7 +827,9 @@ listingTitles.forEach(function(title) {
                   $search_query->the_post();
                   $ID = get_the_id();
                   if (file_exists($loop)) {
+                    echo !empty($atts['state']) ? '<a href="'.get_the_permalink($ID).'">' :'';
                     load_template($loop, false, ['ID' => $ID, 'ajax' => true,'state'=>$check_state]);
+                    echo !empty($atts['state']) ? '</a>' :'';
                   }
                   $markers_data[] = tristate_get_marker_data($ID);
                 }
