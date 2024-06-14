@@ -158,10 +158,12 @@ function get_markerData(fromId=true ,id){
       marker.addListener("click", (ev) => {
         var clickedPosition = marker.getPosition(); // Get the clicked position
         var overlappingMarkers = findOverlappingMarkers(clickedPosition);
+        
+        var hasClass = jQuery(document).find('.filter-wrapper').hasClass('ts-state-page');
     
-        if (overlappingMarkers.length > 1) {
+        if (overlappingMarkers.length > 1 && !hasClass) {
             overlappingMarkersData = overlappingMarkers.map(m => markerData.find(data => data.pid === m.pid));
-            currentInfoWindowIndex = 0; // Reset to the first marker
+            currentInfoWindowIndex = 0;
             updateInfoWindowContent();
         } else {
             const markerInfo = markerData.find(data => data.pid === marker.pid);
@@ -264,31 +266,11 @@ jQuery(document).on('mouseenter','.propertylisting-content',function(){
   if(jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')){
       const pid = jQuery(this).data('pid');
       const marker = markers.find(m => m.pid === pid);
-      var overlappingMarkers = findOverlappingMarkers(marker.getPosition());
-      console.log(overlappingMarkers.length);
-      if(overlappingMarkers.length>1){
-            
-        overlappingMarkers.forEach(function(mak) {
-            // if(mak.pid == pid){
-            
-            //     new google.maps.event.trigger( marker, 'click' );
-                
-            
-            // }
-            
-            if(mak.pid === pid){
-              new google.maps.event.trigger( mak, 'click' );
-            }
-        });
-      }else{
-        if(marker){
-          new google.maps.event.trigger( marker, 'click' );
-        }
+      if(marker){
+        new google.maps.event.trigger( marker, 'click' );
       }
-     
-
+      
   }
-
 });
 
 
@@ -298,3 +280,23 @@ jQuery(document).on('mouseenter','.propertylisting-content',function(){
       infoWindows.forEach(item => item.close());
     }
 });
+
+
+
+// jQuery(document).on('mouseenter', '.propertylisting-content', function () {
+//   if (jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')) {
+//     const pid = jQuery(this).data('pid');
+//     const marker = markers.find(m => m.pid === pid);
+
+//     if (marker) {
+//       var overlappingMarkers = findOverlappingMarkers(marker.getPosition());
+//       if (overlappingMarkers.length > 1) {
+//         overlappingMarkersData = overlappingMarkers.map(m => markers.find(data => data.pid === m.pid));
+//         currentInfoWindowIndex = 0;
+//         updateInfoWindowContent();
+//       } else {
+//         new google.maps.event.trigger(marker, 'click');
+//       }
+//     }
+//   }
+// });
