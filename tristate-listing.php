@@ -122,6 +122,11 @@ function my_plugin_override_single_template($template) {
             return $plugin_template;
         }
     }
+
+ /*      if ('properties_search' === $post->post_type) {
+        $single_template = plugin_dir_path(__FILE__) . '/core/single-properties_search.php';
+    } */
+
     return $template;
 }
 add_filter('template_include', 'my_plugin_override_single_template');
@@ -133,7 +138,8 @@ add_filter('template_include', 'my_plugin_override_single_template');
  */
 function tristate_cr_single_scripts()
 {
-    if (is_singular() && has_shortcode(get_post()->post_content, 'TSC-inventory-pub')) {
+    if ((is_singular(array('properties', 'properties_search', 'brokers')))  || (has_shortcode(get_post()->post_content, 'TSC-inventory-pub'))) {
+   // if (is_singular() && has_shortcode(get_post()->post_content, 'TSC-inventory-pub')) {
 
     $settings = get_option('tristate_cr_settings');
     $get_google_map_api_key = $settings['google_maps_api_key'];
@@ -147,7 +153,7 @@ function tristate_cr_single_scripts()
    
 
     wp_enqueue_style('jqueryuicss', '//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css', array(), '1.0.0');
-    wp_enqueue_style('single-styles', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/css/frontend-styles.css', array(), time());
+    //wp_enqueue_style('single-styles', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/css/frontend-styles.css', array(), time());
 
     wp_enqueue_style('select2js-style', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', array(), '1.0.0');
 
@@ -168,9 +174,10 @@ function tristate_cr_single_scripts()
          wp_enqueue_script('fancyboxjs', 'https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js', array(), '1.0.0', true);
         wp_enqueue_style('fancyboxcss', 'https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css', array(), '1.0.0');
     }
+//}
+    }
 }
-}
-add_action('wp_enqueue_scripts', 'tristate_cr_single_scripts',999);
+add_action('wp_enqueue_scripts', 'tristate_cr_single_scripts',9999);
 
 
 

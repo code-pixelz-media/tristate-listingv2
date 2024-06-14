@@ -56,7 +56,7 @@ class Tristatecr_Listing_Cpt_Menus
             'public'                => true,
             'menu_icon'             => 'dashicons-admin-multisite',
             'has_archive'           => true,
-            'rewrite'               => array('slug' => 'listings'),
+            'rewrite'               => array('slug' => 'properties'),
             'menu_position'         => 8,
             'show_in_rest' => true,
         );
