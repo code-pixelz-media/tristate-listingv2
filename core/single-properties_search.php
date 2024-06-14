@@ -51,7 +51,7 @@
         <template id="listing-template">
             <div class="listing">
                 <div class="listing--title"></div>
-                <div class="listing--subtitle" style="display:none"></div>
+                <div class="listing--subtitle" ></div>
                 <div class="listing--meta">
                     <span class="listing--type"></span>
                     <span class="listing--price"></span>
@@ -69,10 +69,12 @@
 
     <script>
         let REST_URL = '<?php echo get_rest_url(); ?>';
+        
+     
 
-        let LISTINGS_ROUTE_URL = REST_URL + 'tristatectr/v1/listings';
+        let LISTINGS_ROUTE_URL = REST_URL + 'tristatectr/v3/listings';
         let BROKERS_ROUTE_URL = REST_URL + 'tristatectr/v1/brokers';
-
+        console.log(LISTINGS_ROUTE_URL);
         let listings = [];
         let listingsMarkers = [];
 

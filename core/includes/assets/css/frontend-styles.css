@@ -503,8 +503,14 @@ a.listing-more:focus,
 a.listing-more:focus-visible,
 a.button:active,
 a.button:focus,
-a.button:focus-visible {
+a.button:focus-visible,
+a.MuiButton-colorPrimary:active,
+a.MuiButton-colorPrimary:focus,
+a.MuiButton-colorPrimary:focus-visible {
   outline: none;
+}
+body.pojo-a11y-focusable a:focus {
+  outline: none !important;
 }
 .tristate-column-select select option {
   background: var(--colorwhite);
@@ -672,6 +678,10 @@ body.single-properties .tristate_cr_wrapper {
   margin-top: 20px;
   display: block;
 }
+#tcr_tab1 ul li {
+  line-height: 24px;
+  list-style-type: disc;
+}
 
 #tcr_tab1 .tcr_property_form ul {
   list-style: none !important;
@@ -711,6 +721,7 @@ ul.tcr_tabs li {
   position: relative;
   z-index: 99;
   font-family: "Poppins", sans-serif;
+  font-size: 16px;
 }
 
 ul.tcr_tabs li:hover {
@@ -864,7 +875,7 @@ ul.tcr_tabs li.active {
   color: var(--colorblue);
   font-family: "Poppins", sans-serif;
   font-size: 22px;
-  margin-bottom: 0.5rem;
+  margin: 8px 0;
   font-weight: 500;
   line-height: 1.2;
 }
@@ -880,6 +891,8 @@ ul.tcr_tabs li.active {
 .tcr_content_wrapper {
   padding: 10px 0;
   font-family: "Poppins", sans-serif;
+  color: var(--colorblack);
+  line-height: 24px;
 }
 
 .tcr_content_wrapper table {
@@ -888,6 +901,8 @@ ul.tcr_tabs li.active {
   color: #212529;
   vertical-align: top;
   border-color: #dee2e6;
+  border: none;
+  font-family: "Poppins", sans-serif;
 }
 
 .tcr_content_wrapper table tbody,
@@ -902,7 +917,7 @@ ul.tcr_tabs li.active {
 }
 
 .tcr_content_wrapper table tr td {
-  padding: 0.5rem 0.5rem 0.5rem 0;
+  padding: 8px 8px 8px 0;
   background: none !important;
 }
 
@@ -1026,6 +1041,7 @@ table.spaces-table tbody > tr:nth-child(odd) > th {
 .tcr_members_details a {
   color: var(--colorblue);
   font-size: 12px;
+  line-height: 18px;
 }
 
 .tcr_members_details > div {
@@ -1034,14 +1050,16 @@ table.spaces-table tbody > tr:nth-child(odd) > th {
 
 .tcr_members_details h4 {
   margin: 0;
-  font-family: "Poppins", sans-serif;
-  font-size: 0.85rem;
-  font-weight: 800;
+    font-family: "Poppins", sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 26px;
 }
 
 .tcr_members_details h5 {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 14px;
+  line-height: 16px;
   font-family: "Poppins", sans-serif;
   font-weight: 400;
 }
@@ -1079,8 +1097,11 @@ ul.ul-disc {
   color: #262626;
   margin-bottom: 5px;
   font-family: "Poppins", sans-serif;
+  font-weight: normal;
 }
-
+.tcr_property_form ul li {
+  list-style: none !important;
+}
 .tcr_property_form p {
   margin: 10px 0;
 }
@@ -1153,10 +1174,13 @@ ul.ul-disc {
 }
 
 .tcr_property_form input[type="submit"] {
+  font-family: "Poppins", sans-serif;
   background-color: #1671ad !important;
   border: 1px solid #1671ad;
   color: var(--colorwhite);
   width: auto;
+    padding: 6px 12px !important;
+    border-radius: 4px;
 }
 
 .ui-widget-header {

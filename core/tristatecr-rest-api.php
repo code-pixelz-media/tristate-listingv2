@@ -23,7 +23,7 @@ add_action('rest_api_init', 'new_tristatectr_rest_api_init');
 
 function new_tristatectr_rest_api_init()
 {
-	register_rest_route('tristatectr/v1', '/listings', array(
+	register_rest_route('tristatectr/v3', '/listings', array(
 		'methods' => 'GET',
 		'callback' => 'new_tristatectr_rest_listings',
 	));

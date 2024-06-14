@@ -150,7 +150,7 @@ add_filter('template_include', 'my_plugin_override_single_template');
  */
 function tristate_cr_single_scripts()
 {
-   // if ((is_singular(array('properties', 'properties_search', 'brokers')))  || (has_shortcode(get_post()->post_content, 'TSC-inventory-pub'))) {
+  if ((is_singular(array('properties', 'properties_search', 'brokers')))  || (has_shortcode(get_post()->post_content, 'TSC-inventory-pub'))) {
 
 
     $settings = get_option('tristate_cr_settings');
@@ -198,7 +198,7 @@ function tristate_cr_single_scripts()
 
 
     
-  //  }
+  }
 }
 add_action('wp_enqueue_scripts', 'tristate_cr_single_scripts',9999);
 
