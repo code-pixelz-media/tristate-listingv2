@@ -457,7 +457,10 @@ listingTitles.forEach(function(title) {
               $('#map-layer-content').css('display', 'none');
 
               sessionStorage.setItem('latest_search_link', response.data.recent_link);
-              viewSearch.css('display', 'block');
+              if(viewSearch.css('display') !== 'block'){
+                viewSearch.css('display', 'block');
+              }
+              
               custommap.attr('href', response.data.recent_link);
 
               $('#map_layer_show_message').fadeOut(600)
@@ -633,33 +636,47 @@ listingTitles.forEach(function(title) {
 
                   <?php
 
-                  if (isset($_GET['search_id'])) {
-                    $get_search_id =  $_GET['search_id'];
-                    $search_permalink = get_the_permalink($get_search_id);
-                    $search_permalink = add_query_arg(['redirectId' => get_the_id()], $search_permalink);
+                  // if (isset($_GET['search_id'])) {
+                  //   $get_search_id =  $_GET['search_id'];
+                  //   $search_permalink = get_the_permalink($get_search_id);
+                  //   $search_permalink = add_query_arg(['redirectId' => get_the_id()], $search_permalink);
                     
-                    echo '<a class="button" href="' . $search_permalink . '" target="_blank" rel="noopener noreferrer">View Custom Map</a>';
-            
-                  }
+                  //   echo '<a class="button" href="' . $search_permalink . '" target="_blank" rel="noopener noreferrer">View Custom Map</a>';
+
+                  // }
                   ?>
                 <p style="display: none;" id="layers-link-buttonp">
                   <a class="button" id="layers-link-button" href="#" target="_blank">View Custom Map</a>
                 </p>
-                <?php if(!isset($_GET['search_id']) && !empty($_GET['search_id'])) : ?>
+               
                 <script>
                   if (sessionStorage.getItem('latest_search_link')) {
                
                     var layersLinkButton = document.getElementById('layers-link-button');
-                    var layersLinkbuttonp =  document.getElementById('layers-link-buttonp')
-                    layersLinkbuttonp.style.display = 'block';
+                    var layersLinkbuttonp =  document.getElementById('layers-link-buttonp');
+
                     layersLinkButton.setAttribute('href', sessionStorage.getItem('latest_search_link'));
 
                   } else {
 
                     document.getElementById('layers-link-buttonp').style.display = 'none';
                   }
+                  
+                  var url = new URL(window.location.href);
+
+                  // Get the URL parameters
+                  var params = new URLSearchParams(url.search);
+                  
+                  // Get the value of the "search_id" parameter
+                  var searchId = params.get('search_id');
+                  
+                  if(searchId){
+                    document.getElementById('layers-link-buttonp').style.display='block';
+                  }
+                  
+                  
                 </script>
-                <?php endif; ?>
+               
                 </div>
               </div>
 
