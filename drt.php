@@ -39,6 +39,8 @@ function drt_restrict_page_access()
 }
 
 
+
+
 function get_property_broker_title($property_id)
 {
 
@@ -71,14 +73,10 @@ function get_property_broker_title($property_id)
 function meta_of_api_sheet($propid, $metaKey)
 {
 
-  $type = get_post_meta($propid, '_import_from', true);
-
-  if ($type == 'sheets') {
-  }
-
-  $g_sheet_meta = get_post_meta($propid, '_gsheet_' . $metaKey, true);
   $buildout_meta = get_post_meta($propid, '_buildout_' . $metaKey, true);
-  return !empty($g_sheet_meta) ? $g_sheet_meta : (!empty($buildout_meta) ? $buildout_meta : '');
+  $g_sheet_meta = get_post_meta($propid, '_gsheet_' . $metaKey, true);
+  
+  return !empty($buildout_meta) ? $buildout_meta : (!empty($g_sheet_meta) ? $g_sheet_meta : '');
 }
 
 function tristate_get_marker_data($ID)
@@ -817,8 +815,6 @@ listingTitles.forEach(function(title) {
             <div class="MuiStack-root property-filter css-12xuzbq" id="propertylisting-content">
 
               <?php
-              
-            
               // Output the search results
               if ($search_query->have_posts()) {
                 $loop = TRISTATECRLISTING_PLUGIN_DIR . 'templates/dr-loop.php';
@@ -827,9 +823,9 @@ listingTitles.forEach(function(title) {
                   $search_query->the_post();
                   $ID = get_the_id();
                   if (file_exists($loop)) {
-                    echo !empty($atts['state']) ? '<a href="'.get_the_permalink($ID).'">' :'';
+                    // echo !empty($atts['state']) ? '<a href="'.get_the_permalink($ID).'">' :'';
                     load_template($loop, false, ['ID' => $ID, 'ajax' => true,'state'=>$check_state]);
-                    echo !empty($atts['state']) ? '</a>' :'';
+                    // echo !empty($atts['state']) ? '</a>' :'';
                   }
                   $markers_data[] = tristate_get_marker_data($ID);
                 }

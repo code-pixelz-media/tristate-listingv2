@@ -51,7 +51,7 @@
         <template id="listing-template">
             <div class="listing">
                 <div class="listing--title"></div>
-                <div class="listing--subtitle" ></div>
+                <div class="listing--subtitle"></div>
                 <div class="listing--meta">
                     <span class="listing--type"></span>
                     <span class="listing--price"></span>

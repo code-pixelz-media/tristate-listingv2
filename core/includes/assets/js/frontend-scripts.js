@@ -497,6 +497,41 @@ jQuery(document).ready(function () {
   jQuery('#more-filter-content').hide();
   jQuery("#state-more-filter").on("click", function () {
   jQuery('#more-filter-content').toggleClass("ts-adv-show");
+  jQuery('.close-icon').toggleClass('closeactive');
   jQuery('.slider-box').appendTo('#more-filter-content');
-  })
-})
+
+  if(jQuery('#more-filter-content').hasClass('ts-adv-show')) {
+    jQuery('.close-icon').show();
+  }
+  else {
+    jQuery('.close-icon').hide();
+  }
+
+  });
+  function handleFilterButtonClick() {
+    var button = document.getElementById("state-more-filter");
+    var closeIcon = document.querySelector(".close-icon");
+
+    if (!closeIcon) {
+
+      closeIcon = document.createElement("span");
+      closeIcon.classList.add("close-icon");
+      closeIcon.innerHTML = "&#x2715;"; 
+
+      button.insertAdjacentElement("afterend", closeIcon);
+
+      closeIcon.addEventListener("click", function() {
+        button.click();
+        closeIcon.remove();
+      });
+    }
+  }
+  if(jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')){
+  var moreFilterButton = document.getElementById("state-more-filter");
+  moreFilterButton.addEventListener("click", function() {
+
+    handleFilterButtonClick();
+  });
+}
+
+});
