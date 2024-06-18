@@ -21,22 +21,22 @@ $_price_sf      = (int) preg_replace('/[^0-9]/', '', $_price_sf);
 $min_size       = get_post_meta($ID, '_gsheet_min_size_fm',true);
 $max_size       = get_post_meta($ID, '_gsheet__max_size_fm',true);
 
-//max and min values for for lease properties sf
 $max_lease_sf_value       = get_post_meta($ID, '_gsheet_price_sf',true);
 $max_lease_sf = (float) preg_replace('/[^0-9.]/', '', $max_lease_sf_value);
-
-
 $zoning         = meta_of_api_sheet($ID, 'zoning');
 $key_tag        = meta_of_api_sheet($ID, 'key_tag');
 $_agent         = meta_of_api_sheet($ID, 'listing_agent');
 
 $bo_price       = meta_of_api_sheet($ID, 'sale_price_dollars');
-
 $price          = meta_of_api_sheet($ID, 'monthly_rent');
+
 $_price         = preg_replace('/\.[0-9]+/', '', $price);
+
 $_price         = (int) preg_replace('/[^0-9]/', '', $_price);
 
 $agents = get_post_meta($ID,'_buildout_listing_agent', true);
+
+
 
 $neighborhood   = meta_of_api_sheet($ID, 'neighborhood');
 $vented         = meta_of_api_sheet($ID, 'vented');
@@ -58,30 +58,17 @@ if ($photos = meta_of_api_sheet($ID, 'photos')) {
     $image = $photo->formats->thumb ?? '';
 }
 
-// check the property type
+
+$sale_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/sale.webp';
+$lease_marker = TRISTATECRLISTING_PLUGIN_URL . '/assets/img/lease.webp';
+
+$marker_img = ($buildout_lease == '1' && $buildout_sale == '1') ? $lease_marker :
+              (($buildout_lease == '1') ? $lease_marker :
+              (($buildout_sale == '1') ? $sale_marker : false));
+
 $type = ($buildout_lease == '1' && $buildout_sale == '1') ? 'FOR LEASE' :
         (($buildout_lease == '1') ? 'FOR LEASE' :
         (($buildout_sale == '1') ? 'FOR SALE' : false));
-        
-//Checking the type of the properties 
-$formatted_type = str_replace(' ', '', trim(strtolower($type)));
-
-$monthly_rent_lease = false;
-//if the property is of forlease type
-if($formatted_type == 'forlease'){
-    $monthly_rent_lease = !empty($_price) ? 'Monthly rent: $'. number_format($_price) : false;
-    $new_price = !empty($_price_sf  ) ? 'Price per SF: $'. number_format($_price_sf) : false;
-    
-//if the property is of forsale type    
-}else if($formatted_type == 'forsale'){
-
-    $sale_price = meta_of_api_sheet($ID, 'sale_price_dollars');
-    $new_price = !empty($sale_price) ? 'Price : $'. number_format($sale_price) : false;
-// if the price is not found
-}else {
-    $new_price = false;
-}
-
 
 if(empty($_agent)){
     $buildout_agent = get_post_meta($ID, '_buildout_broker_id', true);
@@ -190,7 +177,6 @@ if(!empty($badges['use'])){
 }
 
 
-
 $meta_vrs = [
     'City' => $city,
     'State' => $state,
@@ -202,12 +188,29 @@ $meta_vrs = [
     'Vented' => $vented,
     'Borough' => $borough,
     'Neighborhood' => $neighborhood,
-    'Zip Code' => $zip,
+    'Zip Code' => $zip
 ];
 
 $new_max_p_sf= preg_replace('/\$?(\d+)\.\d{2}/', '$1', $_price_sf);
 if($_price_sf !=='0' && !empty($_price_sf))  $max_p_val[] = (int) $new_max_p_sf;
 
+// // for buildout price
+// $bo_price    = meta_of_api_sheet($ID, 'sale_price_dollars');
+// if($bo_price !== '0' && !empty($bo_price)) $max_p_val[] = (int) $bo_price;
+
+
+if (!empty($bo_price) && $bo_price !== '0' && $bo_price !== 0) {
+    $data_price = $bo_price;
+    $displaying_price = '$' . number_format($bo_price);
+
+} elseif (!empty($_price_sf) && $_price_sf !== '0' && $_price_sf !== 0) {
+    $data_price = $_price_sf;
+    $displaying_price = '$' . number_format($_price_sf);
+
+} else {
+
+    $displaying_price = 'Call For Price';
+}
 
 $desc = '';
 
@@ -219,7 +222,7 @@ if ($buildout_lease == '1') {
     $desc = meta_of_api_sheet($ID, 'sale_description');
     
 } elseif($buildout_lease == '1' && $buildout_sale == '1') {
-   $desc = meta_of_api_sheet($ID, 'lease_description');
+   $desc = meta_of_api_sheet($ID, 'sale_description');
 }
 $type_imp = get_post_meta($ID,'_import_from',true);
 
@@ -255,8 +258,6 @@ $json_data = json_encode($m_d);
 $date_created = get_post_meta($ID,'_buildout_created_at',true);
 $date_upd = get_post_meta($id,'_buildout_updated_at',true);
 
-
-
 ?>
 
 <div 
@@ -273,7 +274,6 @@ $date_upd = get_post_meta($id,'_buildout_updated_at',true);
     data-dateupdated="<?php echo strtotime($date_upd); ?>",
     data-datecreated="<?php echo strtotime($date_created); ?>"
     data-title = "<?php echo esc_html(get_the_title()); ?>"
-    data-monthly-rent = "<?php echo !empty($_price) ? $_price :'0'; ?>"
 >
 
 <?php
@@ -288,10 +288,12 @@ if($args['state']) { ?>
     <div class="plc-top">
     <?php if($args['state']) { ?>
     <div id="state-layout-head">
-        <h2 class="lisiitng__title" id="state_property_title" style="display:none"><a href="<?php the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> <?php echo esc_html(get_the_title()); ?></a>  </h2> 
-        <h2 class="lisiitng__state_title" >
-            <?php echo esc_html(get_the_title()); ?>
-        </h2>
+    <h2 class="lisiitng__title" id="state_property_title" style="display:none"><a href="<?php the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> <?php echo esc_html(get_the_title()); ?></a>  </h2>
+        
+             <h2 class="lisiitng__state_title" >
+ 
+    <?php echo esc_html(get_the_title()); ?>
+</h2>
     </div>
 
     <?php } else { ?>
@@ -299,7 +301,7 @@ if($args['state']) { ?>
         <h2 class="lisiitng__title_state"><?php echo esc_html(get_the_title()); ?></h2> 
     <?php } ?>
         <h4><?php echo $subtitle; ?></h4>
-     
+        <?php //var_dump($neighborhood); ?>
         <div class="css-ajk2hm">
             <ul class="ul-buttons">
                 <?php
@@ -372,23 +374,8 @@ if($args['state']) { ?>
 </ul>
         </div>
     </div>
-    
     <div class="plc-bottom">
-    <?php if($monthly_rent_lease) : ?>
-        <p class="font-13 color-red"><?php echo $monthly_rent_lease; ?></p>
-    <?php endif; ?>
-    <!-- Starting P for Price -->
-        <p class="price">
-            <?php if($new_price): 
-            
-                echo $new_price;
-            
-            else: 
-                 _e('Price: Call For Price','tristatecr');
-            endif 
-            ?>
-        </p>
-    <!-- p for price ends  -->
+        <p class="price"><?php echo 'Price: ' . $displaying_price; ?></p>
         <a href="<?php the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> More Info </a>
     </div>
     <?php if($args['state']) { ?>
