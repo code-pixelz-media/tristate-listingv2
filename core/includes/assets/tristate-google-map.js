@@ -41,7 +41,7 @@ if(ID){
 }
 
 
-  jQuery(document).on('keyup', '#search-by-text', function() {
+  jQuery(document).on('keyup', '#search-by-text', function($) {
   
     markers.forEach(function(marker) {
       marker.setMap(null); 

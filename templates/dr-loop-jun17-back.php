@@ -11,6 +11,7 @@ $badges         = array(
                     'type' =>  ($buildout_lease == '1' && $buildout_sale == '1') ? 'for Lease' :
                     (($buildout_lease == '1') ? 'for Lease' :
                     (($buildout_sale == '1') ? 'for Sale' : false)),
+                    // 'price_sf' => meta_of_api_sheet($ID, 'price_sf'),
                     'commission' => meta_of_api_sheet($ID, 'commission')
                 );
                 
@@ -20,7 +21,6 @@ $_price_sf      = (int) preg_replace('/[^0-9]/', '', $_price_sf);
 
 $min_size       = get_post_meta($ID, '_gsheet_min_size_fm',true);
 $max_size       = get_post_meta($ID, '_gsheet__max_size_fm',true);
-
 $max_lease_sf_value       = get_post_meta($ID, '_gsheet_price_sf',true);
 $max_lease_sf = (float) preg_replace('/[^0-9.]/', '', $max_lease_sf_value);
 $zoning         = meta_of_api_sheet($ID, 'zoning');
@@ -33,10 +33,6 @@ $price          = meta_of_api_sheet($ID, 'monthly_rent');
 $_price         = preg_replace('/\.[0-9]+/', '', $price);
 
 $_price         = (int) preg_replace('/[^0-9]/', '', $_price);
-
-$agents = get_post_meta($ID,'_buildout_listing_agent', true);
-
-
 
 $neighborhood   = meta_of_api_sheet($ID, 'neighborhood');
 $vented         = meta_of_api_sheet($ID, 'vented');
@@ -277,6 +273,7 @@ $date_upd = get_post_meta($id,'_buildout_updated_at',true);
 >
 
 <?php
+
 if($args['state']) { ?>
 <a href="<?php the_permalink(); ?>">
 <?php } ?>

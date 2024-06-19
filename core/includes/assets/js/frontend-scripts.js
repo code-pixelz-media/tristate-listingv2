@@ -445,7 +445,7 @@ jQuery(document).ready(function () {
 
 // spaces table accordion spacestoggle
 
-jQuery(document).ready(function () {
+jQuery(document).ready(function ($) {
   jQuery("#spacestoggle").on("click", function () {
     jQuery(".spaces-child-content").toggleClass("spacechildshow");
     jQuery("#spacestoggle i").toggleClass("fa-chevron-down fa-chevron-up");

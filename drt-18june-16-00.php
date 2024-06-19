@@ -171,33 +171,6 @@ function get_pricesf_minmax($type = "min", $formatted = true)
   return $retval;
 }
 
-
-function get_mnth_rent_min_max($type = "min", $formatted = true){
-  global $wpdb;
-
-  $max_rent = $wpdb->get_var("
-      SELECT MAX(CAST(REPLACE(REPLACE(pm.meta_value, '$', ''), ',', '') AS UNSIGNED)) 
-      FROM {$wpdb->postmeta} pm
-      INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
-      WHERE pm.meta_key = '_gsheet_monthly_rent' 
-      AND p.post_type = 'properties'
-  ");
-
-
-  $formatted_max_val = number_format($max_rent);
-  $formatted_min_val = '$0';
-
-  if ($formatted) {
-
-    $retval = $type == 'min' ? $formatted_min_val : '$' . $formatted_max_val;
-  } else {
-
-    $retval = $type == 'min' ? (int) 0 : (int) $max_rent;
-  }
-
-  return $retval;
-}
-
 function get_size_minmax($type = "min", $formatted = true)
 {
   global $wpdb;
@@ -312,8 +285,6 @@ listingTitles.forEach(function(title) {
       document.getElementById('for_sale').style.display = 'none';
       document.getElementById('for_lease').style.display = 'none';
       document.getElementById('sale_lease').style.display = 'none';
-      document.getElementById('for_lease_monthly_rent').style.display = 'none';
-    //  document.getElementById('for_lease_monthly_rent').style.display = 'none';
       //sale_lease
 
       // Function to update visibility based on checkbox states
@@ -324,25 +295,20 @@ listingTitles.forEach(function(title) {
         if (forSaleCheckbox.checked) {
           document.getElementById('sale_lease').style.display = 'block';
           document.getElementById('for_sale').style.display = 'block';
-          document.getElementById('for_lease_monthly_rent').style.display = 'block';
         } else {
           document.getElementById('for_sale').style.display = 'none';
-         
-          
         }
 
         if (forLeaseCheckbox.checked) {
           document.getElementById('sale_lease').style.display = 'block';
           document.getElementById('for_lease').style.display = 'block';
-          document.getElementById('for_lease_monthly_rent').style.display = 'block';
         } else {
           document.getElementById('for_lease').style.display = 'none';
-          document.getElementById('for_lease_monthly_rent').style.display = 'none';
         }
-/* 
+
         if (!forSaleCheckbox.checked && !forLeaseCheckbox.checked) {
           document.getElementById('sale_lease').style.display = 'none';
-        } */
+        }
       }
 
       // Attach the event listeners to checkboxes
@@ -586,23 +552,6 @@ listingTitles.forEach(function(title) {
                   <input type="hidden" name="rent-range" data-clear="0" id="rent-range-selected">
                 </div>
               </div>
-              
-              <!-- For monthly Rent -->
-              <div>
-                <div class="slider-box" id="for_lease_monthly_rent">
-                  <label for="priceRange">Monthly Rent:</label>
-                  <input style="display:none" type="text" id="priceRange4" readonly>
-                  <div class="range-min-max">
-                    <input type="text" class="range-inputs" id="month-rent-range-min" data-default="<?php echo get_mnth_rent_min_max(); ?>" name="month_range_min_rent" value="<?php echo get_mnth_rent_min_max(); ?>">
-                    <input type="text" class="range-inputs" id="month-rent-range-max" data-default="<?php echo get_mnth_rent_min_max('max'); ?>" name="month_range_max_rent" value="<?php echo get_mnth_rent_min_max('max'); ?>">
-                  </div>
-                  <div id="price-range4" class="slider" data-min="<?php echo get_mnth_rent_min_max('min', false) ?>" data-max="<?php echo get_mnth_rent_min_max('max', false); ?>"></div>
-                  <!-- <input type="hidden" name="rent-range" data-clear="0" id="rent-range-selected"> -->
-                </div>
-              </div>
-              <!-- Monthly rent ends -->
-
-              
             </div>
 
             <div>
@@ -975,7 +924,7 @@ listingTitles.forEach(function(title) {
         // Function to reset range filters
         function resetRangeFilters() {
          
-          var ranges = ['#price-range', '#price-range3', '#price-range2','#price-range4'];
+          var ranges = ['#price-range', '#price-range3', '#price-range2'];
           ranges.forEach(function(range) {
               var $range = $(range);
               $range.slider("option", "max", $range.data('max'));
@@ -1016,7 +965,6 @@ listingTitles.forEach(function(title) {
 
       });
 
-
       $("#price-range2").slider({
         range: true,
         min: $("#price-range2").data('min'), //get min val
@@ -1056,24 +1004,7 @@ listingTitles.forEach(function(title) {
 
         },
       });
-      //price-range4
-      $("#price-range4").slider({
-        range: true,
-        min: $("#price-range4").data('min'), //get min val
-        max: $("#price-range4").data('max'), //get max val  
-        values: [$("#price-range4").data('min'), $("#price-range4").data('max')],
-        step: 1,
-        slide: function(event, ui) {
-          $("#priceRange4").val("$" + ui.values[0].toLocaleString() + " - $" + ui.values[1].toLocaleString());
-          $("#month-rent-range-min").val("$" + ui.values[0].toLocaleString());
-          $("#month-rent-range-max").val("$" + ui.values[1].toLocaleString());
-          
-          //month-rent-range-min ,month-rent-range-max
-        },
-        change: function(event, ui) {
-          // $("#rent-range-selected").val(ui.values[0] + "-" + ui.values[1]);
-        },
-      });
+
       // Extract unique values from the HTML for select2 options
       var agents = new Set();
       var uses = new Set();
@@ -1196,7 +1127,6 @@ if (tsStatePageDiv) {
 
      var priceRange = $("#price-range").slider("values").map(Number);
      var priceRangeSf = $("#price-range3").slider("values").map(Number);
-     var monthlyRangeSf = $("#price-range4").slider("values").map(Number);
      var sizeRangeSf = $("#price-range2").slider("values").map(Number);
      var displayedListings = 0;
      var priceArray = [0],
@@ -1213,12 +1143,9 @@ if (tsStatePageDiv) {
          price = parseFloat($(this).data('price')),
          priceSf = parseFloat($(this).data('pricesf')),
          sizeMax = parseFloat($(this).data('maxsize')),
-         rent = parseFloat($(this).data('monthly-rent'))
          isBetweenMaxMinPrice = (price >= priceRange[0]) && (price <= priceRange[1]),
          isBetweenMaxMinPriceSf = (priceSf >= priceRangeSf[0]) && (priceSf <= priceRangeSf[1]),
-         isBetweenMaxMinSize = (sizeMax >= sizeRangeSf[0]) && (sizeMax <= sizeRangeSf[1]),
-         isBetweenMaxMinMonthly = (rent >= monthlyRangeSf[0]) && (rent <= monthlyRangeSf[1]);
-         
+         isBetweenMaxMinSize = (sizeMax >= sizeRangeSf[0]) && (sizeMax <= sizeRangeSf[1]);
 
 /*        if (selectedAgents.length > 0 && !selectedAgents.includes($listing.find("#tri_listing_agent").text().trim())) {
          showListing = false;
@@ -1320,9 +1247,6 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
 
        if (!isBetweenMaxMinPrice) {
          showListing = false;
-       }
-       if(!isBetweenMaxMinMonthly) {
-        showListing = false;
        }
        if (!isBetweenMaxMinPriceSf) {
          showListing = false;
@@ -1532,7 +1456,7 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
       $("#search-by-text-new").attr('data-slided', $(this).prop('id'));
     });
       
-      $("#price-range,#price-range3,#price-range2,#price-range4").on("slidestop", function(event, ui) {
+      $("#price-range,#price-range3,#price-range2").on("slidestop", function(event, ui) {
        
           filterListings(null,$(this).prop('id'));
        
@@ -1590,8 +1514,7 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
         return {
             priceRange: $('#price-range').slider("values"),
             priceRange2: $('#price-range2').slider("values"),
-            priceRange3: $('#price-range3').slider("values"),
-            priceRange4: $('#price-range4').slider("values")
+            priceRange3: $('#price-range3').slider("values")
         };
     }
 
@@ -1674,7 +1597,7 @@ var isSearchByTextNewFilled = searchByTextNew && searchByTextNew.value.trim().le
         var rangeHiddenFields = $("#price-range-selected, #rent-range-selected, #size-range-selected");
         rangeHiddenFields.attr("data-clear", "1");
 
-        var ranges = ['#price-range', '#price-range3', '#price-range2', '#price-range4'];
+        var ranges = ['#price-range', '#price-range3', '#price-range2'];
         ranges.forEach(function(range) {
             var $range = $(range);
             $range.slider("option", "max", $range.data('max'));
@@ -1780,38 +1703,4 @@ var isSearchByTextNewFilled = searchByTextNew && searchByTextNew.value.trim().le
   
 
   return ob_get_clean();
-}
-
-
-function get_usesname_by_propertyID($propertyTypeID){
-  
- 
-  switch ($propertyTypeID) {
-    case "1":
-      $property_uses_name = 'Office';
-      break;
-    case "2":
-     $property_uses_name = 'Retail'; 
-      break;
-    case "3":
-     $property_uses_name = 'Industrial'; 
-      break;
-    case "5":
-     $property_uses_name = 'Land'; 
-      break;
-    case "6":
-     $property_uses_name = 'Multifamily'; 
-      break;
-    case "7":
-     $property_uses_name = 'Special Purpose'; 
-      break;
-    case "8":
-     $property_uses_name = 'Hospitality'; 
-      break;
-    default:
-    $property_uses_name = false;
-}
-
-return $property_uses_name;
-  
 }

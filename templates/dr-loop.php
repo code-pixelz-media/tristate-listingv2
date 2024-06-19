@@ -6,8 +6,10 @@ $buildout_sale  =  meta_of_api_sheet($ID, 'sale');
 $buildout_id    = (int) meta_of_api_sheet($ID, 'id');
 $title          = meta_of_api_sheet($ID, 'sale_listing_web_title');
 $subtitle       = implode(', ', array(meta_of_api_sheet($ID, 'city'), meta_of_api_sheet($ID, 'county'), meta_of_api_sheet($ID, 'state')));
+$property_use_type = get_post_meta($ID,'_buildout_property_type_id',true);
+$property_use_name = get_usesname_by_propertyID($property_use_type);
 $badges         = array(
-                    'use' => meta_of_api_sheet($ID, 'use'),
+                    'use' =>$property_use_name ? $property_use_name : '',
                     'type' =>  ($buildout_lease == '1' && $buildout_sale == '1') ? 'for Lease' :
                     (($buildout_lease == '1') ? 'for Lease' :
                     (($buildout_sale == '1') ? 'for Sale' : false)),

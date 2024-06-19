@@ -226,13 +226,6 @@ function tristatecr_single_property_googe_map($lat, $lng)
 <?php
 }
 
-
-// function tristate_checck_api_data()
-// {
-
-//     $settings = get_option('tristate_cr_settings');
-//     $get_buildout_api_key = $settings['buildout_api_key'];
-
-//     echo $get_buildout_api_key . '---get buidout api ';
-// }
-// add_action('wp_footer', 'tristate_checck_api_data');
+add_filter('http_request_timeout', function($timeout) {
+    return 30; 
+});
