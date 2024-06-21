@@ -53,15 +53,15 @@ function new_tristate_save_results_as_layer()
 	$result = add_post_meta($search_id, 'listing_ids', $listing_ids);
 	$result = add_post_meta($search_id, 'layer_name', $layer_name);
 	$search_permalink =  get_the_permalink($search_id);
-	if($page_id){
+	if ($page_id) {
 		$search_permalink = add_query_arg(['redirectId' => $page_id], $search_permalink);
 	}
 
-	
+
 
 	$result = array(
 		'search_id' 		=> $search_id,
-		'recent_link'       =>$search_permalink, //need to add permalink for view search
+		'recent_link'       => $search_permalink, //need to add permalink for view search
 		'search_url' 		=> get_permalink($search_id),
 		'map_name' 			=> get_the_title($search_id),
 		'listing_ids' 	=> $listing_ids,
@@ -69,6 +69,79 @@ function new_tristate_save_results_as_layer()
 	);
 	wp_send_json_success($result, 200);
 }
+
+
+
+/* ---------------savemap to layer pop up------------- */
+
+
+add_action('wp_ajax_pop_tristate_save_results_as_layer', 'pop_tristate_save_results_as_layer');
+
+function pop_tristate_save_results_as_layer()
+{
+
+	$savedSearchId 		= $_POST['savedSearchId'] ?? '';
+	$getSearchId 		= $_POST['search_id'] ?? '';
+
+
+	$get_search_id_final = !empty($savedSearchId) ? $savedSearchId : (!empty($getSearchId) ? $getSearchId : '');
+
+	$get_current_user = get_current_user_id();
+	$time = time();
+
+	if (!empty($savedSearchId) || !empty($getSearchId)) {
+		// Do not render the HTML if savedSearchId is empty
+
+		$heading_title = 'SAVE TO A SAME LAYER';
+		$render_layer_title = get_the_title($get_search_id_final);
+		$render_map_title = '
+		<label>Map Title</label>
+		<input type="text" name="timestamp" id="" value="' . $render_layer_title . '" readonly>
+		<input type="hidden" name="previous_map_post_id" id="previous_map_post_id" value="' . $get_search_id_final . '" required>';
+	} else {
+		// Render the HTML if savedSearchId is not empty
+		$heading_title = 'SAVE TO A NEW MAP LAYER';
+		$render_map_title =
+			'<li><label>Map Title</label>
+              <input type="text" name="map_post_title" id="map_post_title" required>
+          </li>';
+	}
+
+	$html = '<div class="tcr-popup-overlay"></div>
+
+	<div class="tcr-popup-wrapper" id="tcr-popup-wrapper">
+
+		<div class="tcr-popup-content" id="tcr-req-acc-output">
+			
+				<h4>' . $heading_title . '</h4>
+				<form id="tri-popup-form" method="POST">
+					<div id="map-layer-content">
+						<ul>
+							<input type="hidden" name="userid" id="map_layer_user_id" value="' . $get_current_user . '">
+							<input type="hidden" name="timestamp" id="map_layer_timestamp" value="' . $time . '">
+							' . $render_map_title . '
+							<li>
+								<label>Layer Title</label>
+								<input type="text" name="map_layer_title" id="map_layer_title" required>
+							</li>
+						</ul>
+
+						<input type="hidden" name="map_layer_post_ids" id="map_layer_post_ids">
+						<input type="submit" id="submit_map_layer" name="submit_layer" value="' . $heading_title . '">
+					</div>
+				</form>
+			
+			<div id="map_layer_show_message"></div>
+		</div>
+
+		<button id="tcr-popup-close-button">X</button>
+	</div>';
+
+	echo $html;
+	exit();
+}
+
+
 
 // add_action('wp_ajax_rename_search', 'tristatecr_wp_ajax_rename_search');
 

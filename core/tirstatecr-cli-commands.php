@@ -616,7 +616,7 @@ function new_tristatecr_datasync_cron_schedules($schedules)
 {
    
     $schedules['every_2_days'] = array(
-        'interval' => 2 * DAY_IN_SECONDS, 
+        'interval' => 86400, 
         'display'  => __('Every 2 days'),
     );
     return $schedules;
@@ -630,7 +630,7 @@ if (!wp_next_scheduled('new_tristatecr_datasync_cron')) {
 }
 
 
-add_action('new_tristatecr_datasync_cron', 'new_tristatecr_datasync_cron_function');
+ add_action('new_tristatecr_datasync_cron', 'new_tristatecr_datasync_cron_function');
 
 function new_tristatecr_datasync_cron_function()
 {

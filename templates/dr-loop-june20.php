@@ -6,7 +6,6 @@ $buildout_sale  =  meta_of_api_sheet($ID, 'sale');
 $buildout_id    = (int) meta_of_api_sheet($ID, 'id');
 $title          = meta_of_api_sheet($ID, 'sale_listing_web_title');
 $subtitle       = implode(', ', array(meta_of_api_sheet($ID, 'city'), meta_of_api_sheet($ID, 'county'), meta_of_api_sheet($ID, 'state')));
-
 $property_use_type = get_post_meta($ID,'_buildout_property_type_id',true);
 $propert_use_subtype = get_post_meta($ID,'_buildout_property_subtype_id',true);
 
@@ -83,59 +82,69 @@ $type = ($buildout_lease == '1' && $buildout_sale == '1') ? 'FOR LEASE' :
 //Checking the type of the properties 
 $formatted_type = str_replace(' ', '', trim(strtolower($type)));
 
- $monthly_rent_lease = false;
-// //if the property is of forlease type
-// if($formatted_type == 'forlease'){
-//     $monthly_rent_lease = !empty($_price) ? 'Monthly rent: $'. number_format($_price) : false;
-//     $new_price = !empty($_price_sf  ) ? 'Price per SF: $'. number_format($_price_sf) : false;
+$monthly_rent_lease = false;
+//if the property is of forlease type
+if($formatted_type == 'forlease'){
+    $monthly_rent_lease = !empty($_price) ? 'Monthly rent: $'. number_format($_price) : false;
+    $new_price = !empty($_price_sf  ) ? 'Price per SF: $'. number_format($_price_sf) : false;
     
-// //if the property is of forsale type    
-// }else if($formatted_type == 'forsale'){
+//if the property is of forsale type    
+}else if($formatted_type == 'forsale'){
 
-//     $sale_price = meta_of_api_sheet($ID, 'sale_price_dollars');
-//     $new_price = !empty($sale_price) ? 'Price : $'. number_format($sale_price) : false;
-// // if the price is not found
-// }else {
-//     $new_price = false;
-// }
-$buildout_secondary_agent = get_post_meta($ID, '_buildout_second_broker_id', true);
-$buildout_agent = get_post_meta($ID, '_buildout_broker_id', true);
-$agent_to_disp = !empty($buildout_secondary_agent) ? $buildout_secondary_agent : (!empty($buildout_agent) ? $buildout_agent : false);
-
-if($agent_to_disp){
-    $query = $wpdb->prepare(
-        "SELECT pm.post_id 
-         FROM $wpdb->postmeta pm
-         INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
-         WHERE pm.meta_key = 'user_id' 
-           AND pm.meta_value = %s
-           AND p.post_type = 'brokers'",
-        $agent_to_disp
-    );
-    $agent_id = $wpdb->get_var($query);
-    if($agent_id)
-        $_agent = get_the_title($agent_id);
-
+    $sale_price = meta_of_api_sheet($ID, 'sale_price_dollars');
+    $new_price = !empty($sale_price) ? 'Price : $'. number_format($sale_price) : false;
+// if the price is not found
+}else {
+    $new_price = false;
 }
 
-// if(empty($_agent)){
-// $buildout_agent = get_post_meta($ID, '_buildout_broker_id', true);
-// if(!empty($buildout_agent)){
-//     $query = $wpdb->prepare(
-//         "SELECT pm.post_id 
-//          FROM $wpdb->postmeta pm
-//          INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
-//          WHERE pm.meta_key = 'user_id' 
-//            AND pm.meta_value = %s
-//            AND p.post_type = 'brokers'",
-//         $buildout_agent
-//     );
-//     $agent_id = $wpdb->get_var($query);
-    
-//    $_agent = get_the_title($agent_id);
-// }
+
+if(empty($_agent)){
+    $buildout_agent = get_post_meta($ID, '_buildout_broker_id', true);
+    if(!empty($buildout_agent)){
+        $query = $wpdb->prepare(
+            "SELECT pm.post_id 
+             FROM $wpdb->postmeta pm
+             INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+             WHERE pm.meta_key = 'user_id' 
+               AND pm.meta_value = %s
+               AND p.post_type = 'brokers'",
+            $buildout_agent
+        );
+        $agent_id = $wpdb->get_var($query);
         
-// }
+       $_agent = get_the_title($agent_id);
+    }
+        
+}
+
+$_buildout_second_broker_id =  get_post_meta($ID, '_buildout_second_broker_id', true);
+
+   // $buildout_agent = get_post_meta($ID, '_buildout_second_broker_id', true);
+    if(!empty($_buildout_second_broker_id)){
+        $query = $wpdb->prepare(
+            "SELECT pm.post_id 
+             FROM $wpdb->postmeta pm
+             INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+             WHERE pm.meta_key = 'user_id' 
+               AND pm.meta_value = %s
+               AND p.post_type = 'brokers'",
+            $_buildout_second_broker_id
+        );
+        $agent_id = $wpdb->get_var($query);
+        if(!empty($_agent)){
+       $_agent .= ','.get_the_title($agent_id);
+        }else {
+            $_agent =get_the_title($agent_id);
+        }
+    }
+        
+
+
+
+
+
+
 
 if(!empty($state)){
     
@@ -226,7 +235,19 @@ if(!empty($badges['use'])){
 
 
 
-
+$meta_vrs = [
+    'City' => $city,
+    'State' => $state,
+    'Min Size' => $min_size,
+    'Max Size' => $max_size,
+    'Zoning' => $zoning,
+    'Key Tag' => $key_tag,
+    'Listing Agent' => $_agent,
+    'Vented' => $vented,
+    'Borough' => $borough,
+    'Neighborhood' => $neighborhood,
+    'Zip Code' => $zip,
+];
 
 $new_max_p_sf= preg_replace('/\$?(\d+)\.\d{2}/', '$1', $_price_sf);
 if($_price_sf !=='0' && !empty($_price_sf))  $max_p_val[] = (int) $new_max_p_sf;
@@ -277,7 +298,7 @@ $long = get_post_meta($ID, '_buildout_longitude', true);
 $json_data = json_encode($m_d);
 $date_created = get_post_meta($ID,'_buildout_created_at',true);
 $date_upd = get_post_meta($id,'_buildout_updated_at',true);
-// Start for new lease space api from here 
+
 global $wpdb;
 $space_tbl= $wpdb->prefix . 'lease_spaces';
 $existing_record = $wpdb->get_results($wpdb->prepare(
@@ -466,7 +487,7 @@ if($args['state']) { ?>
         <p class="font-13 color-red"><?php echo $monthly_rent_lease; ?></p>
     <?php endif; ?>
     <!-- Starting P for Price -->
-    <p class="price">
+        <p class="price">
             <?php if($new_price): 
             
                 echo $new_price;

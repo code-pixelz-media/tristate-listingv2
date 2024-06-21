@@ -45,22 +45,22 @@ if (!defined('ABSPATH')) exit;
  */
 
 // Plugin name
-define('TRISTATECRLISTING_NAME',            'Tristate Commercial Listing');
+define('TRISTATECRLISTING_NAME','Tristate Commercial Listing');
 
 // Plugin version
-define('TRISTATECRLISTING_VERSION',        '1.0.0');
+define('TRISTATECRLISTING_VERSION','1.0.0');
 
 // Plugin Root File
-define('TRISTATECRLISTING_PLUGIN_FILE',    __FILE__);
+define('TRISTATECRLISTING_PLUGIN_FILE', __FILE__);
 
 // Plugin base
-define('TRISTATECRLISTING_PLUGIN_BASE',    plugin_basename(TRISTATECRLISTING_PLUGIN_FILE));
+define('TRISTATECRLISTING_PLUGIN_BASE',plugin_basename(TRISTATECRLISTING_PLUGIN_FILE));
 
 // Plugin Folder Path
-define('TRISTATECRLISTING_PLUGIN_DIR',    plugin_dir_path(TRISTATECRLISTING_PLUGIN_FILE));
+define('TRISTATECRLISTING_PLUGIN_DIR',plugin_dir_path(TRISTATECRLISTING_PLUGIN_FILE));
 
 // Plugin Folder URL
-define('TRISTATECRLISTING_PLUGIN_URL',    plugin_dir_url(TRISTATECRLISTING_PLUGIN_FILE));
+define('TRISTATECRLISTING_PLUGIN_URL',plugin_dir_url(TRISTATECRLISTING_PLUGIN_FILE));
 
 
 
@@ -73,22 +73,18 @@ require_once TRISTATECRLISTING_PLUGIN_DIR . 'drt.php';
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tristatecr-ajax-actions.php';
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tristatecr-rest-api.php';
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tristatecr-deactivate.php';   
+require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/includes/classes/class-tristatecr-listing-cpt-menus.php'; 
 
-
-/**
- * The main function to load the only instance
- * of our master class.
- *
- * @author  CodePixelz
- * @since   1.0.0
- * @return  object|Tristatecr_Listing
- */
-function TRISTATECRLISTING()
-{
-    return Tristatecr_Listing::instance();
+if (class_exists('Tristatecr_Listing_Cpt_Menus')) {
+    $tristatecr_listing_cpt_menus = new Tristatecr_Listing_Cpt_Menus();
 }
 
-TRISTATECRLISTING();
+// function TRISTATECRLISTING()
+// {
+//     return Tristatecr_Listing::instance();
+// }
+
+// TRISTATECRLISTING();
 
 /**
  * Overriding default single templates for brokers,properties and search
@@ -226,6 +222,4 @@ function tristatecr_single_property_googe_map($lat, $lng)
 <?php
 }
 
-add_filter('http_request_timeout', function($timeout) {
-    return 30; 
-});
+

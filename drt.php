@@ -993,15 +993,16 @@ listingTitles.forEach(function(title) {
         $("#select2_agents, #select2_uses, #select2_neighborhoods, #select2_zipcodes, #select2_cities, #select2_states, #select2_vented").on('select2:opening', function(e) {
           filterListings();
         });
-
+        var maxVal = $("#price-range").data('max');
+        var stepVal = maxVal / 20;
 
       // price range
       $("#price-range").slider({
         range: true,
         min: $("#price-range").data('min'), //get min val
-        max: $("#price-range").data('max'), //get max val  
+        max: $("#price-range").data('max'), //get max val
         values: [$("#price-range").data('min'), $("#price-range").data('max')], //postion slider val
-        step: 1,
+        step: stepVal,
         slide: function(event, ui) {
           $("#priceRange").val("$" + ui.values[0] + " - $" + ui.values[1]);
           $("#price-range-min").val('$' + ui.values[0].toLocaleString());
@@ -1016,13 +1017,14 @@ listingTitles.forEach(function(title) {
 
       });
 
-
+      var maxRange2 = $("#price-range2").data('max');
+        var stepRange2Val = maxRange2 / 20;
       $("#price-range2").slider({
         range: true,
         min: $("#price-range2").data('min'), //get min val
         max: $("#price-range2").data('max'), //get max val  
         values: [$("#price-range2").data('min'), $("#price-range2").data('max')], //postion slider val
-        step: 1,
+        step: stepRange2Val,
         slide: function(event, ui) {
 
           $("#priceRange2").val(
@@ -1039,13 +1041,14 @@ listingTitles.forEach(function(title) {
         },
       });
 
-
+      var maxRange3 = $("#price-range3").data('max');
+        var stepRange3Val = maxRange3 / 20;
       $("#price-range3").slider({
         range: true,
         min: $("#price-range3").data('min'), //get min val
         max: $("#price-range3").data('max'), //get max val  
         values: [$("#price-range3").data('min'), $("#price-range3").data('max')],
-        step: 1,
+        step: stepRange3Val,
         slide: function(event, ui) {
           $("#priceRange3").val("$" + ui.values[0].toLocaleString() + " - $" + ui.values[1].toLocaleString());
           $("#rent-range-min").val("$" + ui.values[0].toLocaleString());
@@ -1057,12 +1060,14 @@ listingTitles.forEach(function(title) {
         },
       });
       //price-range4
+      var maxRange4 = $("#price-range4").data('max');
+        var stepRange4Val = maxRange4 / 20;
       $("#price-range4").slider({
         range: true,
         min: $("#price-range4").data('min'), //get min val
         max: $("#price-range4").data('max'), //get max val  
         values: [$("#price-range4").data('min'), $("#price-range4").data('max')],
-        step: 1,
+        step: stepRange4Val,
         slide: function(event, ui) {
           $("#priceRange4").val("$" + ui.values[0].toLocaleString() + " - $" + ui.values[1].toLocaleString());
           $("#month-rent-range-min").val("$" + ui.values[0].toLocaleString());
@@ -1094,7 +1099,7 @@ listingTitles.forEach(function(title) {
       });
 
       // Function to create select2 options
-      function createSelect2Options(data) {
+ /*      function createSelect2Options(data) {
         var options = Array.from(data).sort().map(function(value) {
           return {
             id: value,
@@ -1102,18 +1107,43 @@ listingTitles.forEach(function(title) {
           };
         });
         return options;
-      }
+      } */
 
+/* display agents from comma seprated to single option start */
+function createSelect2Options(data) {
+    var options = [];
 
-  /*     var selectOptions = {
-        agents: createSelect2Options(agents),
-        uses: createSelect2Options(uses),
-        neighborhoods: createSelect2Options(neighborhoods),
-        zipcodes: createSelect2Options(zipcodes),
-        cities: createSelect2Options(cities),
-        states: createSelect2Options(states),
-        vented: createSelect2Options(vented)
-      }; */
+    // Iterate through each element in the data array
+    Array.from(data).forEach(function(value) {
+        // Split the value by comma and trim each part
+        var parts = value.split(' ,').map(function(part) { return part.trim(); });
+
+        // Iterate through each part to create options
+        parts.forEach(function(part) {
+            // Check if the option already exists
+            var exists = options.some(function(opt) {
+                return opt.id === part;
+            });
+
+            // Add the option if it doesn't exist
+            if (!exists) {
+                options.push({
+                    id: part,
+                    text: part
+                });
+            }
+        });
+    });
+
+    // Sort options by id (assuming id is the value to sort by)
+    options.sort(function(a, b) {
+        return a.id.localeCompare(b.id);
+    });
+
+    return options;
+}
+/* display agents from comma seprated to single option end */
+
 
       var selectOptions;
 var tsStatePageDiv = document.querySelector('.ts-state-page');
@@ -1208,14 +1238,14 @@ if (tsStatePageDiv) {
      var displayedListings = 0;
 
      $(".propertylisting-content").each(function() {
-       var $listing = $(this);
+       var $listing = $(this);  
        var showListing = true,
          price = parseFloat($(this).data('price')),
          priceSf = parseFloat($(this).data('pricesf')),
          sizeMax = parseFloat($(this).data('maxsize')),
-         rent = parseFloat($(this).data('monthly-rent'))
+         rent = parseFloat($(this).data('monthly-rent')),
          isBetweenMaxMinPrice = (price >= priceRange[0]) && (price <= priceRange[1]),
-         isBetweenMaxMinPriceSf = (priceSf >= priceRangeSf[0]) && (priceSf <= priceRangeSf[1]),
+         isBetweenMaxMinPriceSf = (priceSf === 0) || ((priceSf >= priceRangeSf[0]) && (priceSf <= priceRangeSf[1])),
          isBetweenMaxMinSize = (sizeMax >= sizeRangeSf[0]) && (sizeMax <= sizeRangeSf[1]),
          isBetweenMaxMinMonthly = (rent >= monthlyRangeSf[0]) && (rent <= monthlyRangeSf[1]);
          
@@ -1255,6 +1285,8 @@ if (tsStatePageDiv) {
         }).get();
 }
 
+
+
 // Fetch all selected options for each criterion
 const selectedAgents = getSelectedOptions('#select2-select2_agents-container');
 const selectedUses = getSelectedOptions('#select2-select2_uses-container');
@@ -1275,9 +1307,34 @@ const listingVented = $listing.find("#tri_vented").text().trim();
 const listingText = $listing.text().toLowerCase();
 
 // Check if each respective field is in the corresponding selected array
-if (selectedAgents.length > 0 && !selectedAgents.includes(listingAgent)) {
+/* if (selectedAgents.length > 0 && !selectedAgents.includes(listingAgent)) {
+    showListing = false;
+} */
+
+/* multiple agents  select working starrt */
+function isAnyPartIncluded(selectedAgents, listingAgent) {
+    // Split listingAgent by commas and trim each part
+    const listingParts = listingAgent.split(' ,').map(part => part.trim());
+
+    // Check if any part of listingAgent is included in selectedAgents
+    return listingParts.some(part => selectedAgents.includes(part));
+}
+
+// Helper function to get selected options from Select2
+function getSelectedOptions(containerId) {
+    const selectedOptions = [];
+    $(containerId).find('.select2-selection__choice').each(function() {
+        selectedOptions.push($(this).attr('title'));
+    });
+    return selectedOptions;
+}
+
+
+if (selectedAgents.length > 0 && !isAnyPartIncluded(selectedAgents, listingAgent)) {
     showListing = false;
 }
+
+/* multiple agents select working end */
 
 if (selectedUses.length > 0 && !selectedUses.includes(listingUse)) {
     showListing = false;
@@ -1308,6 +1365,7 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
          showListing = false;
        } */
 
+       
        if (keyword) {
     const keywords = keyword.toLowerCase().split(' ');
     for (const word of keywords) {
@@ -1436,7 +1494,7 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
 
    }
 
-      function updateSelect2Options(changedSelect) {
+/*       function updateSelect2Options(changedSelect) {
         var selectedAgents = $('#select2_agents').val() || [];
         var selectedUses = $('#select2_uses').val() || [];
         var selectedNeighborhoods = $('#select2_neighborhoods').val() || [];
@@ -1479,7 +1537,80 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
             select.trigger('change.select2');
           }
         });
-      }
+      } */
+
+
+     /* working on comma seprated agents enable/disable start */
+ 
+
+     function updateSelect2Options(changedSelect) {
+    var selectedAgents = $('#select2_agents').val() || [];
+    var selectedUses = $('#select2_uses').val() || [];
+    var selectedNeighborhoods = $('#select2_neighborhoods').val() || [];
+    var selectedZipcodes = $('#select2_zipcodes').val() || [];
+    var selectedCities = $('#select2_cities').val() || [];
+    var selectedStates = $('#select2_states').val() || [];
+    var selectedVented = $('#select2_vented').val() || [];
+
+    var filterValues = {
+        agents: new Set(),
+        uses: new Set(),
+        neighborhoods: new Set(),
+        zipcodes: new Set(),
+        cities: new Set(),
+        states: new Set(),
+        vented: new Set()
+    };
+
+    // Iterate over visible propertylisting-content elements to populate filterValues
+    $(".propertylisting-content:visible").each(function() {
+        // Handle comma-separated agents in #tri_listing_agent
+        var agentsText = $(this).find("#tri_listing_agent").text().trim();
+        var agentsArray = agentsText.split(',').map(function(agent) { return agent.trim(); });
+        agentsArray.forEach(function(agent) {
+            filterValues.agents.add(agent);
+        });
+
+        // Add other filter values to respective sets
+        filterValues.uses.add($(this).find(".tri_use").text().trim());
+        filterValues.neighborhoods.add($(this).find("#tri_neighborhood").text().trim());
+        filterValues.zipcodes.add($(this).find("#tri_zip_code").text().trim());
+        filterValues.cities.add($(this).find("#tri_city").text().trim());
+        filterValues.states.add($(this).find("#tri_state").text().trim());
+        filterValues.vented.add($(this).find("#tri_vented").text().trim());
+    });
+
+    // Iterate through each filter value set
+    $.each(filterValues, function(key, values) {
+        if (key !== changedSelect) {
+            var select = $('#select2_' + key);
+            var options = select.find('option');
+
+            options.each(function() {
+                var optionValue = $(this).val();
+                var shouldDisable = true;
+
+                // Check if optionValue is in the values set
+                values.forEach(function(value) {
+                    // Handle comma-separated values in filterValues.agents
+                    var parts = value.split(',').map(function(part) { return part.trim(); });
+                    if (parts.includes(optionValue)) {
+                        shouldDisable = false;
+                    }
+                });
+
+                // Disable or enable the option based on shouldDisable
+                $(this).prop('disabled', shouldDisable);
+            });
+
+            // Trigger change event for Select2
+            select.trigger('change.select2');
+        }
+    });
+}
+
+
+      /* working on comma seprated agents enable/disable  end */
 
       function findMax(arr, sliderID) {
 
@@ -1814,4 +1945,61 @@ function get_usesname_by_propertyID($propertyTypeID){
 
 return $property_uses_name;
   
+}
+
+
+function get_usename_subtype($property_subtype_id){
+
+  switch ($property_subtype_id) {
+    case "201":
+      $property_uses_subtype = 'Street Retail';
+      break;
+    case "202":
+     $property_uses_subtype = 'Strip Center'; 
+      break;
+    case "203":
+     $property_uses_subtype = 'Free Standing Building'; 
+      break;
+    case "204":
+     $property_uses_subtype = 'Regional Mall'; 
+      break;
+    case "205":
+     $property_uses_subtype = 'Retail Pad'; 
+      break;
+    case "206":
+     $property_uses_subtype = 'Vehicle Related'; 
+      break;
+    case "207":
+     $property_uses_subtype = 'Outlet Center'; 
+      break;
+    case "208":
+      $property_uses_subtype = 'Power Center'; 
+    break;
+    case "209":
+      $property_uses_subtype = 'Neighborhood Center'; 
+    break;
+    case "210":
+      $property_uses_subtype = 'Community Center'; 
+    break;
+    case "211":
+      $property_uses_subtype = 'Specialty Center'; 
+    break;
+    case "212":
+      $property_uses_subtype = 'Theme/Festival Center'; 
+    break;
+    case "213":
+      $property_uses_subtype = 'Restaurant'; 
+    break;
+    case "214":
+      $property_uses_subtype = 'Post Office'; 
+    break;
+    case "216":
+      $property_uses_subtype = 'Lifestyle Center'; 
+    break;
+    default:
+    $property_uses_subtype = false;
+}
+
+return $property_uses_subtype;
+
 }

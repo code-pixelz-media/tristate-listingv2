@@ -82,3 +82,63 @@ Results: Array
     [matched] => 327
 )
 
+Running new_tristatecr_datasync_cron_function at 2024-06-19 12:27:0101
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading Buildout JSON...Found 406 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 295 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=ny.Found 189 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=pa.Done in 15.700433969498 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 0
+    [imported] => 0
+    [skipped] => 405
+    [found] => 327
+    [missing] => 155
+    [matched] => 4
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 0
+    [imported] => 0
+    [skipped] => 405
+    [found] => 327
+    [missing] => 155
+    [matched] => 4
+)
+
+Running new_tristatecr_datasync_cron_function at 2024-06-20 06:53:1717
+
+Reading Brokers...Brokers checksum changed. Updating...
+Reading Buildout JSON...Found 407 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Running new_tristatecr_datasync_cron_function at 2024-06-20 08:42:1515
+
+Reading Brokers...Brokers checksum changed. Updating...
+Reading Buildout JSON...Found 407 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 295 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=ny.Found 189 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=pa.Done in 41.211637973785 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 330
+    [missing] => 152
+    [matched] => 330
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 15
+    [imported] => 391
+    [skipped] => 0
+    [found] => 330
+    [missing] => 152
+    [matched] => 330
+)
+
