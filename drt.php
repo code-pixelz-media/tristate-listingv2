@@ -2003,3 +2003,129 @@ function get_usename_subtype($property_subtype_id){
 return $property_uses_subtype;
 
 }
+
+
+
+function tristatecr_create_lease_space_table()
+{
+
+    global $wpdb;
+
+    $charset_collate = $wpdb->get_charset_collate();
+
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+    /* create table to store custom order */
+    $space_tbl_name = $wpdb->prefix . 'lease_spaces';
+    if ($wpdb->get_var("SHOW TABLES LIKE '{$space_tbl_name}'") != $space_tbl_name) :
+    
+      $sql = "CREATE TABLE $space_tbl_name (
+        id INT(20) NOT NULL AUTO_INCREMENT,
+        lease_id varchar(255)  NULL,
+        property_id varchar(255)  NULL,
+        lease_rate_units varchar(255)  NULL,
+        lease_rate varchar(255)  NULL,
+        space_size_units varchar(255)  NULL,
+        size_sf varchar(255)  NULL,
+        leasechecksum varchar(32)  NULL,
+        PRIMARY KEY (id)) $charset_collate;";
+        
+        dbDelta($sql);
+    endif;
+}
+
+
+add_action('plugin_loaded', 'tristatecr_create_lease_space_table');
+
+
+// add_action('init', 'tri_update_lease_spaces');
+function tri_update_lease_spaces(){
+  $settings = get_option('tristate_cr_settings');
+  $get_buildout_api_key = $settings['buildout_api_key'];  
+  $response = wp_remote_get( 'https://buildout.com/api/v1/' . $get_buildout_api_key . '/lease_spaces.json?limit=3462', array(
+    'headers' => array(
+        'Accept' => 'application/json',
+        'timeout' => 500 
+    )
+) );
+
+if (is_wp_error($response)) {
+  error_log('Buildout API request failed: ' . $response->get_error_message());
+  return; // Exit the function if the request failed.
+}
+if (200 === wp_remote_retrieve_response_code( $response )) {
+  $lease_data = json_decode(wp_remote_retrieve_body($response));
+  $lease_spaces = $lease_data->lease_spaces;
+  $checksum_lease_space = md5(json_encode($lease_spaces));
+   
+    if ($checksum_lease_space != get_option('tristatecr_datasync_lease_checksum')) {
+     
+      global $wpdb; 
+      $space_tbl= $wpdb->prefix . 'lease_spaces';
+      $extracted_data = array_map(function($space) {
+          $values = [
+              $space->id,
+              $space->property_id,
+              $space->lease_rate_units,
+              $space->lease_rate,
+              $space->space_size_units,
+              $space->size_sf
+          ];
+          return [
+              'lease_id' => $values[0],
+              'property_id' => $values[1],
+              'lease_rate_units' => $values[2],
+              'lease_rate' => $values[3],
+              'space_size_units' => $values[4],
+              'size_sf' => $values[5],
+              'leasechecksum' =>md5(implode('', $values))
+          ];
+      }, $lease_spaces);
+
+      foreach($extracted_data as $ed){
+          $leasechecksum = $ed['leasechecksum'];
+          $lease_id = $ed['lease_id'];
+          $existing_record = $wpdb->get_row($wpdb->prepare(
+              "SELECT * FROM $space_tbl WHERE lease_id = %d",
+              $ed['lease_id']
+          ));
+          
+          if(!$existing_record){
+              $wpdb->insert(
+                  $space_tbl,
+                  array(
+                      'lease_id' => $ed['lease_id'],
+                      'property_id' => $ed['property_id'],
+                      'lease_rate_units' => $ed['lease_rate_units'],
+                      'lease_rate' => $ed['lease_rate'],
+                      'space_size_units' => $ed['space_size_units'],
+                      'size_sf' => $ed['size_sf'],
+                      'leasechecksum' => $ed['leasechecksum'],
+                  ),
+                  array('%s', '%s', '%s', '%s', '%s', '%s', '%s')
+              );
+              
+          }else{
+              
+              if ($existing_record->leasechecksum !== $leasechecksum) {
+                  $wpdb->update(
+                      $space_tbl,
+                      array(
+                          'property_id' => $ed['property_id'],
+                          'lease_rate_units' => $ed['lease_rate_units'],
+                          'lease_rate' => $ed['lease_rate'],
+                          'space_size_units' => $ed['space_size_units'],
+                          'size_sf' => $ed['size_sf'],
+                          'leasechecksum' => $ed['leasechecksum'],
+                      ),
+                      array('lease_id' => $lease_id),
+                      array('%s', '%s', '%s', '%s', '%s', '%s'),
+                      array('%s')
+                  );
+              }
+          }
+      
+      }
+      update_option('tristatecr_datasync_lease_checksum', $checksum_lease_space);
+    }
+  }
+}
