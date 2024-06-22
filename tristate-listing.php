@@ -222,4 +222,22 @@ function tristatecr_single_property_googe_map($lat, $lng)
 <?php
 }
 
+// global $wpdb;
+// $property_id_to_find = '165859'; // Example property_id to find
 
+// $space_tbl_name = $wpdb->prefix . 'lease_spaces';
+
+// // Prepare the SQL query to prevent SQL injection
+// $query = $wpdb->prepare(
+//     "SELECT * FROM $space_tbl_name WHERE property_id = %s",
+//     $property_id_to_find
+// );
+
+// // Execute the query and get the results as an associative array
+// $lease_space_properties = $wpdb->get_results($query, ARRAY_A);
+// foreach($lease_space_properties as $lsp){
+//     $check_existence = $wpdb->prepare(
+//         "SELECT * FROM $wpdb->postmeta WHERE property_id = %s",
+//         $property_id_to_find
+//     );
+// }

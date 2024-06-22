@@ -170,3 +170,83 @@ Results: Array
     [matched] => 4
 )
 
+Running new_tristatecr_datasync_cron_function at 2024-06-22 07:00:5252
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading LeaseSpace JSON...
+Reading Buildout JSON...Found 411 records in https://buildout.com/api/v1/1f4213e0ac96dea2fde27fa0ba30547c8858889b/properties.json?limit=999.
+Reading Sheets CSV...Found 293 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=ny.Found 188 records in https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=pa.Done in 131.9295539856 seconds.
+Results: Array
+(
+    [errors] => 0
+    [updated] => 346
+    [imported] => 6
+    [skipped] => 58
+    [found] => 333
+    [missing] => 146
+    [matched] => 12
+)
+
+
+Results: Array
+(
+    [errors] => 0
+    [updated] => 346
+    [imported] => 6
+    [skipped] => 58
+    [found] => 333
+    [missing] => 146
+    [matched] => 12
+)
+
+Running new_tristatecr_datasync_cron_function at 2024-06-22 16:02:0505
+
+Reading Brokers...Brokers checksum unchanged. Skipping...
+Reading LeaseSpace JSON...Starting data synchronization process for lease spaces...
+Fetched 100 records in 2.7378931045532 seconds. Total so far: 100
+Fetched 100 records in 2.1433939933777 seconds. Total so far: 200
+Fetched 100 records in 1.6903030872345 seconds. Total so far: 300
+Fetched 100 records in 2.0978879928589 seconds. Total so far: 400
+Fetched 100 records in 1.6357071399689 seconds. Total so far: 500
+Fetched 100 records in 1.8442749977112 seconds. Total so far: 600
+Fetched 100 records in 1.7381021976471 seconds. Total so far: 700
+Fetched 100 records in 1.5489630699158 seconds. Total so far: 800
+Fetched 100 records in 1.9370999336243 seconds. Total so far: 900
+Fetched 100 records in 1.7888169288635 seconds. Total so far: 1000
+Fetched 100 records in 1.8915109634399 seconds. Total so far: 1100
+Fetched 100 records in 1.5617589950562 seconds. Total so far: 1200
+Fetched 100 records in 1.8189280033112 seconds. Total so far: 1300
+Fetched 100 records in 1.8071291446686 seconds. Total so far: 1400
+Fetched 100 records in 1.7177000045776 seconds. Total so far: 1500
+Fetched 100 records in 1.7988820075989 seconds. Total so far: 1600
+Fetched 100 records in 1.7363321781158 seconds. Total so far: 1700
+Fetched 100 records in 1.5871500968933 seconds. Total so far: 1800
+Fetched 100 records in 1.7957570552826 seconds. Total so far: 1900
+Fetched 100 records in 1.8378179073334 seconds. Total so far: 2000
+Fetched 100 records in 1.9462940692902 seconds. Total so far: 2100
+Fetched 100 records in 1.7406430244446 seconds. Total so far: 2200
+Fetched 100 records in 1.8119640350342 seconds. Total so far: 2300
+Fetched 100 records in 1.6660358905792 seconds. Total so far: 2400
+Fetched 100 records in 1.6218199729919 seconds. Total so far: 2500
+Fetched 100 records in 2.2735781669617 seconds. Total so far: 2600
+Fetched 100 records in 1.6829271316528 seconds. Total so far: 2700
+Fetched 100 records in 2.6146411895752 seconds. Total so far: 2800
+Fetched 100 records in 1.7395370006561 seconds. Total so far: 2900
+Fetched 100 records in 2.8703730106354 seconds. Total so far: 3000
+Fetched 100 records in 2.8131148815155 seconds. Total so far: 3100
+Fetched 100 records in 2.1464519500732 seconds. Total so far: 3200
+Fetched 100 records in 2.0500771999359 seconds. Total so far: 3300
+Fetched 100 records in 2.0026938915253 seconds. Total so far: 3400
+Fetched 65 records in 1.6497230529785 seconds. Total so far: 3465
+Total time required to fetch all data: 68.298985958099 seconds
+New checksum: 2a4589bb3fbf8a71af126ab69137c14d
+Data checksum matches, no update needed.\nData synchronization process completed for lease spaces.
+
+Reading Buildout JSON...Fetched 100 properties in 11.006467103958 seconds. Total so far: 100
+Fetched 100 properties in 11.414170026779 seconds. Total so far: 200
+Fetched 100 properties in 9.4914419651031 seconds. Total so far: 300
+Fetched 100 properties in 12.172456026077 seconds. Total so far: 400
+Fetched 11 properties in 3.0115840435028 seconds. Total so far: 411
+Total time required to fetch all properties: 48.57343506813 seconds
+New properties checksum: f8e3dc420e785fb09d52521cfcf272a1
+---Searching Lease Space Properties for #1013024 ------Found #1Lease Space Properties for---"8,000 SF | 12 Newport St | Fully Renovated Office Space for Lease"--- Creating lease space properties for #10911 ------ Creating lease space properties for Lease Space#1436085 ---

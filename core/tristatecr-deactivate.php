@@ -15,7 +15,14 @@ function tristate_plugin_deactivate() {
     tri_cr_delete_custom_posts('brokers');
     tri_cr_delete_specific_meta_keys();
     tri_cr_delete_specific_options();
+    tri_cr_delete_table();
 }
+function tri_cr_delete_table() {
+    global $wpdb;
+    $tbl = $wpdb->prefix . 'lease_spaces';
+    $wpdb->query("TRUNCATE TABLE $tbl");
+}
+
 
 function tri_cr_delete_custom_posts($post_type) {
     // Get all posts of the specified custom post type
@@ -79,7 +86,8 @@ function tri_cr_delete_specific_options() {
         'tristatecr_datasync_cron_last_started',
         'tristate_cron_status',
         'tristatecr_datasync_brokers_checksum',
-        'tristatecr_datasync_brokers'
+        'tristatecr_datasync_brokers',
+        'tristatecr_datasync_lease_checksum'
     );
 
     foreach ($options_to_delete as $option) {

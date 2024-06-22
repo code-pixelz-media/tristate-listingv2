@@ -2026,6 +2026,7 @@ function tristatecr_create_lease_space_table()
         lease_rate varchar(255)  NULL,
         space_size_units varchar(255)  NULL,
         size_sf varchar(255)  NULL,
+        floor varchar(255) NULL,
         leasechecksum varchar(32)  NULL,
         PRIMARY KEY (id)) $charset_collate;";
         
@@ -2037,95 +2038,232 @@ function tristatecr_create_lease_space_table()
 add_action('plugin_loaded', 'tristatecr_create_lease_space_table');
 
 
-// add_action('init', 'tri_update_lease_spaces');
-function tri_update_lease_spaces(){
-  $settings = get_option('tristate_cr_settings');
-  $get_buildout_api_key = $settings['buildout_api_key'];  
-  $response = wp_remote_get( 'https://buildout.com/api/v1/' . $get_buildout_api_key . '/lease_spaces.json?limit=3462', array(
-    'headers' => array(
-        'Accept' => 'application/json',
-        'timeout' => 500 
-    )
-) );
 
-if (is_wp_error($response)) {
-  error_log('Buildout API request failed: ' . $response->get_error_message());
-  return; // Exit the function if the request failed.
-}
-if (200 === wp_remote_retrieve_response_code( $response )) {
-  $lease_data = json_decode(wp_remote_retrieve_body($response));
-  $lease_spaces = $lease_data->lease_spaces;
-  $checksum_lease_space = md5(json_encode($lease_spaces));
-   
-    if ($checksum_lease_space != get_option('tristatecr_datasync_lease_checksum')) {
-     
-      global $wpdb; 
-      $space_tbl= $wpdb->prefix . 'lease_spaces';
-      $extracted_data = array_map(function($space) {
-          $values = [
-              $space->id,
-              $space->property_id,
-              $space->lease_rate_units,
-              $space->lease_rate,
-              $space->space_size_units,
-              $space->size_sf
-          ];
-          return [
-              'lease_id' => $values[0],
-              'property_id' => $values[1],
-              'lease_rate_units' => $values[2],
-              'lease_rate' => $values[3],
-              'space_size_units' => $values[4],
-              'size_sf' => $values[5],
-              'leasechecksum' =>md5(implode('', $values))
-          ];
-      }, $lease_spaces);
 
-      foreach($extracted_data as $ed){
-          $leasechecksum = $ed['leasechecksum'];
-          $lease_id = $ed['lease_id'];
-          $existing_record = $wpdb->get_row($wpdb->prepare(
-              "SELECT * FROM $space_tbl WHERE lease_id = %d",
-              $ed['lease_id']
-          ));
-          
-          if(!$existing_record){
-              $wpdb->insert(
-                  $space_tbl,
-                  array(
-                      'lease_id' => $ed['lease_id'],
-                      'property_id' => $ed['property_id'],
-                      'lease_rate_units' => $ed['lease_rate_units'],
-                      'lease_rate' => $ed['lease_rate'],
-                      'space_size_units' => $ed['space_size_units'],
-                      'size_sf' => $ed['size_sf'],
-                      'leasechecksum' => $ed['leasechecksum'],
-                  ),
-                  array('%s', '%s', '%s', '%s', '%s', '%s', '%s')
-              );
-              
-          }else{
-              
-              if ($existing_record->leasechecksum !== $leasechecksum) {
-                  $wpdb->update(
-                      $space_tbl,
-                      array(
-                          'property_id' => $ed['property_id'],
-                          'lease_rate_units' => $ed['lease_rate_units'],
-                          'lease_rate' => $ed['lease_rate'],
-                          'space_size_units' => $ed['space_size_units'],
-                          'size_sf' => $ed['size_sf'],
-                          'leasechecksum' => $ed['leasechecksum'],
-                      ),
-                      array('lease_id' => $lease_id),
-                      array('%s', '%s', '%s', '%s', '%s', '%s'),
-                      array('%s')
-                  );
-              }
-          }
-      
-      }
-      update_option('tristatecr_datasync_lease_checksum', $checksum_lease_space);
+
+define('MY_LOGS', TRISTATECRLISTING_PLUGIN_DIR . 'my.log'); // Set this to the appropriate log file path
+
+
+
+
+
+function my_log($message, $data = null) {
+    if (!is_null($data)) {
+        $message .= "\n" . print_r($data, true);
     }
-  }
+
+    if (defined('WP_CLI')) {
+        WP_CLI::log($message);
+    } else {
+        error_log($message . "\n", 3, MY_LOGS);
+    }
 }
+
+// Add a flag to check if the sync process has already run
+// add_action('wp_footer', 'opt2ab');
+function opt2ab() {
+    if (defined('TRI_STATE_SYNC_RUNNING') && TRI_STATE_SYNC_RUNNING) {
+        return; // Prevents running the sync process multiple times
+    }
+    define('TRI_STATE_SYNC_RUNNING', true);
+
+    $settings = get_option('tristate_cr_settings');
+    $get_buildout_api_key = $settings['buildout_api_key'];
+    $offset = 0;
+    $limit = 100;  // Number of records to fetch in each batch
+    $all_lease_spaces = [];
+    $new_checksum = '';
+    $max_retries = 5;  // Number of retries for API requests
+    $timeout = 20;  // Timeout in seconds for each request
+
+    my_log("Starting data synchronization process for lease spaces...\n");
+
+    // Record the start time for the whole process
+    $total_start_time = microtime(true);
+
+    // Fetch data in chunks using offset and limit
+    while (true) {
+        $attempt = 0;
+        $success = false;
+
+        // Record the start time for each fetch
+        $fetch_start_time = microtime(true);
+
+        while ($attempt < $max_retries && !$success) {
+            $response = wp_remote_get('https://buildout.com/api/v1/' . $get_buildout_api_key . '/lease_spaces.json?limit=' . $limit . '&offset=' . $offset, array(
+                'headers' => array(
+                    'Accept' => 'application/json',
+                ),
+                'timeout' => $timeout  // Increase timeout
+            ));
+
+            if (is_wp_error($response)) {
+                my_log('Buildout API request failed on attempt ' . ($attempt + 1), $response->get_error_message());
+                $attempt++;
+                if ($attempt >= $max_retries) {
+                    my_log("Max retries reached. Exiting the synchronization process.\n");
+                    return;  // Exit the function if the request failed after maximum retries.
+                }
+            } else {
+                $success = true;
+            }
+        }
+
+        if (200 !== wp_remote_retrieve_response_code($response)) {
+            my_log('Unexpected response code: ' . wp_remote_retrieve_response_code($response) . "\n");
+            break;  // Exit if the response is not successful
+        }
+
+        $lease_data = json_decode(wp_remote_retrieve_body($response));
+        $lease_spaces = $lease_data->lease_spaces;
+        
+        
+
+        if (empty($lease_spaces)) {
+            break;  // Exit if no more data
+        }
+
+        // Accumulate fetched data
+        $all_lease_spaces = array_merge($all_lease_spaces, $lease_spaces);
+        // Increment the offset by the limit
+        $offset += $limit;
+
+        // Record the end time for each fetch and calculate the elapsed time
+        $fetch_end_time = microtime(true);
+        $fetch_time = $fetch_end_time - $fetch_start_time;
+
+        // Logging for debugging
+        my_log('Fetched ' . count($lease_spaces) . ' records in ' . $fetch_time . ' seconds. Total so far: ' . count($all_lease_spaces) . "\n");
+    }
+
+    // Record the end time for the whole process and calculate the elapsed time
+    $total_end_time = microtime(true);
+    $total_time = $total_end_time - $total_start_time;
+    my_log('Total time required to fetch all data: ' . $total_time . ' seconds' . "\n");
+
+    // Calculate checksum for the new data
+    $new_checksum = md5(json_encode($all_lease_spaces));
+    my_log('New checksum: ' . $new_checksum . "\n");
+
+    // Compare with the stored checksum
+    if ($new_checksum != get_option('tristatecr_datasync_lease_checksum')) {
+        global $wpdb;
+        $space_tbl = $wpdb->prefix . 'lease_spaces';
+
+        $extracted_data = array_map(function($space) {
+            $values = [
+                $space->id,
+                $space->property_id,
+                $space->lease_rate_units,
+                $space->lease_rate,
+                $space->space_size_units,
+                $space->size_sf,
+                $space->floor
+            ];
+            return [
+                'lease_id' => $values[0],
+                'property_id' => $values[1],
+                'lease_rate_units' => $values[2],
+                'lease_rate' => $values[3],
+                'space_size_units' => $values[4],
+                'size_sf' => $values[5],
+                'floor' => $values[6],
+                'leasechecksum' => md5(implode('', $values))
+            ];
+        }, $all_lease_spaces);
+
+        $insert_data = [];
+        $update_data = [];
+        $update_placeholders = [];
+
+        foreach ($extracted_data as $ed) {
+            $leasechecksum = $ed['leasechecksum'];
+            $lease_id = $ed['lease_id'];
+            $existing_record = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $space_tbl WHERE lease_id = %d",
+                $ed['lease_id']
+            ));
+
+            if (!$existing_record) {
+                // Collect data for batch insert
+                $insert_data[] = [
+                    'lease_id' => $ed['lease_id'],
+                    'property_id' => $ed['property_id'],
+                    'lease_rate_units' => $ed['lease_rate_units'],
+                    'lease_rate' => $ed['lease_rate'],
+                    'space_size_units' => $ed['space_size_units'],
+                    'size_sf' => $ed['size_sf'],
+                    'floor' => $ed['floor'],
+                    'leasechecksum' => $ed['leasechecksum'],
+                ];
+            } else if ($existing_record->leasechecksum !== $leasechecksum) {
+                // Collect data for batch update
+                $update_data[] = [
+                    'property_id' => $ed['property_id'],
+                    'lease_rate_units' => $ed['lease_rate_units'],
+                    'lease_rate' => $ed['lease_rate'],
+                    'space_size_units' => $ed['space_size_units'],
+                    'size_sf' => $ed['size_sf'],
+                    'floor' => $ed['floor'],
+                    'leasechecksum' => $ed['leasechecksum'],
+                    'lease_id' => $lease_id,
+                ];
+                // Prepare update placeholders
+                $update_placeholders[] = $wpdb->prepare(
+                    "(%s, %s, %s, %s, %s, %s, %s, %d)",
+                    $ed['property_id'],
+                    $ed['lease_rate_units'],
+                    $ed['lease_rate'],
+                    $ed['space_size_units'],
+                    $ed['size_sf'],
+                    $ed['floor'],
+                    $ed['leasechecksum'],
+                    $lease_id
+                );
+            }
+        }
+
+        // Debug logging for collected data
+        my_log('Insert data count: ' . count($insert_data) . "\n");
+        my_log('Update data count: ' . count($update_data) . "\n");
+
+        // Batch insert
+        if (!empty($insert_data)) {
+            foreach ($insert_data as $data) {
+                $result = $wpdb->insert(
+                    $space_tbl,
+                    $data,
+                    array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+                );
+                if ($result === false) {
+                    my_log('Insert error', $wpdb->last_error);
+                } else {
+                    my_log('Inserted lease_id: ' . $data['lease_id'] . "\n");
+                }
+            }
+        }
+
+        // Batch update
+        if (!empty($update_data)) {
+            $query = "INSERT INTO $space_tbl (property_id, lease_rate_units, lease_rate, space_size_units, size_sf, floor, leasechecksum, lease_id) VALUES ";
+            $query .= implode(', ', $update_placeholders);
+            $query .= " ON DUPLICATE KEY UPDATE property_id = VALUES(property_id), lease_rate_units = VALUES(lease_rate_units), lease_rate = VALUES(lease_rate), space_size_units = VALUES(space_size_units), size_sf = VALUES(size_sf), floor=VALUES(floor) leasechecksum = VALUES(leasechecksum)";
+            $result = $wpdb->query($query);
+            if ($result === false) {
+                my_log('Update error', $wpdb->last_error);
+            } else {
+                my_log('Updated lease_id(s): ' . implode(', ', array_column($update_data, 'lease_id')) . "\n");
+            }
+        }
+
+        // Update the checksum in the options table
+        update_option('tristatecr_datasync_lease_checksum', $new_checksum);
+    } else {
+        my_log('Data checksum matches, no update needed.\n');
+    }
+
+    my_log("Data synchronization process completed for lease spaces.\n");
+}
+
+
+
