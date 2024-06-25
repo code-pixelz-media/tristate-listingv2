@@ -6,25 +6,10 @@ $buildout_sale  =  meta_of_api_sheet($ID, 'sale');
 $buildout_id    = (int) meta_of_api_sheet($ID, 'id');
 $title          = meta_of_api_sheet($ID, 'sale_listing_web_title');
 $subtitle       = implode(', ', array(meta_of_api_sheet($ID, 'city'), meta_of_api_sheet($ID, 'county'), meta_of_api_sheet($ID, 'state')));
-
 $property_use_type = get_post_meta($ID,'_buildout_property_type_id',true);
-$propert_use_subtype = get_post_meta($ID,'_buildout_property_subtype_id',true);
-
-$property_use_type_name = get_usesname_by_propertyID($property_use_type);
-$property_use_sub_type_name =get_usename_subtype($propert_use_subtype);
-
-
-if($property_use_type_name && $property_use_sub_type_name ){
-    $use_str = $property_use_type_name.'/'.$property_use_sub_type_name;
-}elseif(!$property_use_type_name && $property_use_sub_type_name){
-    $use_str = $property_use_sub_type_name;
-}elseif($property_use_type_name && !$property_use_sub_type_name){
-    $use_str = $property_use_type_name;
-}
-
-
+$property_use_name = get_usesname_by_propertyID($property_use_type);
 $badges         = array(
-                    'use' =>$use_str ?? '',
+                    'use' =>$property_use_name ? $property_use_name : '',
                     'type' =>  ($buildout_lease == '1' && $buildout_sale == '1') ? 'for Lease' :
                     (($buildout_lease == '1') ? 'for Lease' :
                     (($buildout_sale == '1') ? 'for Sale' : false)),
@@ -83,59 +68,105 @@ $type = ($buildout_lease == '1' && $buildout_sale == '1') ? 'FOR LEASE' :
 //Checking the type of the properties 
 $formatted_type = str_replace(' ', '', trim(strtolower($type)));
 
- $monthly_rent_lease = false;
-// //if the property is of forlease type
-// if($formatted_type == 'forlease'){
-//     $monthly_rent_lease = !empty($_price) ? 'Monthly rent: $'. number_format($_price) : false;
-//     $new_price = !empty($_price_sf  ) ? 'Price per SF: $'. number_format($_price_sf) : false;
+$monthly_rent_lease = false;
+//if the property is of forlease type
+if($formatted_type == 'forlease'){
+    $monthly_rent_lease = !empty($_price) ? 'Monthly rent: $'. number_format($_price) : false;
+    $new_price = !empty($_price_sf  ) ? 'Price per SF: $'. number_format($_price_sf) : false;
     
-// //if the property is of forsale type    
-// }else if($formatted_type == 'forsale'){
+//if the property is of forsale type    
+}else if($formatted_type == 'forsale'){
 
-//     $sale_price = meta_of_api_sheet($ID, 'sale_price_dollars');
-//     $new_price = !empty($sale_price) ? 'Price : $'. number_format($sale_price) : false;
-// // if the price is not found
-// }else {
-//     $new_price = false;
-// }
-$buildout_secondary_agent = get_post_meta($ID, '_buildout_second_broker_id', true);
-$buildout_agent = get_post_meta($ID, '_buildout_broker_id', true);
-$agent_to_disp = !empty($buildout_secondary_agent) ? $buildout_secondary_agent : (!empty($buildout_agent) ? $buildout_agent : false);
-
-if($agent_to_disp){
-    $query = $wpdb->prepare(
-        "SELECT pm.post_id 
-         FROM $wpdb->postmeta pm
-         INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
-         WHERE pm.meta_key = 'user_id' 
-           AND pm.meta_value = %s
-           AND p.post_type = 'brokers'",
-        $agent_to_disp
-    );
-    $agent_id = $wpdb->get_var($query);
-    if($agent_id)
-        $_agent = get_the_title($agent_id);
-
+    $sale_price = meta_of_api_sheet($ID, 'sale_price_dollars');
+    $new_price = !empty($sale_price) ? 'Price : $'. number_format($sale_price) : false;
+// if the price is not found
+}else {
+    $new_price = false;
 }
 
-// if(empty($_agent)){
-// $buildout_agent = get_post_meta($ID, '_buildout_broker_id', true);
-// if(!empty($buildout_agent)){
-//     $query = $wpdb->prepare(
-//         "SELECT pm.post_id 
-//          FROM $wpdb->postmeta pm
-//          INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
-//          WHERE pm.meta_key = 'user_id' 
-//            AND pm.meta_value = %s
-//            AND p.post_type = 'brokers'",
-//         $buildout_agent
-//     );
-//     $agent_id = $wpdb->get_var($query);
-    
-//    $_agent = get_the_title($agent_id);
-// }
+
+/* if(empty($_agent)){
+    $buildout_agent = get_post_meta($ID, '_buildout_broker_id', true);
+    if(!empty($buildout_agent)){
+        $query = $wpdb->prepare(
+            "SELECT pm.post_id 
+             FROM $wpdb->postmeta pm
+             INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+             WHERE pm.meta_key = 'user_id' 
+               AND pm.meta_value = %s
+               AND p.post_type = 'brokers'",
+            $buildout_agent
+        );
+        $agent_id = $wpdb->get_var($query);
         
-// }
+       $_agent = get_the_title($agent_id);
+    }
+        
+} */
+ 
+
+if(empty($_agent)){
+    $buildout_agent = get_post_meta($ID, '_buildout_broker_id', true);
+    if(!empty($buildout_agent)){
+        $query = $wpdb->prepare(
+            "SELECT pm.post_id 
+             FROM $wpdb->postmeta pm
+             INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+             WHERE pm.meta_key = 'user_id' 
+               AND pm.meta_value = %s
+               AND p.post_type = 'brokers'",
+            $buildout_agent
+        );
+        $agent_id = $wpdb->get_var($query);
+        
+       $_agent = get_the_title($agent_id);
+    }
+        
+}
+
+$_buildout_second_broker_id =  get_post_meta($ID, '_buildout_second_broker_id', true);
+
+   // $buildout_agent = get_post_meta($ID, '_buildout_second_broker_id', true);
+    if(!empty($_buildout_second_broker_id)){
+        $query = $wpdb->prepare(
+            "SELECT pm.post_id 
+             FROM $wpdb->postmeta pm
+             INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+             WHERE pm.meta_key = 'user_id' 
+               AND pm.meta_value = %s
+               AND p.post_type = 'brokers'",
+            $_buildout_second_broker_id
+        );
+        $agent_id = $wpdb->get_var($query);
+        if(!empty($_agent)){
+       $_agent .= ', '.get_the_title($agent_id);
+        }else {
+            $_agent =get_the_title($agent_id);
+        }
+    }
+        
+
+    $_buildout_third_broker_id =  get_post_meta($ID, '_buildout_third_broker_id', true);
+
+    // $buildout_agent = get_post_meta($ID, '_buildout_second_broker_id', true);
+     if(!empty($_buildout_third_broker_id)){
+         $query = $wpdb->prepare(
+             "SELECT pm.post_id 
+              FROM $wpdb->postmeta pm
+              INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+              WHERE pm.meta_key = 'user_id' 
+                AND pm.meta_value = %s
+                AND p.post_type = 'brokers'",
+             $_buildout_third_broker_id
+         );
+         $agent_id = $wpdb->get_var($query);
+         if(!empty($_agent)){
+        $_agent .= ', '.get_the_title($agent_id);
+         }else {
+             $_agent =get_the_title($agent_id);
+         }
+     }
+
 
 if(!empty($state)){
     
@@ -226,7 +257,19 @@ if(!empty($badges['use'])){
 
 
 
-
+$meta_vrs = [
+    'City' => $city,
+    'State' => $state,
+    'Min Size' => $min_size,
+    'Max Size' => $max_size,
+    'Zoning' => $zoning,
+    'Key Tag' => $key_tag,
+    'Listing Agent' => $_agent,
+    'Vented' => $vented,
+    'Borough' => $borough,
+    'Neighborhood' => $neighborhood,
+    'Zip Code' => $zip,
+];
 
 $new_max_p_sf= preg_replace('/\$?(\d+)\.\d{2}/', '$1', $_price_sf);
 if($_price_sf !=='0' && !empty($_price_sf))  $max_p_val[] = (int) $new_max_p_sf;
@@ -277,77 +320,11 @@ $long = get_post_meta($ID, '_buildout_longitude', true);
 $json_data = json_encode($m_d);
 $date_created = get_post_meta($ID,'_buildout_created_at',true);
 $date_upd = get_post_meta($id,'_buildout_updated_at',true);
-// Start for new lease space api from here 
+
+
 global $wpdb;
 $space_tbl= $wpdb->prefix . 'lease_spaces';
-$existing_record = $wpdb->get_results($wpdb->prepare(
-    "SELECT * FROM $space_tbl WHERE property_id = %s",
-    $buildout_id
-));
-
-$new_price_sf =0;
-$new_monthly_rent = 0;
-$new_min_size = 0;
-$new_max_size = 0;
-if($existing_record){
-    $l_unit = $existing_record[0]->lease_rate_units;
-    $s_unit = $existing_record[0]->space_size_units;
-    
-    //monthly rent is available
-    if($l_unit == 'dollars_per_month'){
-        $newmp_sf = $existing_record[0]->lease_rate;
-        $new_monthly_rent = !is_null($newmp_sf) ? $newmp_sf : 0;
-       
-    }
-    //available
-    if($l_unit == 'dollars_per_sf_per_month'){
-        $newp_sf = $existing_record[0]->lease_rate;
-        $new_price_sf = !is_null($newp_sf) ? $newp_sf : 0;
-       
-    }
-    
-    //availbale
-    if($s_unit == 'sf'){
-        $news_sf = $existing_record[0]->size_sf;
-        $new_min_size =  !is_null($news_sf) ? $news_sf : 0;
-        $new_max_size = !is_null($news_sf) ? $news_sf : 0;
-
-    }
-    
-}
-
-
-if($formatted_type == 'forlease'){
-    $monthly_rent_lease = !empty($new_monthly_rent) ? 'Monthly rent: $'. number_format($new_monthly_rent) : false;
-    $new_price = !empty($new_price_sf  ) ? 'Price per SF: $'. number_format($new_price_sf) : false;
-    
-//if the property is of forsale type    
-}else if($formatted_type == 'forsale'){
-
-    $sale_price = meta_of_api_sheet($ID, 'sale_price_dollars');
-    $new_price = !empty($sale_price) ? 'Price : $'. number_format($sale_price) : false;
-// if the price is not found
-}else {
-    $new_price = false;
-}
-
-$meta_vrs = [
-    'City' => $city,
-    'State' => $state,
-    'Min Size' => $new_min_size,
-    'Max Size' => $new_max_size,
-    'Zoning' => $zoning,
-    'Key Tag' => $key_tag,
-    'Listing Agent' => $_agent,
-    'Vented' => $vented,
-    'Borough' => $borough,
-    'Neighborhood' => $neighborhood,
-    'Zip Code' => $zip,
-];
-
-// $s = get_post_meta($ID,'child_lease_space_props',true);
-
-// var_dump($s);
+$l_meta = get_post_meta($ID,'lease_space_table_id',true);
 ?>
 
 <div 
@@ -359,13 +336,12 @@ $meta_vrs = [
     data-json = "<?php echo htmlspecialchars($json_data, ENT_QUOTES, 'UTF-8');?>" 
     data-price="<?php echo esc_attr(!empty($bo_price) ? $bo_price : '0'); ?>"
     data-pricesf="<?php echo esc_attr(!empty($max_lease_sf) ? $max_lease_sf : '0'); ?>"
-    data-minsize="<?php echo esc_attr(!empty($new_min_size) ? $new_min_size : '0');?>"
-    data-maxsize="<?php  echo esc_attr(!empty($new_max_size) ? $new_max_size : '0');?>"
+    data-minsize="<?php echo esc_attr(!empty($min_size) ? $min_size : '0');?>"
+    data-maxsize="<?php  echo esc_attr(!empty($max_size) ? $max_size : '0');?>"
     data-dateupdated="<?php echo strtotime($date_upd); ?>",
     data-datecreated="<?php echo strtotime($date_created); ?>"
     data-title = "<?php echo esc_html(get_the_title()); ?>"
-    data-monthly-rent = "<?php echo !empty($new_monthly_rent) ? $new_monthly_rent :'0'; ?>"
-    data-ptype =<?php echo get_post_type($ID);?>
+    data-monthly-rent = "<?php echo !empty($_price) ? $_price :'0'; ?>"
 >
 
 <?php
@@ -391,7 +367,7 @@ if($args['state']) { ?>
         <h2 class="lisiitng__title_state"><?php echo esc_html(get_the_title()); ?></h2> 
     <?php } ?>
         <h4><?php echo $subtitle; ?></h4>
-        <h4><?php echo get_the_id(); ?></h4>
+     
         <div class="css-ajk2hm">
             <ul class="ul-buttons">
                 <?php
@@ -452,6 +428,72 @@ if($args['state']) { ?>
             </div>
             <?php endif; ?>
             </ul>
+            <?php 
+            if(!empty($l_meta)){
+               echo '<div class="trimmed-unit">';
+                $counter =1;
+                foreach($l_meta as $l){
+                    $query = $wpdb->prepare(
+                        "SELECT * FROM $space_tbl WHERE id = %s AND deal_status=%s",
+                        $l, '1'
+                    );
+                    $lsp = $wpdb->get_row($query, ARRAY_A);
+    
+                    $title = $lsp['lease_address'];
+                    $price_units = $lsp['lease_rate_units'];
+                    $price = $lsp['lease_rate'];
+                    
+                    $size_unit = $lsp['space_size_units'];
+                    $size = $lsp['size_sf'];
+                    
+                   
+                
+                ?>
+                <div id="trimmed-container" class="trimmed-unit-"<?php echo $counter ?>>
+                    <h4 class="lease-space-title" style="cursor:pointer;">Unit <?=$counter ?><span class="trimmed-control">+</span></h4>
+                    <ul class="ul-content ul-features" style="display:none">
+                        <?php 
+                        if(!empty($title)) : 
+                            echo "<li><p>Title: <span>$title</span></p></li>";
+                         endif; 
+                         
+                        if(!empty($price)) :
+                            
+                            if($price_units == 'dollars_per_sf_per_year'){
+                                $postfix = '/SF per year';
+                            }else if($price_units == 'dollars_per_sf_per_month'){
+                                $postfix = '/SF per month';
+                            }elseif($price_units == 'dollars_per_month'){
+                                $postfix = '/per month';
+                            }else{
+                                $postfix = '';
+                            }
+                            $price_with_postfix = '$'.number_format($price).$postfix;
+                            echo "<li><p>Price: <span>$price_with_postfix</span></p></li>";
+                        endif;
+                        
+                        if($size) :
+                            if($size_unit == 'sf'){
+                                $pfix = 'SF';
+                            }else{
+                                $pfix = '';
+                            }
+                            $size_pfix = $size . ' ' . $pfix;
+                            echo "<li><p>Size: <span>$size_pfix</span></p></li>";
+                        endif;
+                        
+                        if(empty($title) && empty($price) && empty($size)){
+                            echo "<li><p>N/A</li>";
+                        }
+                        ?>
+                    </ul>
+                </div>
+                <?php
+                $counter++;
+                }
+                echo '</div>';  
+            }
+            ?>
             <ul class="ul-content ul-features">   
     <?php foreach ($meta_vrs as $k => $v) {
         if($k == 'Key Tag'){
@@ -470,7 +512,7 @@ if($args['state']) { ?>
         <p class="font-13 color-red"><?php echo $monthly_rent_lease; ?></p>
     <?php endif; ?>
     <!-- Starting P for Price -->
-    <p class="price">
+        <p class="price">
             <?php if($new_price): 
             
                 echo $new_price;
