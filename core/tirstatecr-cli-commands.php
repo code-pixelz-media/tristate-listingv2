@@ -127,7 +127,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
         $limit = 100;  
         $all_lease_spaces = [];
         $new_checksum = '';
-        $max_retries = 5;  
+        $max_retries = 10;  
         $timeout = 20;  
     
         NEW_np_log("Starting data synchronization process for lease spaces...\n");
@@ -197,30 +197,49 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
     
         // Compare with the stored checksum
         if ($new_checksum != get_option('tristatecr_datasync_lease_checksum')) {
+            NEW_np_log('Checksum Changed..Inserting...' . $new_checksum . "\n");
             global $wpdb;
             $space_tbl = $wpdb->prefix . 'lease_spaces';
-    
+            $filtered_lease_spaces = array_filter($all_lease_spaces, function($space) {
+                return $space->deal_status_id == 1;
+            });
             $extracted_data = array_map(function($space) {
                 $values = [
-                    $space->id,
-                    $space->property_id,
-                    $space->lease_rate_units,
-                    $space->lease_rate,
-                    $space->space_size_units,
-                    $space->size_sf,
-                    $space->floor
+                    $space->id,//0
+                    $space->property_id,//1
+                    $space->lease_title ?? 'false',
+                    $space->lease_rate_units,//3
+                    $space->lease_rate,//4
+                    $space->space_size_units,//5
+                    $space->size_sf,//6
+                    $space->floor,//7
+                    $space->deal_status_id,//8
+                    $space->space_type_id,//9
+                    $space->address2 ?? 'false',//10
+                    $space->suite,//11
+                    $space->description,//12
+                    $space->lease_type_id,//13
+                    
                 ];
+
                 return [
-                    'lease_id' => $values[0],
-                    'property_id' => $values[1],
-                    'lease_rate_units' => $values[2],
-                    'lease_rate' => $values[3],
-                    'space_size_units' => $values[4],
-                    'size_sf' => $values[5],
-                    'floor' => $values[6],
-                    'leasechecksum' => md5(implode('', $values))
+                    'lease_id' => $values[0],//1
+                    'property_id' => $values[1],//2
+                    'lease_title' => $values[2],//3
+                    'lease_rate_units' => $values[3],//4
+                    'lease_rate' => $values[4],//5
+                    'space_size_units' => $values[5],//6
+                    'size_sf' => $values[6],//7
+                    'floor' => $values[7],//8
+                    'deal_status'=> $values[8],//9
+                    'space_type_id' => $values[9],//10
+                    'lease_address' => $values[10],//11
+                    'suite'=> $values[11],//12
+                    'leasechecksum' => md5(implode('', $values)),//13
+                    'lease_desc' => $values[12],//14
+                    'lease_type_id'=> $values[13],//15
                 ];
-            }, $all_lease_spaces);
+            }, $filtered_lease_spaces);
     
             $insert_data = [];
             $update_data = [];
@@ -229,46 +248,80 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
             foreach ($extracted_data as $ed) {
                 $leasechecksum = $ed['leasechecksum'];
                 $lease_id = $ed['lease_id'];
+                $deal_stat = $ed['deal_status'];
+                $lease_title= false;
+                
+                if(!empty($ed['lease_address'])){
+                    $lease_title = $ed['lease_address'];
+                    
+                    if($ed['space_size_units']== 'sf' && !empty($ed['size_sf'])){
+                        
+                        $lease_title .= ' '. number_format($ed['size_sf']) . 'SF';
+                    } 
+                }
                 $existing_record = $wpdb->get_row($wpdb->prepare(
                     "SELECT * FROM $space_tbl WHERE lease_id = %d",
                     $ed['lease_id']
                 ));
-    
+
                 if (!$existing_record) {
+                    
                     // Collect data for batch insert
                     $insert_data[] = [
-                        'lease_id' => $ed['lease_id'],
-                        'property_id' => $ed['property_id'],
-                        'lease_rate_units' => $ed['lease_rate_units'],
-                        'lease_rate' => $ed['lease_rate'],
-                        'space_size_units' => $ed['space_size_units'],
-                        'size_sf' => $ed['size_sf'],
-                        'floor' => $ed['floor'],
-                        'leasechecksum' => $ed['leasechecksum'],
+                        'lease_id' => $ed['lease_id'],//1
+                        'property_id' => $ed['property_id'],//2
+                        'lease_title' => $lease_title,//3
+                        'lease_rate_units' => $ed['lease_rate_units'],//4
+                        'lease_rate' => $ed['lease_rate'],//5
+                        'space_size_units' => $ed['space_size_units'],//6
+                        'size_sf' => $ed['size_sf'],//7
+                        'floor' => $ed['floor'],//8
+                        'deal_status' => $ed['deal_status'],//9
+                        'space_type_id' => $ed['space_type_id'],//10
+                        'lease_address' => $ed['lease_address'],//11
+                        'suite' => $ed['suite'],//12
+                        'leasechecksum' => $ed['leasechecksum'],//13
+                        'lease_desc' => $ed['lease_desc'],//14
+                        'lease_type_id' => $ed['lease_type_id'],//15
                     ];
                 } else if ($existing_record->leasechecksum !== $leasechecksum) {
                     // Collect data for batch update
                     $update_data[] = [
-                        'property_id' => $ed['property_id'],
-                        'lease_rate_units' => $ed['lease_rate_units'],
-                        'lease_rate' => $ed['lease_rate'],
-                        'space_size_units' => $ed['space_size_units'],
-                        'size_sf' => $ed['size_sf'],
-                        'floor' => $ed['floor'],
-                        'leasechecksum' => $ed['leasechecksum'],
-                        'lease_id' => $lease_id,
+                        'lease_id' => $lease_id,//1
+                        'property_id' => $ed['property_id'],//2
+                        'lease_title' =>$lease_title,//3
+                        'lease_rate_units' => $ed['lease_rate_units'],//4
+                        'lease_rate' => $ed['lease_rate'],//5
+                        'space_size_units' => $ed['space_size_units'],//6
+                        'size_sf' => $ed['size_sf'],//7
+                        'floor' => $ed['floor'],//8
+                        'deal_status' => $ed['deal_status'],//9
+                        'space_type_id' => $ed['space_type_id'],//10
+                        'lease_address' => $ed['address'],//11
+                        'suite' => $ed['suite'],//12
+                        'leasechecksum' => $ed['leasechecksum'],//13
+                        'lease_desc' => $ed['lease_desc'],//14
+                        'lease_type_id' => $ed['lease_type_id'],//15
                     ];
                     // Prepare update placeholders
                     $update_placeholders[] = $wpdb->prepare(
-                        "(%s, %s, %s, %s, %s, %s, %s, %d)",
-                        $ed['property_id'],
-                        $ed['lease_rate_units'],
-                        $ed['lease_rate'],
-                        $ed['space_size_units'],
-                        $ed['size_sf'],
-                        $ed['floor'],
-                        $ed['leasechecksum'],
-                        $lease_id
+                        "(%s, %s, %s, %s, %s, %s, %s, %s ,%s, %s, %s, %s, %s, %s ,%s)",
+                        $lease_id,//1
+                        $ed['property_id'],//2
+                        $ed['lease_title'],//3
+                        $ed['lease_rate_units'],//4
+                        $ed['lease_rate'],//5
+                        $ed['space_size_units'],//6
+                        $ed['size_sf'],//7
+                        $ed['floor'],//8
+                        $ed['deal_status'],//9
+                        $ed['space_type_id'],//10
+                        $ed['lease_address'],//11
+                        $ed['suite'],//12
+                        $ed['leasechecksum'],//13
+                        $ed['lease_desc'],//14
+                        $ed['lease_type_id'],//15
+                       
                     );
                 }
             }
@@ -283,7 +336,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                     $result = $wpdb->insert(
                         $space_tbl,
                         $data,
-                        array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+                        array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ,'%s','%s', '%s', '%s', '%s' ,'%s','%s')
                     );
                     if ($result === false) {
                         NEW_np_log('Insert error', $wpdb->last_error);
@@ -292,12 +345,11 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                     }
                 }
             }
-    
             // Batch update
             if (!empty($update_data)) {
-                $query = "INSERT INTO $space_tbl (property_id, lease_rate_units, lease_rate, space_size_units, size_sf, floor, leasechecksum, lease_id) VALUES ";
+                $query = "INSERT INTO $space_tbl (lease_id,property_id,lease_title, lease_rate_units, lease_rate, space_size_units, size_sf, floor, deal_status,space_type_id, leasechecksum,lease_desc,lease_type_id ) VALUES ";
                 $query .= implode(', ', $update_placeholders);
-                $query .= " ON DUPLICATE KEY UPDATE property_id = VALUES(property_id), lease_rate_units = VALUES(lease_rate_units), lease_rate = VALUES(lease_rate), space_size_units = VALUES(space_size_units), size_sf = VALUES(size_sf), floor=VALUES(floor) leasechecksum = VALUES(leasechecksum)";
+                $query .= " ON DUPLICATE KEY UPDATE lease_id = VALUES(lease_id) , property_id = VALUES(property_id),lease_title = VALUES(lease_title) , lease_rate_units = VALUES(lease_rate_units), lease_rate = VALUES(lease_rate), space_size_units = VALUES(space_size_units), size_sf = VALUES(size_sf), floor=VALUES(floor), deal_status=VALUES(deal_status),space_type_id=values(space_type_id), lease_address=values(lease_address),suite = VALUES(suite),leasechecksum = VALUES(leasechecksum), lease_desc=values(lease_desc),lease_type_id=VALUES(lease_type_id)";
                 $result = $wpdb->query($query);
                 if ($result === false) {
                     NEW_np_log('Update error', $wpdb->last_error);
@@ -325,7 +377,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
     if (!array_intersect(['json'], $skip)){
         $limit = 100; 
         $offset = 0;
-        $max_retries = 10; 
+        $max_retries = 20; 
         $timeout = 30;  
         $total_records = 0;
         $all_properties = [];
@@ -399,17 +451,18 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                 defined('WP_CLI') && WP_CLI::log($message);
                 $postarr = new_np_process_buildout_item($item);
                 $post_id = false;
-                $query = $wpdb->prepare(
-                    "SELECT * FROM $space_tbl_name WHERE property_id = %s",
-                    $id
-                );
-                $lease_space_properties = $wpdb->get_results($query, ARRAY_A);
-                $lease_space_checksum  = md5(json_encode($lease_space_properties));
-                if(!empty($lease_space_properties)){
-                    $postarr['meta_input']['lease_properties_checksum'] = $lease_space_checksum;
-                    $postarr['meta_input']['child_lease_props'] = json_encode(wp_list_pluck($lease_space_properties,'lease_id'));
+                // $query = $wpdb->prepare(
+                //     "SELECT * FROM $space_tbl_name WHERE property_id = %s AND deal_status=%s",
+                //     $id, '1'
+                // );
+                // $lease_space_properties = $wpdb->get_results($query, ARRAY_A);
+                // $lease_space_checksum  = md5(json_encode($lease_space_properties));
+                // if(!empty($lease_space_properties)){
+                //     $postarr['meta_input']['lease_properties_checksum'] = $lease_space_checksum;
+                //     $postarr['meta_input']['child_lease_props'] =wp_list_pluck($lease_space_properties, 'lease_id');
+
                    
-                }
+                // }
 
                 if ($found_id = array_search($id, $imported_ids)) {
                     $message = '-- Existing post ID ' . $found_id . ' for ' . $id . '.';
@@ -444,6 +497,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                     // Creating new post for the given ID
                     $message = '-- Creating new post for ' . $id . '.';
                     defined('WP_CLI') && WP_CLI::log($message);
+            
                     $result = wp_insert_post($postarr);
                     
                     if (is_wp_error($result)) {
@@ -451,25 +505,26 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                         defined('WP_CLI') && WP_CLI::error($message);
                         $counter['errors']++;
                     } else {
+                    
+                        $query = $wpdb->prepare(
+                            "SELECT * FROM $space_tbl_name WHERE property_id = %s AND deal_status=%s",
+                            $id, '1'
+                        );
+                        $lease_space_properties = $wpdb->get_results($query, ARRAY_A);
+                        
                         $post_id = $result;
+                        
                         $message = '--- Created new post ID ' . $result;
                         defined('WP_CLI') && WP_CLI::log($message);
                         $counter['imported']++;
                         $imported_ids[$post_id] = $id;
-                        
-                        $query = $wpdb->prepare(
-                            "SELECT * FROM $space_tbl_name WHERE property_id = %s",
-                            $id
-                        );
-                        NEW_np_log('--- Searching Lease Space Properties for #' . $id . ' ---');
-                        $lease_space_properties = $wpdb->get_results($query, ARRAY_A);
-                        $lease_space_checksum  = md5(json_encode($lease_space_properties));
                         
                         if (!empty($lease_space_properties)) {
                             NEW_np_log('--- Found ' . count($lease_space_properties) . ' Lease Space Properties for "' . get_the_title($result) . '" ---');
                             NEW_np_log('--- Creating lease space properties for #' . $result . ' ---');
                             
                             $lspc = 1;
+                            $child_lease_ids = [];
                             foreach ($lease_space_properties as $lsp) {
                                 NEW_np_log('--- Creating lease space properties for Lease Space #' . $lsp['lease_id'] . ' ---');
                                 
@@ -479,7 +534,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                                 }
                     
                                 $lease_postarr = $postarr;
-                                $lease_postarr['post_title'] =!empty($lsp['floor']) ? $name . ' ' .$lsp['floor'] : $name .'- Unit '. $lspc;
+                                $lease_postarr['post_title'] =!empty($lsp['lease_title']) ? $name.' ( '.$lsp['lease_title'] . ' )' : $name .' ( Unit '. $lspc .' )';
                                 $lease_postarr['meta_input'] = array_merge($postarr['meta_input'], [
                                     'lease_rate_units' => $lsp['lease_rate_units'],
                                     'lease_rate' => $lsp['lease_rate'],
@@ -487,10 +542,15 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                                     'size_sf' => $lsp['size_sf'],
                                     'floor' => $lsp['floor'],
                                     'lease_checksum' => $lsp['leasechecksum'],
-                                    'lease_space_id' => $lsp['lease_id']
+                                    'lease_space_id' => $lsp['lease_id'],
+                                    'property_type' => 'leasespace' ,
+                                    'parent_prop_id' => $result
                                 ]);
+                                
+                                
                     
                                 $lease_result = wp_insert_post($lease_postarr);
+                                
                     
                                 if (is_wp_error($lease_result)) {
                                     $message = '--- Error creating Lease Space Property post: ' . $lease_result->get_error_message();
@@ -498,9 +558,12 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                                 } else {
                                     $message = '--- Created Lease Space Property post ID #' . $lease_result;
                                     defined('WP_CLI') && WP_CLI::log($message);
+                                    $child_lease_ids[] = $lease_result;
                                     $lspc++;
                                 }
                             }
+                            
+                            update_post_meta($result,'child_lease_properties', $child_lease_ids);
                         }
                     }
 
@@ -523,7 +586,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
        'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=ny',
        'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=pa'
     );
-    if (!in_array('csv', $skip))
+    if (!in_array('csv', $skip)):
         foreach ($filenames as $fn) {
             defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Reading Sheets CSV');
             defined('WP_CLI') && WP_CLI::log('Reading ' . $fn . '...');
@@ -560,72 +623,85 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                     }
 
                     // Find the imported post_id
-                    $post_id = array_search($buildout_id, $imported_ids);
-                    if (!$post_id) {
-                        $message = "-- No post ID found";
+                    $post_ids = array_keys($imported_ids,$buildout_id);
+                    if (empty($post_ids)) {
+                        $message = "-- No post IDs found";
                         defined('WP_CLI') && WP_CLI::log($message);
                         $counter['missing']++;
-                        continue;
+                        
                     } else {
-                        $message = "-- Found post ID $post_id";
+                        $all_found_posts = join(',',$post_ids);
+                        $message = "-- Found posts ID's $all_found_posts";
                         defined('WP_CLI') && WP_CLI::log($message);
+                        sleep(5);
                         $counter['found']++;
                     }
 
                     // Check the checksum
-                    $post_sheet_checksum = $sheets_checksums[$post_id] ?? false;
+                    // $post_sheet_checksum = $sheets_checksums[$post_id] ?? false;
 
-                    if (!$force_update && ($post_sheet_checksum && $post_sheet_checksum == $checksum)) {
-                        $message = "--- No changes detected, checksum $checksum matches.";
-                        defined('WP_CLI') && WP_CLI::log($message);
-                        $message = "--- Skipping.";
-                        defined('WP_CLI') && WP_CLI::log($message);
-                        continue;
-                    } else {
-                        $message = "--- Changes detected, checksum $checksum does not match $post_sheet_checksum";
-                        defined('WP_CLI') && WP_CLI::log($message);
+                    // if (!$force_update && ($post_sheet_checksum && $post_sheet_checksum == $checksum)) {
+                    //     $message = "--- No changes detected, checksum $checksum matches.";
+                    //     defined('WP_CLI') && WP_CLI::log($message);
+                    //     $message = "--- Skipping.";
+                    //     defined('WP_CLI') && WP_CLI::log($message);
+                    //     continue;
+                    // } else {
+                    //     $message = "--- Changes detected, checksum $checksum does not match $post_sheet_checksum";
+                    //     defined('WP_CLI') && WP_CLI::log($message);
+                    // }
+
+                   
+                    
+                    if(!empty($post_ids)){
+                        $sheet_meta = new_np_process_google_csv_item_meta($item);
+                        foreach($post_ids as $pd){
+                         $post_sheet_checksum = $sheets_checksums[$pd] ?? false;
+
+                            if (!$force_update && ($post_sheet_checksum && $post_sheet_checksum == $checksum)) {
+                                $message = "--- No changes detected, checksum $checksum matches.";
+                                defined('WP_CLI') && WP_CLI::log($message);
+                                $message = "--- Skipping.";
+                                defined('WP_CLI') && WP_CLI::log($message);
+                                continue;
+                            } else {
+                                $message = "--- Changes detected, checksum $checksum does not match $post_sheet_checksum";
+                                defined('WP_CLI') && WP_CLI::log($message);
+                            }
+                            
+                            $message = "--- Updating post_meta for post_id:$pd buildout_id:$buildout_id";
+                            defined('WP_CLI') && WP_CLI::log($message);
+                            defined('WP_CLI') && WP_CLI::log($message);
+                            foreach ($sheet_meta as $key => $value) {
+                                $message = "---- Updating $key to $value";
+                                defined('WP_CLI') && WP_CLI::log($message);
+                                update_post_meta($pd, $key, $value);
+        
+                                if ($key == '_gsheet_min_size') {
+                                    $new_min_val = (float) preg_replace('/[^0-9.]/', '', $value);
+                                    update_post_meta($pd, '_gsheet_min_size_fm', $new_min_val);
+                                }
+                                if ($key == '_gsheet_max_size') {
+                                    $new_max_val = (float) preg_replace('/[^0-9.]/', '', $value);
+                                    update_post_meta($pd, '_gsheet__max_size_fm', $new_max_val);
+                                }
+                                if ($key == '_gsheet_state') {
+                                    update_post_meta($pd, '_gsheet_state', strtoupper($value));
+                                }
+                                if ($key == '_gsheet_monthly_rent') {
+                                    $newmnthrent = (float) preg_replace('/[^0-9.]/', '', $value);
+                                    update_post_meta($pd, '__gsheet__monthly_rent', $newmnthrent);
+                                }
+        
+                                update_post_meta($pd, '_gsheet_last_updated', time());
+                            }
+                            $message = "---- Updated sheet data to # $pd";
+                            defined('WP_CLI') && WP_CLI::log($message);
+                        }
+                        $counter['matched']++;
                     }
 
-                    $sheet_meta = new_np_process_google_csv_item_meta($item);
-
-                    // Update the post meta
-                    $message = "--- Updating post_meta for post_id:$post_id buildout_id:$buildout_id";
-                    defined('WP_CLI') && WP_CLI::log($message);
-
-                    foreach ($sheet_meta as $key => $value) {
-                        // $message = "---- Updating $key to $value";
-                        // defined('WP_CLI') && WP_CLI::log($message);
-                        // update_post_meta($post_id, $key, $value);
-                        // update_post_meta($post_id, '_gsheet_last_updated', time());
-                        $message = "---- Updating $key to $value";
-                        defined('WP_CLI') && WP_CLI::log($message);
-                        update_post_meta($post_id, $key, $value);
-                        if ($key == '_gsheet_min_size') {
-                            $new_min_val = (float) preg_replace('/[^0-9.]/', '', $value);
-                            update_post_meta($post_id, '_gsheet_min_size_fm',$new_min_val);
-                        }
-                        if ($key == '_gsheet_min_size') {
-                            $new_min_val = (float) preg_replace('/[^0-9.]/', '', $value);
-                            update_post_meta($post_id, '_gsheet_min_size_fm',$new_min_val);
-                        }
-                        if($key == '_gsheet_state'){
-                            update_post_meta($post_id, '_gsheet_state',strtoupper($value));
-                        }
-                        if ($key == '_gsheet_max_size') {
-                            $new_max_val =    (float) preg_replace('/[^0-9.]/', '', $value);
-                            update_post_meta($post_id, '_gsheet__max_size_fm',$new_max_val);
-                        }
-                        
-                        if($key == '_gsheet_monthly_rent'){
-                            $newmnthrent = (float) preg_replace('/[^0-9.]/', '', $value);
-                            update_post_meta($post_id, '__gsheet__monthly_rent',$newmnthrent);
-                        
-                        }
-                        
-                        update_post_meta($post_id, '_gsheet_last_updated', time());
-                    }
-
-                    $counter['matched']++;
+                   
                 }
                 fclose($handle);
             }
@@ -633,6 +709,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
             $message = 'Found ' . $row . ' records in ' . $fn . '.';
             NEW_np_log($message);
         }
+    endif;
     /********************************--Google Sheet Ptoperties Sync Ends--*****************************************/
     $message = "Counters: " . print_r($counter, true);
     defined('WP_CLI') && WP_CLI::log($message);
@@ -914,36 +991,31 @@ function new_np_process_google_csv_item_meta($data = null)
 
     return array_filter($result);
 }
-
-// Schedule our cron actions
-add_filter('cron_schedules', 'new_tristatecr_datasync_cron_schedules');
-
-function new_tristatecr_datasync_cron_schedules($schedules)
-{
-   
-    $schedules['every_2_days'] = array(
-        'interval' => 86400, 
-        'display'  => __('Every 2 days'),
+// Register a custom interval for every two days
+add_filter('cron_schedules', 'tristatecr_syncapi_cron_schedules');
+function tristatecr_syncapi_cron_schedules($schedules) {
+    $schedules['every_two_days'] = array(
+        'interval' => 2 * DAY_IN_SECONDS,
+        'display'  => __('Every Two days'),
     );
     return $schedules;
 }
 
-
-
-if (!wp_next_scheduled('new_tristatecr_datasync_cron')) {
- 
-    wp_schedule_event(time(), 'every_2_days', 'new_tristatecr_datasync_cron');
+// Schedule the event if not already scheduled
+add_action('wp', 'schedule_tristatecr_syncapi_cron_job');
+function schedule_tristatecr_syncapi_cron_job() {
+    if (!wp_next_scheduled('tristatecr_syncapi_cron_job')) {
+        wp_schedule_event(time(), 'every_two_days', 'tristatecr_syncapi_cron_job');
+    }
 }
 
-
- add_action('new_tristatecr_datasync_cron', 'new_tristatecr_datasync_cron_function');
-
-function new_tristatecr_datasync_cron_function()
-{
-    update_option('tristatecr_datasync_cron_last_started', time());
+// Define the callback function
+function tristatecr_syncapi_cron_job_function() {
+    // Your custom code here
+    update_option('tristatecr_datasync_cron_last_startedv2', time());
 
     $time = time();
-    $datetime = date('Y-m-d H:i:ss', $time);
+    $datetime = date('Y-m-d H:i:s', $time);
 
     $message = "Running new_tristatecr_datasync_cron_function at $datetime\n";
     error_log($message, 3, NEW_LOG_FILE);
@@ -953,49 +1025,56 @@ function new_tristatecr_datasync_cron_function()
         'skip' => 'remote',
     );
     $result = tristatectr_datasync_command_v2($args, $aargs);
-    // insert broker data to brokers post type using cron
   
     $message = "\nResults: " . print_r($result, 1) . "\n";
     error_log($message, 3, NEW_LOG_FILE);
-    
-    
+
     $args = array(
         'post_type' => 'properties',
         'post_status' => 'publish',
         'posts_per_page' => -1 
     );
-    
-    $query = new WP_Query($args);
-    
-    if($query->have_posts()) {
-        while ($query->have_posts()) {$query->the_post();
-                $buildout_agent = get_post_meta(get_the_id(), '_buildout_broker_id', true);
-                if(!empty($buildout_agent)){
-                    global $wpdb;
-                    $agquery = $wpdb->prepare(
-                        "SELECT pm.post_id 
-                         FROM $wpdb->postmeta pm
-                         INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
-                         WHERE pm.meta_key = 'user_id' 
-                           AND pm.meta_value = %s
-                           AND p.post_type = 'brokers'",
-                        $buildout_agent
-                    );
-                    $agent_id = $wpdb->get_var($agquery);
-                    
-                   $_agent = get_the_title($agent_id);
-                   
-                   update_post_meta(get_the_id(),'_buildout_listing_agent', $_agent);
-                }
-            }
-    }wp_reset_postdata();
 
-    
-  
+    $query = new WP_Query($args);
+
+    if($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+            $buildout_agent = get_post_meta(get_the_id(), '_buildout_broker_id', true);
+            if(!empty($buildout_agent)){
+                global $wpdb;
+                $agquery = $wpdb->prepare(
+                    "SELECT pm.post_id 
+                     FROM $wpdb->postmeta pm
+                     INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+                     WHERE pm.meta_key = 'user_id' 
+                       AND pm.meta_value = %s
+                       AND p.post_type = 'brokers'",
+                    $buildout_agent
+                );
+                $agent_id = $wpdb->get_var($agquery);
+
+                $_agent = get_the_title($agent_id);
+
+                update_post_meta(get_the_id(),'_buildout_listing_agent', $_agent);
+            }
+        }
+        wp_reset_postdata();
+    }
+
     $message = "\nResults: " . print_r($result, 1) . "\n";
     error_log($message, 3, NEW_LOG_FILE);
 }
+add_action('tristatecr_syncapi_cron_job', 'tristatecr_syncapi_cron_job_function');
 
+// Unschedule the event if necessary
+function unschedule_tristatecr_syncapi_cron_job() {
+    $timestamp = wp_next_scheduled('tristatecr_syncapi_cron_job');
+    if ($timestamp) {
+        wp_unschedule_event($timestamp, 'tristatecr_syncapi_cron_job');
+    }
+}
+add_action('switch_theme', 'unschedule_tristatecr_syncapi_cron_job');
 
 /* ----------------------------------Broker stup code form api data----------------------- */
 

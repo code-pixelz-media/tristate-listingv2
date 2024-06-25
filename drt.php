@@ -2022,12 +2022,19 @@ function tristatecr_create_lease_space_table()
         id INT(20) NOT NULL AUTO_INCREMENT,
         lease_id varchar(255)  NULL,
         property_id varchar(255)  NULL,
+        lease_title varchar(255) NULL,
         lease_rate_units varchar(255)  NULL,
         lease_rate varchar(255)  NULL,
         space_size_units varchar(255)  NULL,
         size_sf varchar(255)  NULL,
         floor varchar(255) NULL,
+        deal_status varchar(32) NULL,
+        space_type_id varchar(32) NULL,
+        lease_address  varchar(32) NULL,
+        suite varchar(32) NULL,
         leasechecksum varchar(32)  NULL,
+        lease_desc varchar(255) NULL,
+        lease_type_id varchar(32) NULL,
         PRIMARY KEY (id)) $charset_collate;";
         
         dbDelta($sql);

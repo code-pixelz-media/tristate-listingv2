@@ -345,6 +345,9 @@ $meta_vrs = [
     'Zip Code' => $zip,
 ];
 
+// $s = get_post_meta($ID,'child_lease_space_props',true);
+
+// var_dump($s);
 ?>
 
 <div 
@@ -362,6 +365,7 @@ $meta_vrs = [
     data-datecreated="<?php echo strtotime($date_created); ?>"
     data-title = "<?php echo esc_html(get_the_title()); ?>"
     data-monthly-rent = "<?php echo !empty($new_monthly_rent) ? $new_monthly_rent :'0'; ?>"
+    data-ptype =<?php echo get_post_type($ID);?>
 >
 
 <?php
@@ -387,7 +391,7 @@ if($args['state']) { ?>
         <h2 class="lisiitng__title_state"><?php echo esc_html(get_the_title()); ?></h2> 
     <?php } ?>
         <h4><?php echo $subtitle; ?></h4>
-     
+        <h4><?php echo get_the_id(); ?></h4>
         <div class="css-ajk2hm">
             <ul class="ul-buttons">
                 <?php
