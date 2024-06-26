@@ -429,7 +429,8 @@ if($args['state']) { ?>
             <?php endif; ?>
             </ul>
             <?php 
-            if(!empty($l_meta)){
+            if(!empty($l_meta)  && $formatted_type == 'forlease'){
+               $all_units_count = count($l_meta);
                echo '<div class="trimmed-unit">';
                 $counter =1;
                 foreach($l_meta as $l){
@@ -446,12 +447,14 @@ if($args['state']) { ?>
                     $size_unit = $lsp['space_size_units'];
                     $size = $lsp['size_sf'];
                     
+                    $plusSpan = $all_units_count>1 ? '<span class="trimmed-control">+</span>':'';
+                    $display = $all_units_count>1? 'display:none' : 'display:block';
                    
                 
                 ?>
-                <div id="trimmed-container" class="trimmed-unit-"<?php echo $counter ?>>
-                    <h4 class="lease-space-title" style="cursor:pointer;">Unit <?=$counter ?><span class="trimmed-control">+</span></h4>
-                    <ul class="ul-content ul-features" style="display:none">
+                <div id="trimmed-container" class="trimmed-unit-<?php echo $counter ?>">
+                    <h4 class="lease-space-title" style="cursor:pointer;">Unit <?=$counter ?><?=$plusSpan; ?></h4>
+                    <ul class="ul-content ul-features" style="<?=$display?>">
                         <?php 
                         if(!empty($title)) : 
                             echo "<li><p>Title: <span>$title</span></p></li>";
@@ -495,15 +498,15 @@ if($args['state']) { ?>
             }
             ?>
             <ul class="ul-content ul-features">   
-    <?php foreach ($meta_vrs as $k => $v) {
-        if($k == 'Key Tag'){
-            echo !empty($v) ? ' <li><p>' . $k . ': <span id="tri_' . strtolower(str_replace(' ', '_', $k)) . '" data-text="'.$v.'"class="key-show">Show</span>
-            <div class="tag-container"></div></p></li>' : '';
-        } else {
-            echo !empty($v) ? ' <li><p>' . $k . ': <span id="tri_' . strtolower(str_replace(' ', '_', $k)) . '" >' . $v . '</span></p></li>' : '';
-        }
-    } ?>
-</ul>
+                <?php foreach ($meta_vrs as $k => $v) {
+                    if($k == 'Key Tag'){
+                        echo !empty($v) ? ' <li><p>' . $k . ': <span id="tri_' . strtolower(str_replace(' ', '_', $k)) . '" data-text="'.$v.'"class="key-show">Show</span>
+                        <div class="tag-container"></div></p></li>' : '';
+                    } else {
+                        echo !empty($v) ? ' <li><p>' . $k . ': <span id="tri_' . strtolower(str_replace(' ', '_', $k)) . '" >' . $v . '</span></p></li>' : '';
+                    }
+                } ?>
+            </ul>
         </div>
     </div>
     
