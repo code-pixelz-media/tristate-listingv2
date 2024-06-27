@@ -367,7 +367,7 @@ if($args['state']) { ?>
         <h2 class="lisiitng__title_state"><?php echo esc_html(get_the_title()); ?></h2> 
     <?php } ?>
         <h4><?php echo $subtitle; ?></h4>
-     
+        <?=$buildout_id ;?>
         <div class="css-ajk2hm">
             <ul class="ul-buttons">
                 <?php
@@ -464,15 +464,19 @@ if($args['state']) { ?>
                             
                             if($price_units == 'dollars_per_sf_per_year'){
                                 $postfix = '/SF per year';
+                                $attr = 'data-unit_per_sf';
                             }else if($price_units == 'dollars_per_sf_per_month'){
                                 $postfix = '/SF per month';
+                                $attr = 'data-unit_sf_month';
                             }elseif($price_units == 'dollars_per_month'){
                                 $postfix = '/per month';
+                                $attr = 'data-unit_per_sf';
                             }else{
                                 $postfix = '';
+                                $attr = 'data-nothing';
                             }
                             $price_with_postfix = '$'.number_format($price).$postfix;
-                            echo "<li><p>Price: <span>$price_with_postfix</span></p></li>";
+                            echo "<li><p>Price: <span $attr='".$price."'>$price_with_postfix</span></p></li>";
                         endif;
                         
                         if($size) :
@@ -482,7 +486,7 @@ if($args['state']) { ?>
                                 $pfix = '';
                             }
                             $size_pfix = $size . ' ' . $pfix;
-                            echo "<li><p>Size: <span>$size_pfix</span></p></li>";
+                            echo "<li><p>Size: <span data-unit_size='".$size."'>$size_pfix</span></p></li>";
                         endif;
                         
                         if(empty($title) && empty($price) && empty($size)){
