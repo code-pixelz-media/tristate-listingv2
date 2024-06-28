@@ -143,21 +143,32 @@ function tristate_get_marker_data($ID)
   return $m_d;
 }
 
-
+// get max price 
 function get_pricesf_minmax($type = "min", $formatted = true)
 {
   global $wpdb;
+  $space_tbl= $wpdb->prefix . 'lease_spaces';
 
-  $max_rent = $wpdb->get_var("
-      SELECT MAX(CAST(REPLACE(REPLACE(pm.meta_value, '$', ''), ',', '') AS UNSIGNED)) 
-      FROM {$wpdb->postmeta} pm
-      INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
-      WHERE pm.meta_key = '_gsheet_price_sf' 
-      AND p.post_type = 'properties'
-  ");
+  // $max_rent = $wpdb->get_var("
+  //     SELECT MAX(CAST(REPLACE(REPLACE(pm.meta_value, '$', ''), ',', '') AS UNSIGNED)) 
+  //     FROM {$wpdb->postmeta} pm
+  //     INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+  //     WHERE pm.meta_key = '_gsheet_price_sf' 
+  //     AND p.post_type = 'properties'
+  // ");
+  
+  $max_sf = $wpdb->get_var("
+      SELECT MAX(CAST(l.lease_rate AS UNSIGNED)) AS max_lease_rate
+        FROM {$space_tbl} l
+        JOIN {$wpdb->postmeta} pm ON l.property_id = pm.meta_value
+        JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+        WHERE pm.meta_key = '_buildout_id'
+        AND l.lease_rate_units = 'dollars_per_sf_per_month'
+        AND p.post_type = 'properties';
+    ");
 
 
-  $formatted_max_val = number_format($max_rent);
+  $formatted_max_val = number_format($max_sf);
   $formatted_min_val = '$0';
 
   if ($formatted) {
@@ -165,7 +176,7 @@ function get_pricesf_minmax($type = "min", $formatted = true)
     $retval = $type == 'min' ? $formatted_min_val : '$' . $formatted_max_val;
   } else {
 
-    $retval = $type == 'min' ? (int) 0 : (int) $max_rent;
+    $retval = $type == 'min' ? (int) 0 : (int) $max_sf;
   }
 
   return $retval;
@@ -174,14 +185,16 @@ function get_pricesf_minmax($type = "min", $formatted = true)
 
 function get_mnth_rent_min_max($type = "min", $formatted = true){
   global $wpdb;
-
+  $space_tbl= $wpdb->prefix . 'lease_spaces';
   $max_rent = $wpdb->get_var("
-      SELECT MAX(CAST(REPLACE(REPLACE(pm.meta_value, '$', ''), ',', '') AS UNSIGNED)) 
-      FROM {$wpdb->postmeta} pm
-      INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
-      WHERE pm.meta_key = '_gsheet_monthly_rent' 
-      AND p.post_type = 'properties'
-  ");
+  SELECT MAX(CAST(l.lease_rate AS UNSIGNED)) AS max_lease_rate
+  FROM {$space_tbl} l
+  JOIN {$wpdb->postmeta} pm ON l.property_id = pm.meta_value
+  JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+  WHERE pm.meta_key = '_buildout_id'
+  AND l.lease_rate_units = 'dollars_per_month'
+  AND p.post_type = 'properties'
+");
 
 
   $formatted_max_val = number_format($max_rent);
@@ -202,13 +215,23 @@ function get_size_minmax($type = "min", $formatted = true)
 {
   global $wpdb;
 
-  $max_size = $wpdb->get_var("
-  SELECT MAX(CAST(pm.meta_value AS UNSIGNED)) 
-  FROM $wpdb->postmeta pm
-  INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
-  WHERE pm.meta_key = '_gsheet__max_size_fm'
-  AND p.post_type = 'properties'
-");
+//   $max_size = $wpdb->get_var("
+//   SELECT MAX(CAST(pm.meta_value AS UNSIGNED)) 
+//   FROM $wpdb->postmeta pm
+//   INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+//   WHERE pm.meta_key = '_gsheet__max_size_fm'
+//   AND p.post_type = 'properties'
+// ");
+$space_tbl= $wpdb->prefix . 'lease_spaces';
+$max_size = $wpdb->get_var("
+            SELECT MAX(CAST(l.size_sf AS UNSIGNED)) AS max_size
+            FROM {$space_tbl} l
+            JOIN {$wpdb->postmeta} pm ON l.property_id = pm.meta_value
+            JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+            WHERE pm.meta_key = '_buildout_id'
+            AND l.space_size_units = 'sf'
+            AND p.post_type = 'properties'
+        ");
 
 
   $formatted_max_val = number_format($max_size);
@@ -253,6 +276,7 @@ function get_price_minmax($type = "min", $formatted = true)
 
   return $retval;
 }
+
 
 
 function __total()

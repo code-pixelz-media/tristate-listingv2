@@ -20,8 +20,8 @@ $_price_sf      = meta_of_api_sheet($ID, 'price_sf');
 $_price_sf      = preg_replace('/\.[0-9]+/', '', $_price_sf);
 $_price_sf      = (int) preg_replace('/[^0-9]/', '', $_price_sf);
 
-$min_size       = get_post_meta($ID, '_gsheet_min_size_fm',true);
-$max_size       = get_post_meta($ID, '_gsheet__max_size_fm',true);
+$min_size       = ''; //get_post_meta($ID, '_gsheet_min_size_fm',true);
+$max_size       = '';//get_post_meta($ID, '_gsheet__max_size_fm',true);
 
 //max and min values for for lease properties sf
 $max_lease_sf_value       = get_post_meta($ID, '_gsheet_price_sf',true);
@@ -367,7 +367,7 @@ if($args['state']) { ?>
         <h2 class="lisiitng__title_state"><?php echo esc_html(get_the_title()); ?></h2> 
     <?php } ?>
         <h4><?php echo $subtitle; ?></h4>
-        <?=$buildout_id ;?>
+     
         <div class="css-ajk2hm">
             <ul class="ul-buttons">
                 <?php
@@ -429,6 +429,8 @@ if($args['state']) { ?>
             <?php endif; ?>
             </ul>
             <?php 
+             $lsp_price_per_sf =[];
+             $lsp_monthly_rent =[];
             if(!empty($l_meta)  && $formatted_type == 'forlease'){
                $all_units_count = count($l_meta);
                echo '<div class="trimmed-unit">';
@@ -468,9 +470,12 @@ if($args['state']) { ?>
                             }else if($price_units == 'dollars_per_sf_per_month'){
                                 $postfix = '/SF per month';
                                 $attr = 'data-unit_sf_month';
+                                $lsp_price_per_sf[] = $price;
                             }elseif($price_units == 'dollars_per_month'){
                                 $postfix = '/per month';
                                 $attr = 'data-unit_per_sf';
+                                $lsp_monthly_rent[] = $price;
+                                
                             }else{
                                 $postfix = '';
                                 $attr = 'data-nothing';
@@ -515,18 +520,23 @@ if($args['state']) { ?>
     </div>
     
     <div class="plc-bottom">
-    <?php if($monthly_rent_lease) : ?>
-        <p class="font-13 color-red"><?php echo $monthly_rent_lease; ?></p>
+   
+    <?php if(!empty($lsp_monthly_rent) && count(array_unique($lsp_monthly_rent)) === 1 ) : ?>
+        <p class="font-13 color-red"><?php echo 'Monthly rent: $'. number_format($lsp_monthly_rent[0]); ?></p>
     <?php endif; ?>
     <!-- Starting P for Price -->
         <p class="price">
-            <?php if($new_price): 
+            <?php 
             
-                echo $new_price;
+            if(!empty($lsp_price_per_sf) && count(array_unique($lsp_price_per_sf)) === 1  && $formatted_type='forlease'){
+               echo 'Price per SF: $'. number_format($lsp_price_per_sf[0]);
+            }elseif($formatted_type='forsale' && !empty($bo_price)){
+                echo 'Price : $'. number_format($bo_price);
+            }else{
+                _e('Price: Call For Price','tristatecr');
+            }
             
-            else: 
-                 _e('Price: Call For Price','tristatecr');
-            endif 
+           
             ?>
         </p>
     <!-- p for price ends  -->
