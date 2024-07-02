@@ -24,6 +24,9 @@ function fetch_with_exponential_backoff($url, $max_retries = 5) {
 
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) == 200) {
             $success = true;
+        }else if(wp_remote_retrieve_response_code($response) == 400){
+            NEW_np_log("...Some Problem occured in spreadsheet URL...");
+            $success = true;
         } else {
             $attempt++;
             $wait_time = pow(2, $attempt); // Exponential backoff

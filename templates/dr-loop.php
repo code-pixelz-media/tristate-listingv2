@@ -6,10 +6,25 @@ $buildout_sale  =  meta_of_api_sheet($ID, 'sale');
 $buildout_id    = (int) meta_of_api_sheet($ID, 'id');
 $title          = meta_of_api_sheet($ID, 'sale_listing_web_title');
 $subtitle       = implode(', ', array(meta_of_api_sheet($ID, 'city'), meta_of_api_sheet($ID, 'county'), meta_of_api_sheet($ID, 'state')));
+
 $property_use_type = get_post_meta($ID,'_buildout_property_type_id',true);
-$property_use_name = get_usesname_by_propertyID($property_use_type);
+$propert_use_subtype = get_post_meta($ID,'_buildout_property_subtype_id',true);
+
+$property_use_type_name = get_usesname_by_propertyID($property_use_type);
+$property_use_sub_type_name =get_usename_subtype($propert_use_subtype);
+
+
+if($property_use_type_name && $property_use_sub_type_name ){
+    $use_str = $property_use_type_name.'/'.$property_use_sub_type_name;
+}elseif(!$property_use_type_name && $property_use_sub_type_name){
+    $use_str = $property_use_sub_type_name;
+}elseif($property_use_type_name && !$property_use_sub_type_name){
+    $use_str = $property_use_type_name;
+}
+
+
 $badges         = array(
-                    'use' =>$property_use_name ? $property_use_name : '',
+                    'use' =>$use_str ?? '',
                     'type' =>  ($buildout_lease == '1' && $buildout_sale == '1') ? 'for Lease' :
                     (($buildout_lease == '1') ? 'for Lease' :
                     (($buildout_sale == '1') ? 'for Sale' : false)),
@@ -333,7 +348,6 @@ $data_attr_sizesf ='';
 $data_attr_sale_price = '';
 $data_attr_sale_size = '';
 
-var_dump($formatted_type);
 if($formatted_type == 'forlease'){
     $data_attr_pricesf = ($maxes_lsp['dollars_per_sf_per_month']) ?  'data-maxpricesf="'.$maxes_lsp['dollars_per_sf_per_month'].'"' : '' ;
     $data_attr_sizesf = ($maxes_lsp['size']) ?  'data-maxsizesf="'.$maxes_lsp['size'].'"' : '' ;
@@ -345,8 +359,6 @@ if($formatted_type == 'forlease'){
     $data_attr_sale_size = $building_size_sf ? 'data-salesize="'.$building_size_sf.'"' : '' ; 
     
 }
-
-var_dump($data_attr_pricesf,$data_attr_sizesf);
 
 ?>
 

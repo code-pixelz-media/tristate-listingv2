@@ -15,7 +15,7 @@ function drt_restrict_page_access()
   $settings = get_option('tristate_cr_settings');
   $selected_page =  isset($settings['main_filter_page']) ? $settings['main_filter_page'] : '';
   // Check if the current page is the page with ID 80575
-  if (is_page($selected_page)) {
+  if (!empty($selected_page) && is_page($selected_page)) {
     // Check if the user is not logged in
     if (!is_user_logged_in()) {
       // Check if the transient exists
@@ -45,8 +45,6 @@ function drt_restrict_page_access()
     }
   }
 }
-
-
 function get_property_broker_title($property_id)
 {
 
@@ -279,62 +277,67 @@ function __total()
 }
 
 //getting max values for lease space properties
-function get_max_lsp($id) {
+function get_max_lsp($id){
   global $wpdb;
   $space_tbl = $wpdb->prefix . 'lease_spaces';
   $l_meta = get_post_meta($id, 'lease_space_table_id', true);
-  
   if (!is_array($l_meta)) {
-      return array(
+      $l_meta = array($l_meta);
+  }
+  $placeholders = implode(',', array_fill(0, count($l_meta), '%d'));
+
+  $query = $wpdb->prepare(
+      "SELECT lease_rate, size_sf, lease_rate_units,space_size_units
+       FROM $space_tbl 
+       WHERE id IN ($placeholders) 
+         AND deal_status = %s
+      ",
+      array_merge($l_meta, ['1'])
+  );
+  
+  $results = $wpdb->get_results($query, ARRAY_A);
+  
+  if(!empty($results) ){
+      $max_values = array(
+          'dollars_per_sf_per_month' => [],
+          'dollars_per_month' => [],
+          'size' => []
+      );
+      foreach($results as $r){
+          $lease_rate       = $r['lease_rate'];
+          $lease_rate_units = $r['lease_rate_units'];
+          $size_units       = $r['space_size_units'];
+          $size_sf          = $r['size_sf'];
+          
+          if($lease_rate_units == 'dollars_per_sf_per_month'){
+              $max_values['dollars_per_sf_per_month'][] = $lease_rate;
+          }
+          
+          if($lease_rate_units == 'dollars_per_month'){
+              $max_values['dollars_per_month'][] = $lease_rate;
+          }
+          
+          if($size_units == 'sf'){
+              $max_values['size'][] = $size_sf;
+          }
+      }
+      
+      $max_values = array(
+          'dollars_per_sf_per_month' => !empty($max_values['dollars_per_sf_per_month']) ? max($max_values['dollars_per_sf_per_month']) : false,
+          'dollars_per_month' => !empty($max_values['dollars_per_month']) ? max($max_values['dollars_per_month']) : false,
+          'size' => !empty($max_values['size']) ? max($max_values['size']) : false
+      );
+  }else {
+     $max_values= array(
           'dollars_per_sf_per_month' => false,
           'dollars_per_month' => false,
           'size' => false
       );
+  
   }
-  
-  $placeholders = implode(',', array_fill(0, count($l_meta), '%d'));
-  
-  $query = $wpdb->prepare(
-      "SELECT lease_rate, size_sf, lease_rate_units 
-       FROM $space_tbl 
-       WHERE id IN ($placeholders) 
-         AND deal_status = %s
-         AND space_size_units = 'sf' 
-         AND (lease_rate_units = 'dollars_per_sf_per_month' OR lease_rate_units = 'dollars_per_month')",
-      array_merge($l_meta, ['1'])
-  );
 
-  $results = $wpdb->get_results($query, ARRAY_A);
-  
-  $max_values = array(
-      'dollars_per_sf_per_month' => false,
-      'dollars_per_month' => false,
-      'size' => false
-  );
-  
-  foreach ($results as $result) {
-      $lease_rate = (int) $result['lease_rate'];
-      $lease_rate_units = $result['lease_rate_units'];
-      $size_sf = (int) $result['size_sf'];
-
-      if ($lease_rate_units === 'dollars_per_sf_per_month') {
-          if ($max_values['dollars_per_sf_per_month'] === false || $lease_rate > $max_values['dollars_per_sf_per_month']) {
-              $max_values['dollars_per_sf_per_month'] = $lease_rate;
-          }
-      }
-    
-      if ($lease_rate_units === 'dollars_per_month') {
-          if ($max_values['dollars_per_month'] === false || $lease_rate > $max_values['dollars_per_month']) {
-              $max_values['dollars_per_month'] = $lease_rate;
-          }
-      }
-
-      if ($max_values['size'] === false || $size_sf > $max_values['size']) {
-          $max_values['size'] = $size_sf;
-      }
-  }
-  
   return $max_values;
+
 }
 
 add_shortcode('TSC-inventory-pub', 'drt_shortcode');
@@ -1513,6 +1516,8 @@ function drt_shortcode($_atts)
           }
           if (!isBetweenMaxMinPriceSf) {
             showListing = false;
+          }else{
+            
           }
 
           if (!isBetweenMaxMinSize) {
@@ -1797,8 +1802,9 @@ function drt_shortcode($_atts)
       });
 
       $("#price-range,#price-range3,#price-range2,#price-range4").on("slidestop", function(event, ui) {
-
+//start
         filterListings(null, $(this).prop('id'));
+        console.log(ui.values);
 
       });
 
