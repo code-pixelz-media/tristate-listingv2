@@ -546,6 +546,8 @@ jQuery(document).ready(function () {
 jQuery(document).ready(function () {
   jQuery("#more-filter-content").hide();
   jQuery("#state-more-filter").on("click", function () {
+
+  
     jQuery("#more-filter-content").toggleClass("ts-adv-show");
     jQuery(".close-icon").toggleClass("closeactive");
     jQuery(".slider-box").appendTo("#more-filter-content");
@@ -556,6 +558,7 @@ jQuery(document).ready(function () {
       jQuery(".close-icon").hide();
     }
   });
+  jQuery("#state-more-filter").trigger('click');
   function handleFilterButtonClick() {
     var button = document.getElementById("state-more-filter");
     var closeIcon = document.querySelector(".close-icon");
@@ -574,6 +577,9 @@ jQuery(document).ready(function () {
     }
   }
   if (jQuery(document).find(".filter-wrapper").hasClass("ts-state-page")) {
+    jQuery('.propertylisting-content').each(function(){
+      jQuery(this).wrap('<a href="'+ jQuery(this).data('permalink')+'"></a>');
+    });
     var moreFilterButton = document.getElementById("state-more-filter");
     moreFilterButton.addEventListener("click", function () {
       handleFilterButtonClick();

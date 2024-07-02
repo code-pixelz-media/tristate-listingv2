@@ -72,6 +72,7 @@ function new_tristate_save_results_as_layer()
 
 
 
+
 /* ---------------savemap to layer pop up------------- */
 
 
@@ -87,25 +88,48 @@ function pop_tristate_save_results_as_layer()
 	$get_search_id_final = !empty($savedSearchId) ? $savedSearchId : (!empty($getSearchId) ? $getSearchId : '');
 
 	$get_current_user = get_current_user_id();
+
+	$posts = triget_posts_by_author($get_current_user);
+	// var_dump($posts);
+
+	$select_options = '<option value="">Create a new map layer</option>';
+
+	if (is_array($posts)) {
+		foreach ($posts as $post) {
+			$selected = ($get_search_id_final == $post['ID']) ? 'selected' : '';
+			$select_options .= '<option value="' . $post['ID'] . '" ' . $selected . '>' . $post['Title'] . '</option>';
+		}
+	} else {
+		$select_options = '<option value="">' . $posts . '</option>'; // Display error message in the option
+	}
+
+	// Create the select element with the options
+	$select_html = '<select name="previous_map_post_id" id="previous_map_post_id">' . $select_options . '</select>';
+
+	// Output the select element
+	//echo $select_html;
+
+
+?>
+
+
+	<?php
+
 	$time = time();
 
-	if (!empty($savedSearchId) || !empty($getSearchId)) {
-		// Do not render the HTML if savedSearchId is empty
 
-		$heading_title = 'SAVE TO A SAME LAYER';
-		$render_layer_title = get_the_title($get_search_id_final);
-		$render_map_title = '
-		<label>Map Title</label>
-		<input type="text" name="timestamp" id="" value="' . $render_layer_title . '" readonly>
-		<input type="hidden" name="previous_map_post_id" id="previous_map_post_id" value="' . $get_search_id_final . '" required>';
-	} else {
-		// Render the HTML if savedSearchId is not empty
-		$heading_title = 'SAVE TO A NEW MAP LAYER';
-		$render_map_title =
-			'<li><label>Map Title</label>
+	// Render the HTML if savedSearchId is not empty
+	$render_map_title =
+		'
+			<li><label>Save to your existing Map!</label>
+              ' . $select_html . '
+          </li>
+			
+			<li id="map-title"><label>Map Title</label>
               <input type="text" name="map_post_title" id="map_post_title" required>
-          </li>';
-	}
+          </li>
+		  ';
+
 
 	$html = '<div class="tcr-popup-overlay"></div>
 
@@ -113,21 +137,25 @@ function pop_tristate_save_results_as_layer()
 
 		<div class="tcr-popup-content" id="tcr-req-acc-output">
 			
-				<h4>' . $heading_title . '</h4>
+				<h4>SAVE TO A NEW MAP LAYER</h4>
 				<form id="tri-popup-form" method="POST">
 					<div id="map-layer-content">
 						<ul>
 							<input type="hidden" name="userid" id="map_layer_user_id" value="' . $get_current_user . '">
 							<input type="hidden" name="timestamp" id="map_layer_timestamp" value="' . $time . '">
 							' . $render_map_title . '
+
+
 							<li>
 								<label>Layer Title</label>
 								<input type="text" name="map_layer_title" id="map_layer_title" required>
 							</li>
 						</ul>
-
+						<div class="tcr-layer-footer">	
 						<input type="hidden" name="map_layer_post_ids" id="map_layer_post_ids">
-						<input type="submit" id="submit_map_layer" name="submit_layer" value="' . $heading_title . '">
+						<input type="submit" id="submit_map_layer" name="submit_layer" value="SAVE TO A NEW MAP LAYER">
+						</div>
+
 					</div>
 				</form>
 			
@@ -141,6 +169,62 @@ function pop_tristate_save_results_as_layer()
 	exit();
 }
 
+
+/* ----------------get author post-------------- */
+
+
+function triget_posts_by_author($author_id)
+{
+	// Check if the author ID is valid
+	if (!is_numeric($author_id)) {
+		return 'Invalid author ID';
+	}
+
+	// Arguments for the query
+	$args = array(
+		'author' => $author_id,   // Specify the author ID
+		'posts_per_page' => -1,
+		'post_type' =>  'properties_search'  // Retrieve all posts by this author
+	);
+
+	// Custom query
+	$query = new WP_Query($args);
+
+	// Initialize an array to hold post IDs and titles
+	$posts_list = array();
+
+	// Check if there are any posts
+	if ($query->have_posts()) {
+		while ($query->have_posts()) {
+			$query->the_post();
+			$post_id = get_the_ID();
+			$post_title = get_the_title();
+			// Add the post ID and title to the array
+			$posts_list[] = array('ID' => $post_id, 'Title' => $post_title);
+		}
+	} else {
+		return 'No posts found for the author.';
+	}
+
+	// Reset Post Data
+	wp_reset_postdata();
+
+	// Return the array of post IDs and titles
+	return $posts_list;
+}
+
+// Example usage: Call the function with the desired author ID
+// $author_id = 123; // Replace 123 with the actual author ID
+// $posts = triget_posts_by_author($author_id);
+
+// // Display the posts
+// if (is_array($posts)) {
+// 	foreach ($posts as $post) {
+// 		echo 'Post ID: ' . $post['ID'] . ', Title: ' . $post['Title'] . '<br>';
+// 	}
+// } else {
+// 	echo $posts; // Display error message
+// }
 
 
 // add_action('wp_ajax_rename_search', 'tristatecr_wp_ajax_rename_search');

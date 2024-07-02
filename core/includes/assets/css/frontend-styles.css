@@ -9,7 +9,7 @@
   --colorgreen: #00bf7a;
   --colorred: #cc6849;
   --coloryellow: #eebf47;
-  --bg-ligt: #eeeeee91;
+  --bg-ligt: #f9f9f9;
   --off-black: #515962;
   --off-black-v2: #c8c6c7;
 }
@@ -18,7 +18,9 @@
   margin: 0;
   padding: 0;
 }
-
+body.page-id-80575, body.single-properties_search {
+  background: #fff;
+}
 .bg-green {
   background: var(--colorgreen) !important;
 }
@@ -60,11 +62,9 @@
 }
 
 .font-13 {
-  font-size: 12px;
+  font-size: 13px;
   margin-block-start: 0;
   margin-block-end: -0.1rem;
-  color: #333333;
-  font-weight: 500;
 }
 
 h1,
@@ -180,10 +180,10 @@ div#filter-wrapper {
   color: var(--colorblack);
 }
 
-.Filterform input[type="text"] {
+.Filterform input[type="text"], #map-layer-content select {
   padding: 0 8px;
   border: 1px solid rgba(25, 118, 210, 0.5) !important;
-  border-radius: 3px;
+  border-radius: 4px;
   transition: all 0.3s;
   box-sizing: border-box;
   width: 100%;
@@ -342,7 +342,7 @@ ul {
   padding: 4px 12px;
   border-radius: 4px;
   color: var(--colorwhite);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .ul-content li {
@@ -352,17 +352,46 @@ ul {
 }
 
 .ul-content li p {
-  font-weight: 600;
   margin: 0;
   font-family: "Poppins", sans-serif;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 ul.ul-features li span {
-  font-weight: 400;
+  font-weight: 600;
   font-family: "Poppins", sans-serif;
 }
-
+h4.lease-space-title {
+  line-height: 1;
+    width: auto;
+    float: left;
+}
+.trimmed-control {
+  background: var(--colorgreen);
+  border-radius: 3px;
+  color: var(--bg-ligt);
+  margin-left: 5px;
+  line-height: 13px;
+  display: block;
+  width: 15px;
+  text-align: center;
+  height: 12px;
+  float: right;
+}
+div#trimmed-container {
+  margin: 5px 0;
+  float: left;
+  margin-right: 10px;
+}
+#trimmed-container ul li {
+  float: left;
+  line-height: 1;
+  margin-bottom: 6px;
+  margin-right: 6px;
+}
+#trimmed-container ul li:first-child {
+  margin-left: 5px;
+}
 .type_for_lease_listing {
   background: #184e78 !important;
   padding: 4px 12px;
@@ -391,7 +420,7 @@ ul.ul-features li span {
 }
 
 .propertylisting-content {
-  width: 29%;
+  width: 26%;
   display: flex;
   flex-direction: column;
   /* justify-content: space-between; */
@@ -413,9 +442,11 @@ ul.ul-features li span {
 }
 
 .plc-top .description-container {
-  font-size: 12px;
+  font-size: 14px;
 }
-
+.plc-top .css-ajk2hm > .ul-content.ul-features {
+  clear: both;
+}
 .propertylisting-content h2 {
   font-size: 14px;
   font-weight: 600;
@@ -426,14 +457,15 @@ ul.ul-features li span {
 
 .propertylisting-content h4 {
   font-family: "Poppins", sans-serif;
-  font-size: 10px !important;
+  font-size: 13px !important;
   font-weight: 500 !important;
   margin: 0;
+  line-height: 1.2;
 }
 
 p.price {
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .mobile-search-icon {
@@ -459,7 +491,6 @@ body.single-properties {
   height: 100vh;
   z-index: 9;
   padding: 5px;
-  border-radius: 3px;
 }
 
 .right-content {
@@ -550,7 +581,6 @@ body.page-template.pojo-a11y-focusable .wrapper-site #wrapper-content #filter-wr
 
 .tristate-column-select select option {
   background: var(--colorwhite);
-  color: var(--colorblack);
 }
 
 div#search_count_area input {
@@ -566,7 +596,7 @@ div#search_count_area input {
 
 .slider-box {
   width: 100%;
-  padding: 0 10px;
+  padding: 0; 
 }
 
 .slider-box label {
@@ -586,7 +616,7 @@ div#search_count_area input {
 .desc-less {
   padding: 3px 5px;
   line-height: 1;
-  font-size: 10px;
+  font-size: 12px;
   text-transform: uppercase;
   cursor: pointer;
   background-color: #fff;
@@ -599,7 +629,7 @@ div#search_count_area input {
 .desc-more {
   padding: 3px 5px;
   line-height: 1;
-  font-size: 10px;
+  font-size: 12px;
   text-transform: uppercase;
   cursor: pointer;
   background-color: #fff;
@@ -613,7 +643,7 @@ div#search_count_area input {
   background: var(--colorblue) !important;
   padding: 3px 5px;
   line-height: 1;
-  font-size: 10px;
+  font-size: 12px;
   text-transform: uppercase;
   cursor: pointer;
   border-radius: 3px;
@@ -624,7 +654,7 @@ div#search_count_area input {
   background: var(--colorblue) !important;
   padding: 3px 5px;
   line-height: 1;
-  font-size: 10px;
+  font-size: 12px;
   text-transform: uppercase;
   cursor: pointer;
   color: #fff;
@@ -652,7 +682,8 @@ div#sale_lease {
 
 div#for_sale,
 div#for_lease_monthly_rent {
-  margin: 0 0 25px 0;
+  margin: 0 0 10px 0;
+  
 }
 
 div#for_lease {
@@ -1269,6 +1300,7 @@ ul.ul-disc {
 .price-range-btm .MuiButton-colorPrimary,
 .MuiButton-colorPrimary,
 #submit_map_layer,
+#submit_new_map_layer,
 a.button {
   display: inline-flex;
   -webkit-box-align: center;
@@ -1301,25 +1333,18 @@ a.button {
     color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   border: 1px solid rgba(25, 118, 210, 0.5);
   color: rgb(25, 118, 210);
-  width: 100%;
+  width: auto;
 }
-
+.tcr-layer-footer {
+  display: flex;
+  justify-content: space-between;
+}
 .plc-bottom .MuiButton-colorPrimary:hover {
   color: #184e78 !important;
 }
 
 .plc-bottom p.price {
-  margin-bottom: 5px;
-}
-
-.plc-bottom {
-  background: #eeeeee91;
-  padding: 10px;
-  border-radius: 3px;
-}
-
-.plc-bottom a {
-  align-self: flex-end;
+  margin-bottom: 12px;
 }
 
 button#save_map_layer {
@@ -1366,7 +1391,7 @@ a.button:hover {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 10000;
-  display: none;
+  /* display: none; */
   pointer-events: auto;
 }
 
@@ -1504,15 +1529,28 @@ li.tab_last {
 }
 
 /* Results Counts */
+#price-range, #price-range4, #price-range2 {
+  display: none !important;
+}
+
 .price-range-btm .MuiBox-root {
   display: contents;
 }
-
+.slider-box .range-min, .slider-box .range-max {
+  width: 40%;
+}
+.range-min input[type=text], .range-max input[type=text] {
+  width: 100%;
+}
+.range-min label, .range-max label {
+  font-size: 12px;
+  font-weight: normal;
+}
 .price-range-btm {
   display: flex;
   justify-content: space-between;
   gap: 8px !important;
-  margin-top: 20px;
+  margin-top: 10px;
   flex-direction: row;
   flex-wrap: wrap;
 }
@@ -1646,7 +1684,7 @@ div.listings .listing--price {}
   display: none !important;
 }
 
-.firstHeading {
+#bodyContent .firstHeading {
   font-size: 16px !important;
   margin-bottom: 5px;
   line-height: 1.2;
@@ -1661,7 +1699,7 @@ div.listings .listing--price {}
   font-weight: bold;
 }
 
-.secondHeading {
+#bodyContent  .secondHeading {
   font-size: 18px;
   margin-bottom: 0;
   line-height: 1.2;
@@ -1677,7 +1715,14 @@ div.listings .listing--price {}
   background-color: rgba(204, 104, 73, 0.7) !important;
 }
 
-.thirdHeading {
+
+#bodyContent {
+  font-size: 14px;
+  line-height: 1.2;
+  display: flex;
+  gap: 5px;
+}
+#bodyContent .thirdHeading {
   margin-bottom: 10px;
   line-height: 1.2;
   position: absolute;
@@ -1686,13 +1731,6 @@ div.listings .listing--price {}
   color: #fff;
   font-size: 14px;
   padding: 5px 8px;
-}
-
-#bodyContent {
-  font-size: 14px;
-  line-height: 1.2;
-  display: flex;
-  gap: 5px;
 }
 
 #bodyContent img {
@@ -1711,6 +1749,7 @@ div.listings .listing--price {}
   font-family: "Poppins", sans-serif;
   color: #848484;
   margin: 0;
+  line-height: 1.5;
 }
 
 #bodyContent .listing-more {
@@ -2075,14 +2114,24 @@ a.button {
 .ts-state-page.filter-wrapper .slider-box .range-min-max {
   margin-bottom: 10px;
 }
-
+.ts-state-page.filter-wrapper #state-more-filter {
+  display: none;
+}
 #more-filter-content.ts-adv-show {
   display: flex !important;
   gap: 50px;
   padding-right: 15%;
-  box-shadow: 0px 3px 4px 0 #cdcdcd;
+  /* box-shadow: 0px 3px 4px 0 #cdcdcd; */
 }
-
+.ts-state-page.filter-wrapper .filter-search {
+  justify-content: flex-end;
+}
+.ts-state-page .right-content {
+  margin-top: 105px;
+}
+.ts-state-page #for_lease {
+  margin-top: 14px;
+}
 .close-icon {
   position: absolute;
   right: 14%;
@@ -2352,4 +2401,10 @@ a.button {
 body.single-properties_search #container a.button:hover {
   /* background: #c36 !important; */
   color: #fff;
+}
+
+
+/* Devs Code */
+#propertylisting-content a {
+  text-decoration: none;
 }

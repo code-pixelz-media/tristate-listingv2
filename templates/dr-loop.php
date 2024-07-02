@@ -22,7 +22,7 @@ $_price_sf      = (int) preg_replace('/[^0-9]/', '', $_price_sf);
 
 $min_size       = ''; //get_post_meta($ID, '_gsheet_min_size_fm',true);
 $max_size       = '';//get_post_meta($ID, '_gsheet__max_size_fm',true);
-
+$building_size_sf = get_post_meta($id, '_building_size_sf', true);
 //max and min values for for lease properties sf
 $max_lease_sf_value       = get_post_meta($ID, '_gsheet_price_sf',true);
 $max_lease_sf = (float) preg_replace('/[^0-9.]/', '', $max_lease_sf_value);
@@ -325,10 +325,34 @@ $date_upd = get_post_meta($id,'_buildout_updated_at',true);
 global $wpdb;
 $space_tbl= $wpdb->prefix . 'lease_spaces';
 $l_meta = get_post_meta($ID,'lease_space_table_id',true);
+
+$maxes_lsp = get_max_lsp($ID);
+$data_attr_pricesf = '';
+$data_attr_rent = '';
+$data_attr_sizesf ='';
+$data_attr_sale_price = '';
+$data_attr_sale_size = '';
+
+var_dump($formatted_type);
+if($formatted_type == 'forlease'){
+    $data_attr_pricesf = ($maxes_lsp['dollars_per_sf_per_month']) ?  'data-maxpricesf="'.$maxes_lsp['dollars_per_sf_per_month'].'"' : '' ;
+    $data_attr_sizesf = ($maxes_lsp['size']) ?  'data-maxsizesf="'.$maxes_lsp['size'].'"' : '' ;
+    $data_attr_rent = ($maxes_lsp['dollars_per_month']) ? 'data-maxrent="'.$maxes_lsp['dollars_per_month'].'"' : '' ;
+    
+}else{
+    
+    $data_attr_sale_price = $bo_price ? 'data-saleprice="'.$bo_price.'"' : '' ; 
+    $data_attr_sale_size = $building_size_sf ? 'data-salesize="'.$building_size_sf.'"' : '' ; 
+    
+}
+
+var_dump($data_attr_pricesf,$data_attr_sizesf);
+
 ?>
 
 <div 
     class="propertylisting-content" 
+    data-permalink = "<?php echo esc_url(get_the_permalink()); ?>"
     data-pid="<?php echo $ID?>" 
     data-lat="<?php echo $lat; ?>"  
     data-lng="<?php echo $long; ?>"  
@@ -342,21 +366,26 @@ $l_meta = get_post_meta($ID,'lease_space_table_id',true);
     data-datecreated="<?php echo strtotime($date_created); ?>"
     data-title = "<?php echo esc_html(get_the_title()); ?>"
     data-monthly-rent = "<?php echo !empty($_price) ? $_price :'0'; ?>"
+    <?=$data_attr_pricesf;?>
+    <?=$data_attr_rent ;?>
+    <?=$data_attr_sizesf;?>
+    <?=$data_attr_sale_price;?>
+    <?=$data_attr_sale_size;?>
 >
 
 <?php
 if($args['state']) { ?>
-<a href="<?php the_permalink(); ?>">
+<a href="<?php echo get_the_permalink(); ?>">
 <?php } ?>
 <div class="lisiting-feature-img" style="display:none;">
-<img src="<?php echo $image; ?>" alt=""> 
+<img src="<?php echo esc_url($image); ?>" alt=""> 
 <span class="listing-type-state <?php echo $type=='FOR LEASE' ? 'state-lease' : 'state-sale' ?>"><?php echo $type;?></span>
 </div>
 <input type="hidden" name="get_properties_id" id="get_properties_id"  value="<?php echo $ID; ?>">
     <div class="plc-top">
     <?php if($args['state']) { ?>
     <div id="state-layout-head">
-        <h2 class="lisiitng__title" id="state_property_title" style="display:none"><a href="<?php the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> <?php echo esc_html(get_the_title()); ?></a>  </h2> 
+        <h2 class="lisiitng__title" id="state_property_title" style="display:none"><a href="<?php echo get_the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> <?php echo esc_html(get_the_title()); ?></a>  </h2> 
         <h2 class="lisiitng__state_title" >
             <?php echo esc_html(get_the_title()); ?>
         </h2>
@@ -475,7 +504,6 @@ if($args['state']) { ?>
                                 $postfix = '/per month';
                                 $attr = 'data-unit_per_sf';
                                 $lsp_monthly_rent[] = $price;
-                                
                             }else{
                                 $postfix = '';
                                 $attr = 'data-nothing';
@@ -531,7 +559,7 @@ if($args['state']) { ?>
             if(!empty($lsp_price_per_sf) && count(array_unique($lsp_price_per_sf)) === 1  && $formatted_type='forlease'){
                echo 'Price per SF: $'. number_format($lsp_price_per_sf[0]);
             }elseif($formatted_type='forsale' && !empty($bo_price)){
-                echo 'Price : $'. number_format($bo_price);
+                echo 'Sales Price : $'. number_format($bo_price);
             }else{
                 _e('Price: Call For Price','tristatecr');
             }
@@ -540,7 +568,7 @@ if($args['state']) { ?>
             ?>
         </p>
     <!-- p for price ends  -->
-        <a href="<?php the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> More Info </a>
+        <a href="<?php echo get_the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> More Info </a>
     </div>
     <?php if($args['state']) { ?>
 </a>

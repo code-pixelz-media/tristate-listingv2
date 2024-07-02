@@ -143,18 +143,58 @@ function tristate_get_marker_data($ID)
   return $m_d;
 }
 
-
+// get max price 
 function get_pricesf_minmax($type = "min", $formatted = true)
 {
   global $wpdb;
+  $space_tbl= $wpdb->prefix . 'lease_spaces';
 
+  // $max_rent = $wpdb->get_var("
+  //     SELECT MAX(CAST(REPLACE(REPLACE(pm.meta_value, '$', ''), ',', '') AS UNSIGNED)) 
+  //     FROM {$wpdb->postmeta} pm
+  //     INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+  //     WHERE pm.meta_key = '_gsheet_price_sf' 
+  //     AND p.post_type = 'properties'
+  // ");
+  
+  $max_sf = $wpdb->get_var("
+      SELECT MAX(CAST(l.lease_rate AS UNSIGNED)) AS max_lease_rate
+        FROM {$space_tbl} l
+        JOIN {$wpdb->postmeta} pm ON l.property_id = pm.meta_value
+        JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+        WHERE pm.meta_key = '_buildout_id'
+        AND l.lease_rate_units = 'dollars_per_sf_per_month'
+        AND p.post_type = 'properties';
+    ");
+
+
+  $formatted_max_val = number_format($max_sf);
+  $formatted_min_val = '$0';
+
+  if ($formatted) {
+
+    $retval = $type == 'min' ? $formatted_min_val : '$' . $formatted_max_val;
+  } else {
+
+    $retval = $type == 'min' ? (int) 0 : (int) $max_sf;
+  }
+
+  return $retval;
+}
+
+
+function get_mnth_rent_min_max($type = "min", $formatted = true){
+  global $wpdb;
+  $space_tbl= $wpdb->prefix . 'lease_spaces';
   $max_rent = $wpdb->get_var("
-      SELECT MAX(CAST(REPLACE(REPLACE(pm.meta_value, '$', ''), ',', '') AS UNSIGNED)) 
-      FROM {$wpdb->postmeta} pm
-      INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
-      WHERE pm.meta_key = '_gsheet_price_sf' 
-      AND p.post_type = 'properties'
-  ");
+  SELECT MAX(CAST(l.lease_rate AS UNSIGNED)) AS max_lease_rate
+  FROM {$space_tbl} l
+  JOIN {$wpdb->postmeta} pm ON l.property_id = pm.meta_value
+  JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+  WHERE pm.meta_key = '_buildout_id'
+  AND l.lease_rate_units = 'dollars_per_month'
+  AND p.post_type = 'properties'
+");
 
 
   $formatted_max_val = number_format($max_rent);
@@ -175,13 +215,23 @@ function get_size_minmax($type = "min", $formatted = true)
 {
   global $wpdb;
 
-  $max_size = $wpdb->get_var("
-  SELECT MAX(CAST(pm.meta_value AS UNSIGNED)) 
-  FROM $wpdb->postmeta pm
-  INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
-  WHERE pm.meta_key = '_gsheet__max_size_fm'
-  AND p.post_type = 'properties'
-");
+//   $max_size = $wpdb->get_var("
+//   SELECT MAX(CAST(pm.meta_value AS UNSIGNED)) 
+//   FROM $wpdb->postmeta pm
+//   INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
+//   WHERE pm.meta_key = '_gsheet__max_size_fm'
+//   AND p.post_type = 'properties'
+// ");
+$space_tbl= $wpdb->prefix . 'lease_spaces';
+$max_size = $wpdb->get_var("
+            SELECT MAX(CAST(l.size_sf AS UNSIGNED)) AS max_size
+            FROM {$space_tbl} l
+            JOIN {$wpdb->postmeta} pm ON l.property_id = pm.meta_value
+            JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+            WHERE pm.meta_key = '_buildout_id'
+            AND l.space_size_units = 'sf'
+            AND p.post_type = 'properties'
+        ");
 
 
   $formatted_max_val = number_format($max_size);
@@ -226,6 +276,7 @@ function get_price_minmax($type = "min", $formatted = true)
 
   return $retval;
 }
+
 
 
 function __total()
@@ -285,6 +336,8 @@ listingTitles.forEach(function(title) {
       document.getElementById('for_sale').style.display = 'none';
       document.getElementById('for_lease').style.display = 'none';
       document.getElementById('sale_lease').style.display = 'none';
+      document.getElementById('for_lease_monthly_rent').style.display = 'none';
+    //  document.getElementById('for_lease_monthly_rent').style.display = 'none';
       //sale_lease
 
       // Function to update visibility based on checkbox states
@@ -295,20 +348,25 @@ listingTitles.forEach(function(title) {
         if (forSaleCheckbox.checked) {
           document.getElementById('sale_lease').style.display = 'block';
           document.getElementById('for_sale').style.display = 'block';
+          document.getElementById('for_lease_monthly_rent').style.display = 'block';
         } else {
           document.getElementById('for_sale').style.display = 'none';
+         
+          
         }
 
         if (forLeaseCheckbox.checked) {
           document.getElementById('sale_lease').style.display = 'block';
           document.getElementById('for_lease').style.display = 'block';
+          document.getElementById('for_lease_monthly_rent').style.display = 'block';
         } else {
           document.getElementById('for_lease').style.display = 'none';
+          document.getElementById('for_lease_monthly_rent').style.display = 'none';
         }
-
+/* 
         if (!forSaleCheckbox.checked && !forLeaseCheckbox.checked) {
           document.getElementById('sale_lease').style.display = 'none';
-        }
+        } */
       }
 
       // Attach the event listeners to checkboxes
@@ -552,6 +610,23 @@ listingTitles.forEach(function(title) {
                   <input type="hidden" name="rent-range" data-clear="0" id="rent-range-selected">
                 </div>
               </div>
+              
+              <!-- For monthly Rent -->
+              <div>
+                <div class="slider-box" id="for_lease_monthly_rent">
+                  <label for="priceRange">Monthly Rent:</label>
+                  <input style="display:none" type="text" id="priceRange4" readonly>
+                  <div class="range-min-max">
+                    <input type="text" class="range-inputs" id="month-rent-range-min" data-default="<?php echo get_mnth_rent_min_max(); ?>" name="month_range_min_rent" value="<?php echo get_mnth_rent_min_max(); ?>">
+                    <input type="text" class="range-inputs" id="month-rent-range-max" data-default="<?php echo get_mnth_rent_min_max('max'); ?>" name="month_range_max_rent" value="<?php echo get_mnth_rent_min_max('max'); ?>">
+                  </div>
+                  <div id="price-range4" class="slider" data-min="<?php echo get_mnth_rent_min_max('min', false) ?>" data-max="<?php echo get_mnth_rent_min_max('max', false); ?>"></div>
+                  <!-- <input type="hidden" name="rent-range" data-clear="0" id="rent-range-selected"> -->
+                </div>
+              </div>
+              <!-- Monthly rent ends -->
+
+              
             </div>
 
             <div>
@@ -924,7 +999,7 @@ listingTitles.forEach(function(title) {
         // Function to reset range filters
         function resetRangeFilters() {
          
-          var ranges = ['#price-range', '#price-range3', '#price-range2'];
+          var ranges = ['#price-range', '#price-range3', '#price-range2','#price-range4'];
           ranges.forEach(function(range) {
               var $range = $(range);
               $range.slider("option", "max", $range.data('max'));
@@ -942,15 +1017,16 @@ listingTitles.forEach(function(title) {
         $("#select2_agents, #select2_uses, #select2_neighborhoods, #select2_zipcodes, #select2_cities, #select2_states, #select2_vented").on('select2:opening', function(e) {
           filterListings();
         });
-
+        var maxVal = $("#price-range").data('max');
+        var stepVal = maxVal / 20;
 
       // price range
       $("#price-range").slider({
         range: true,
         min: $("#price-range").data('min'), //get min val
-        max: $("#price-range").data('max'), //get max val  
+        max: $("#price-range").data('max'), //get max val
         values: [$("#price-range").data('min'), $("#price-range").data('max')], //postion slider val
-        step: 1,
+        step: stepVal,
         slide: function(event, ui) {
           $("#priceRange").val("$" + ui.values[0] + " - $" + ui.values[1]);
           $("#price-range-min").val('$' + ui.values[0].toLocaleString());
@@ -965,12 +1041,14 @@ listingTitles.forEach(function(title) {
 
       });
 
+      var maxRange2 = $("#price-range2").data('max');
+        var stepRange2Val = maxRange2 / 20;
       $("#price-range2").slider({
         range: true,
         min: $("#price-range2").data('min'), //get min val
         max: $("#price-range2").data('max'), //get max val  
         values: [$("#price-range2").data('min'), $("#price-range2").data('max')], //postion slider val
-        step: 1,
+        step: stepRange2Val,
         slide: function(event, ui) {
 
           $("#priceRange2").val(
@@ -987,13 +1065,14 @@ listingTitles.forEach(function(title) {
         },
       });
 
-
+      var maxRange3 = $("#price-range3").data('max');
+        var stepRange3Val = maxRange3 / 20;
       $("#price-range3").slider({
         range: true,
         min: $("#price-range3").data('min'), //get min val
         max: $("#price-range3").data('max'), //get max val  
         values: [$("#price-range3").data('min'), $("#price-range3").data('max')],
-        step: 1,
+        step: stepRange3Val,
         slide: function(event, ui) {
           $("#priceRange3").val("$" + ui.values[0].toLocaleString() + " - $" + ui.values[1].toLocaleString());
           $("#rent-range-min").val("$" + ui.values[0].toLocaleString());
@@ -1004,7 +1083,26 @@ listingTitles.forEach(function(title) {
 
         },
       });
-
+      //price-range4
+      var maxRange4 = $("#price-range4").data('max');
+        var stepRange4Val = maxRange4 / 20;
+      $("#price-range4").slider({
+        range: true,
+        min: $("#price-range4").data('min'), //get min val
+        max: $("#price-range4").data('max'), //get max val  
+        values: [$("#price-range4").data('min'), $("#price-range4").data('max')],
+        step: stepRange4Val,
+        slide: function(event, ui) {
+          $("#priceRange4").val("$" + ui.values[0].toLocaleString() + " - $" + ui.values[1].toLocaleString());
+          $("#month-rent-range-min").val("$" + ui.values[0].toLocaleString());
+          $("#month-rent-range-max").val("$" + ui.values[1].toLocaleString());
+          
+          //month-rent-range-min ,month-rent-range-max
+        },
+        change: function(event, ui) {
+          // $("#rent-range-selected").val(ui.values[0] + "-" + ui.values[1]);
+        },
+      });
       // Extract unique values from the HTML for select2 options
       var agents = new Set();
       var uses = new Set();
@@ -1025,7 +1123,7 @@ listingTitles.forEach(function(title) {
       });
 
       // Function to create select2 options
-      function createSelect2Options(data) {
+ /*      function createSelect2Options(data) {
         var options = Array.from(data).sort().map(function(value) {
           return {
             id: value,
@@ -1033,18 +1131,43 @@ listingTitles.forEach(function(title) {
           };
         });
         return options;
-      }
+      } */
 
+/* display agents from comma seprated to single option start */
+function createSelect2Options(data) {
+    var options = [];
 
-  /*     var selectOptions = {
-        agents: createSelect2Options(agents),
-        uses: createSelect2Options(uses),
-        neighborhoods: createSelect2Options(neighborhoods),
-        zipcodes: createSelect2Options(zipcodes),
-        cities: createSelect2Options(cities),
-        states: createSelect2Options(states),
-        vented: createSelect2Options(vented)
-      }; */
+    // Iterate through each element in the data array
+    Array.from(data).forEach(function(value) {
+        // Split the value by comma and trim each part
+        var parts = value.split(' ,').map(function(part) { return part.trim(); });
+
+        // Iterate through each part to create options
+        parts.forEach(function(part) {
+            // Check if the option already exists
+            var exists = options.some(function(opt) {
+                return opt.id === part;
+            });
+
+            // Add the option if it doesn't exist
+            if (!exists) {
+                options.push({
+                    id: part,
+                    text: part
+                });
+            }
+        });
+    });
+
+    // Sort options by id (assuming id is the value to sort by)
+    options.sort(function(a, b) {
+        return a.id.localeCompare(b.id);
+    });
+
+    return options;
+}
+/* display agents from comma seprated to single option end */
+
 
       var selectOptions;
 var tsStatePageDiv = document.querySelector('.ts-state-page');
@@ -1127,6 +1250,7 @@ if (tsStatePageDiv) {
 
      var priceRange = $("#price-range").slider("values").map(Number);
      var priceRangeSf = $("#price-range3").slider("values").map(Number);
+     var monthlyRangeSf = $("#price-range4").slider("values").map(Number);
      var sizeRangeSf = $("#price-range2").slider("values").map(Number);
      var displayedListings = 0;
      var priceArray = [0],
@@ -1138,14 +1262,17 @@ if (tsStatePageDiv) {
      var displayedListings = 0;
 
      $(".propertylisting-content").each(function() {
-       var $listing = $(this);
+       var $listing = $(this);  
        var showListing = true,
          price = parseFloat($(this).data('price')),
          priceSf = parseFloat($(this).data('pricesf')),
          sizeMax = parseFloat($(this).data('maxsize')),
+         rent = parseFloat($(this).data('monthly-rent')),
          isBetweenMaxMinPrice = (price >= priceRange[0]) && (price <= priceRange[1]),
-         isBetweenMaxMinPriceSf = (priceSf >= priceRangeSf[0]) && (priceSf <= priceRangeSf[1]),
-         isBetweenMaxMinSize = (sizeMax >= sizeRangeSf[0]) && (sizeMax <= sizeRangeSf[1]);
+         isBetweenMaxMinPriceSf = (priceSf === 0) || ((priceSf >= priceRangeSf[0]) && (priceSf <= priceRangeSf[1])),
+         isBetweenMaxMinSize = (sizeMax >= sizeRangeSf[0]) && (sizeMax <= sizeRangeSf[1]),
+         isBetweenMaxMinMonthly = (rent >= monthlyRangeSf[0]) && (rent <= monthlyRangeSf[1]);
+         
 
 /*        if (selectedAgents.length > 0 && !selectedAgents.includes($listing.find("#tri_listing_agent").text().trim())) {
          showListing = false;
@@ -1182,6 +1309,8 @@ if (tsStatePageDiv) {
         }).get();
 }
 
+
+
 // Fetch all selected options for each criterion
 const selectedAgents = getSelectedOptions('#select2-select2_agents-container');
 const selectedUses = getSelectedOptions('#select2-select2_uses-container');
@@ -1202,9 +1331,34 @@ const listingVented = $listing.find("#tri_vented").text().trim();
 const listingText = $listing.text().toLowerCase();
 
 // Check if each respective field is in the corresponding selected array
-if (selectedAgents.length > 0 && !selectedAgents.includes(listingAgent)) {
+/* if (selectedAgents.length > 0 && !selectedAgents.includes(listingAgent)) {
+    showListing = false;
+} */
+
+/* multiple agents  select working starrt */
+function isAnyPartIncluded(selectedAgents, listingAgent) {
+    // Split listingAgent by commas and trim each part
+    const listingParts = listingAgent.split(' ,').map(part => part.trim());
+
+    // Check if any part of listingAgent is included in selectedAgents
+    return listingParts.some(part => selectedAgents.includes(part));
+}
+
+// Helper function to get selected options from Select2
+function getSelectedOptions(containerId) {
+    const selectedOptions = [];
+    $(containerId).find('.select2-selection__choice').each(function() {
+        selectedOptions.push($(this).attr('title'));
+    });
+    return selectedOptions;
+}
+
+
+if (selectedAgents.length > 0 && !isAnyPartIncluded(selectedAgents, listingAgent)) {
     showListing = false;
 }
+
+/* multiple agents select working end */
 
 if (selectedUses.length > 0 && !selectedUses.includes(listingUse)) {
     showListing = false;
@@ -1235,6 +1389,7 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
          showListing = false;
        } */
 
+       
        if (keyword) {
     const keywords = keyword.toLowerCase().split(' ');
     for (const word of keywords) {
@@ -1247,6 +1402,9 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
 
        if (!isBetweenMaxMinPrice) {
          showListing = false;
+       }
+       if(!isBetweenMaxMinMonthly) {
+        showListing = false;
        }
        if (!isBetweenMaxMinPriceSf) {
          showListing = false;
@@ -1360,7 +1518,7 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
 
    }
 
-      function updateSelect2Options(changedSelect) {
+/*       function updateSelect2Options(changedSelect) {
         var selectedAgents = $('#select2_agents').val() || [];
         var selectedUses = $('#select2_uses').val() || [];
         var selectedNeighborhoods = $('#select2_neighborhoods').val() || [];
@@ -1403,7 +1561,80 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
             select.trigger('change.select2');
           }
         });
-      }
+      } */
+
+
+     /* working on comma seprated agents enable/disable start */
+ 
+
+     function updateSelect2Options(changedSelect) {
+    var selectedAgents = $('#select2_agents').val() || [];
+    var selectedUses = $('#select2_uses').val() || [];
+    var selectedNeighborhoods = $('#select2_neighborhoods').val() || [];
+    var selectedZipcodes = $('#select2_zipcodes').val() || [];
+    var selectedCities = $('#select2_cities').val() || [];
+    var selectedStates = $('#select2_states').val() || [];
+    var selectedVented = $('#select2_vented').val() || [];
+
+    var filterValues = {
+        agents: new Set(),
+        uses: new Set(),
+        neighborhoods: new Set(),
+        zipcodes: new Set(),
+        cities: new Set(),
+        states: new Set(),
+        vented: new Set()
+    };
+
+    // Iterate over visible propertylisting-content elements to populate filterValues
+    $(".propertylisting-content:visible").each(function() {
+        // Handle comma-separated agents in #tri_listing_agent
+        var agentsText = $(this).find("#tri_listing_agent").text().trim();
+        var agentsArray = agentsText.split(',').map(function(agent) { return agent.trim(); });
+        agentsArray.forEach(function(agent) {
+            filterValues.agents.add(agent);
+        });
+
+        // Add other filter values to respective sets
+        filterValues.uses.add($(this).find(".tri_use").text().trim());
+        filterValues.neighborhoods.add($(this).find("#tri_neighborhood").text().trim());
+        filterValues.zipcodes.add($(this).find("#tri_zip_code").text().trim());
+        filterValues.cities.add($(this).find("#tri_city").text().trim());
+        filterValues.states.add($(this).find("#tri_state").text().trim());
+        filterValues.vented.add($(this).find("#tri_vented").text().trim());
+    });
+
+    // Iterate through each filter value set
+    $.each(filterValues, function(key, values) {
+        if (key !== changedSelect) {
+            var select = $('#select2_' + key);
+            var options = select.find('option');
+
+            options.each(function() {
+                var optionValue = $(this).val();
+                var shouldDisable = true;
+
+                // Check if optionValue is in the values set
+                values.forEach(function(value) {
+                    // Handle comma-separated values in filterValues.agents
+                    var parts = value.split(',').map(function(part) { return part.trim(); });
+                    if (parts.includes(optionValue)) {
+                        shouldDisable = false;
+                    }
+                });
+
+                // Disable or enable the option based on shouldDisable
+                $(this).prop('disabled', shouldDisable);
+            });
+
+            // Trigger change event for Select2
+            select.trigger('change.select2');
+        }
+    });
+}
+
+
+      /* working on comma seprated agents enable/disable  end */
 
       function findMax(arr, sliderID) {
 
@@ -1456,7 +1687,7 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
       $("#search-by-text-new").attr('data-slided', $(this).prop('id'));
     });
       
-      $("#price-range,#price-range3,#price-range2").on("slidestop", function(event, ui) {
+      $("#price-range,#price-range3,#price-range2,#price-range4").on("slidestop", function(event, ui) {
        
           filterListings(null,$(this).prop('id'));
        
@@ -1514,7 +1745,8 @@ if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
         return {
             priceRange: $('#price-range').slider("values"),
             priceRange2: $('#price-range2').slider("values"),
-            priceRange3: $('#price-range3').slider("values")
+            priceRange3: $('#price-range3').slider("values"),
+            priceRange4: $('#price-range4').slider("values")
         };
     }
 
@@ -1597,7 +1829,7 @@ var isSearchByTextNewFilled = searchByTextNew && searchByTextNew.value.trim().le
         var rangeHiddenFields = $("#price-range-selected, #rent-range-selected, #size-range-selected");
         rangeHiddenFields.attr("data-clear", "1");
 
-        var ranges = ['#price-range', '#price-range3', '#price-range2'];
+        var ranges = ['#price-range', '#price-range3', '#price-range2', '#price-range4'];
         ranges.forEach(function(range) {
             var $range = $(range);
             $range.slider("option", "max", $range.data('max'));
@@ -1704,3 +1936,365 @@ var isSearchByTextNewFilled = searchByTextNew && searchByTextNew.value.trim().le
 
   return ob_get_clean();
 }
+
+
+function get_usesname_by_propertyID($propertyTypeID){
+  
+ 
+  switch ($propertyTypeID) {
+    case "1":
+      $property_uses_name = 'Office';
+      break;
+    case "2":
+     $property_uses_name = 'Retail'; 
+      break;
+    case "3":
+     $property_uses_name = 'Industrial'; 
+      break;
+    case "5":
+     $property_uses_name = 'Land'; 
+      break;
+    case "6":
+     $property_uses_name = 'Multifamily'; 
+      break;
+    case "7":
+     $property_uses_name = 'Special Purpose'; 
+      break;
+    case "8":
+     $property_uses_name = 'Hospitality'; 
+      break;
+    default:
+    $property_uses_name = false;
+}
+
+return $property_uses_name;
+  
+}
+
+
+function get_usename_subtype($property_subtype_id){
+
+  switch ($property_subtype_id) {
+    case "201":
+      $property_uses_subtype = 'Street Retail';
+      break;
+    case "202":
+     $property_uses_subtype = 'Strip Center'; 
+      break;
+    case "203":
+     $property_uses_subtype = 'Free Standing Building'; 
+      break;
+    case "204":
+     $property_uses_subtype = 'Regional Mall'; 
+      break;
+    case "205":
+     $property_uses_subtype = 'Retail Pad'; 
+      break;
+    case "206":
+     $property_uses_subtype = 'Vehicle Related'; 
+      break;
+    case "207":
+     $property_uses_subtype = 'Outlet Center'; 
+      break;
+    case "208":
+      $property_uses_subtype = 'Power Center'; 
+    break;
+    case "209":
+      $property_uses_subtype = 'Neighborhood Center'; 
+    break;
+    case "210":
+      $property_uses_subtype = 'Community Center'; 
+    break;
+    case "211":
+      $property_uses_subtype = 'Specialty Center'; 
+    break;
+    case "212":
+      $property_uses_subtype = 'Theme/Festival Center'; 
+    break;
+    case "213":
+      $property_uses_subtype = 'Restaurant'; 
+    break;
+    case "214":
+      $property_uses_subtype = 'Post Office'; 
+    break;
+    case "216":
+      $property_uses_subtype = 'Lifestyle Center'; 
+    break;
+    default:
+    $property_uses_subtype = false;
+}
+
+return $property_uses_subtype;
+
+}
+
+
+
+function tristatecr_create_lease_space_table()
+{
+
+    global $wpdb;
+
+    $charset_collate = $wpdb->get_charset_collate();
+
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+    /* create table to store custom order */
+    $space_tbl_name = $wpdb->prefix . 'lease_spaces';
+    if ($wpdb->get_var("SHOW TABLES LIKE '{$space_tbl_name}'") != $space_tbl_name) :
+    
+      $sql = "CREATE TABLE $space_tbl_name (
+        id INT(20) NOT NULL AUTO_INCREMENT,
+        lease_id varchar(255)  NULL,
+        property_id varchar(255)  NULL,
+        lease_title varchar(255) NULL,
+        lease_rate_units varchar(255)  NULL,
+        lease_rate varchar(255)  NULL,
+        space_size_units varchar(255)  NULL,
+        size_sf varchar(255)  NULL,
+        floor varchar(255) NULL,
+        deal_status varchar(32) NULL,
+        space_type_id varchar(32) NULL,
+        lease_address  varchar(32) NULL,
+        suite varchar(32) NULL,
+        leasechecksum varchar(32)  NULL,
+        lease_desc varchar(255) NULL,
+        lease_type_id varchar(32) NULL,
+        PRIMARY KEY (id)) $charset_collate;";
+        
+        dbDelta($sql);
+    endif;
+}
+
+
+add_action('plugin_loaded', 'tristatecr_create_lease_space_table');
+
+
+
+
+
+define('MY_LOGS', TRISTATECRLISTING_PLUGIN_DIR . 'my.log'); // Set this to the appropriate log file path
+
+
+
+
+
+function my_log($message, $data = null) {
+    if (!is_null($data)) {
+        $message .= "\n" . print_r($data, true);
+    }
+
+    if (defined('WP_CLI')) {
+        WP_CLI::log($message);
+    } else {
+        error_log($message . "\n", 3, MY_LOGS);
+    }
+}
+
+// Add a flag to check if the sync process has already run
+// add_action('wp_footer', 'opt2ab');
+function opt2ab() {
+    if (defined('TRI_STATE_SYNC_RUNNING') && TRI_STATE_SYNC_RUNNING) {
+        return; // Prevents running the sync process multiple times
+    }
+    define('TRI_STATE_SYNC_RUNNING', true);
+
+    $settings = get_option('tristate_cr_settings');
+    $get_buildout_api_key = $settings['buildout_api_key'];
+    $offset = 0;
+    $limit = 100;  // Number of records to fetch in each batch
+    $all_lease_spaces = [];
+    $new_checksum = '';
+    $max_retries = 5;  // Number of retries for API requests
+    $timeout = 20;  // Timeout in seconds for each request
+
+    my_log("Starting data synchronization process for lease spaces...\n");
+
+    // Record the start time for the whole process
+    $total_start_time = microtime(true);
+
+    // Fetch data in chunks using offset and limit
+    while (true) {
+        $attempt = 0;
+        $success = false;
+
+        // Record the start time for each fetch
+        $fetch_start_time = microtime(true);
+
+        while ($attempt < $max_retries && !$success) {
+            $response = wp_remote_get('https://buildout.com/api/v1/' . $get_buildout_api_key . '/lease_spaces.json?limit=' . $limit . '&offset=' . $offset, array(
+                'headers' => array(
+                    'Accept' => 'application/json',
+                ),
+                'timeout' => $timeout  // Increase timeout
+            ));
+
+            if (is_wp_error($response)) {
+                my_log('Buildout API request failed on attempt ' . ($attempt + 1), $response->get_error_message());
+                $attempt++;
+                if ($attempt >= $max_retries) {
+                    my_log("Max retries reached. Exiting the synchronization process.\n");
+                    return;  // Exit the function if the request failed after maximum retries.
+                }
+            } else {
+                $success = true;
+            }
+        }
+
+        if (200 !== wp_remote_retrieve_response_code($response)) {
+            my_log('Unexpected response code: ' . wp_remote_retrieve_response_code($response) . "\n");
+            break;  // Exit if the response is not successful
+        }
+
+        $lease_data = json_decode(wp_remote_retrieve_body($response));
+        $lease_spaces = $lease_data->lease_spaces;
+        
+        
+
+        if (empty($lease_spaces)) {
+            break;  // Exit if no more data
+        }
+
+        // Accumulate fetched data
+        $all_lease_spaces = array_merge($all_lease_spaces, $lease_spaces);
+        // Increment the offset by the limit
+        $offset += $limit;
+
+        // Record the end time for each fetch and calculate the elapsed time
+        $fetch_end_time = microtime(true);
+        $fetch_time = $fetch_end_time - $fetch_start_time;
+
+        // Logging for debugging
+        my_log('Fetched ' . count($lease_spaces) . ' records in ' . $fetch_time . ' seconds. Total so far: ' . count($all_lease_spaces) . "\n");
+    }
+
+    // Record the end time for the whole process and calculate the elapsed time
+    $total_end_time = microtime(true);
+    $total_time = $total_end_time - $total_start_time;
+    my_log('Total time required to fetch all data: ' . $total_time . ' seconds' . "\n");
+
+    // Calculate checksum for the new data
+    $new_checksum = md5(json_encode($all_lease_spaces));
+    my_log('New checksum: ' . $new_checksum . "\n");
+
+    // Compare with the stored checksum
+    if ($new_checksum != get_option('tristatecr_datasync_lease_checksum')) {
+        global $wpdb;
+        $space_tbl = $wpdb->prefix . 'lease_spaces';
+
+        $extracted_data = array_map(function($space) {
+            $values = [
+                $space->id,
+                $space->property_id,
+                $space->lease_rate_units,
+                $space->lease_rate,
+                $space->space_size_units,
+                $space->size_sf,
+                $space->floor
+            ];
+            return [
+                'lease_id' => $values[0],
+                'property_id' => $values[1],
+                'lease_rate_units' => $values[2],
+                'lease_rate' => $values[3],
+                'space_size_units' => $values[4],
+                'size_sf' => $values[5],
+                'floor' => $values[6],
+                'leasechecksum' => md5(implode('', $values))
+            ];
+        }, $all_lease_spaces);
+
+        $insert_data = [];
+        $update_data = [];
+        $update_placeholders = [];
+
+        foreach ($extracted_data as $ed) {
+            $leasechecksum = $ed['leasechecksum'];
+            $lease_id = $ed['lease_id'];
+            $existing_record = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $space_tbl WHERE lease_id = %d",
+                $ed['lease_id']
+            ));
+
+            if (!$existing_record) {
+                // Collect data for batch insert
+                $insert_data[] = [
+                    'lease_id' => $ed['lease_id'],
+                    'property_id' => $ed['property_id'],
+                    'lease_rate_units' => $ed['lease_rate_units'],
+                    'lease_rate' => $ed['lease_rate'],
+                    'space_size_units' => $ed['space_size_units'],
+                    'size_sf' => $ed['size_sf'],
+                    'floor' => $ed['floor'],
+                    'leasechecksum' => $ed['leasechecksum'],
+                ];
+            } else if ($existing_record->leasechecksum !== $leasechecksum) {
+                // Collect data for batch update
+                $update_data[] = [
+                    'property_id' => $ed['property_id'],
+                    'lease_rate_units' => $ed['lease_rate_units'],
+                    'lease_rate' => $ed['lease_rate'],
+                    'space_size_units' => $ed['space_size_units'],
+                    'size_sf' => $ed['size_sf'],
+                    'floor' => $ed['floor'],
+                    'leasechecksum' => $ed['leasechecksum'],
+                    'lease_id' => $lease_id,
+                ];
+                // Prepare update placeholders
+                $update_placeholders[] = $wpdb->prepare(
+                    "(%s, %s, %s, %s, %s, %s, %s, %d)",
+                    $ed['property_id'],
+                    $ed['lease_rate_units'],
+                    $ed['lease_rate'],
+                    $ed['space_size_units'],
+                    $ed['size_sf'],
+                    $ed['floor'],
+                    $ed['leasechecksum'],
+                    $lease_id
+                );
+            }
+        }
+
+        // Debug logging for collected data
+        my_log('Insert data count: ' . count($insert_data) . "\n");
+        my_log('Update data count: ' . count($update_data) . "\n");
+
+        // Batch insert
+        if (!empty($insert_data)) {
+            foreach ($insert_data as $data) {
+                $result = $wpdb->insert(
+                    $space_tbl,
+                    $data,
+                    array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+                );
+                if ($result === false) {
+                    my_log('Insert error', $wpdb->last_error);
+                } else {
+                    my_log('Inserted lease_id: ' . $data['lease_id'] . "\n");
+                }
+            }
+        }
+
+        // Batch update
+        if (!empty($update_data)) {
+            $query = "INSERT INTO $space_tbl (property_id, lease_rate_units, lease_rate, space_size_units, size_sf, floor, leasechecksum, lease_id) VALUES ";
+            $query .= implode(', ', $update_placeholders);
+            $query .= " ON DUPLICATE KEY UPDATE property_id = VALUES(property_id), lease_rate_units = VALUES(lease_rate_units), lease_rate = VALUES(lease_rate), space_size_units = VALUES(space_size_units), size_sf = VALUES(size_sf), floor=VALUES(floor) leasechecksum = VALUES(leasechecksum)";
+            $result = $wpdb->query($query);
+            if ($result === false) {
+                my_log('Update error', $wpdb->last_error);
+            } else {
+                my_log('Updated lease_id(s): ' . implode(', ', array_column($update_data, 'lease_id')) . "\n");
+            }
+        }
+
+        // Update the checksum in the options table
+        update_option('tristatecr_datasync_lease_checksum', $new_checksum);
+    } else {
+        my_log('Data checksum matches, no update needed.\n');
+    }
+
+    my_log("Data synchronization process completed for lease spaces.\n");
+}
+
+
+
