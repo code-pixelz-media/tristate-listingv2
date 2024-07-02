@@ -53,6 +53,8 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
 
     $settings = get_option('tristate_cr_settings');
     $get_buildout_api_key = $settings['buildout_api_key'];
+    
+    $spreadsheet_id = $settings['spreadsheet_id'];
 
     // Arguments
     $skip = explode(',', $aargs['skip'] ?? '') ?? array();
@@ -586,7 +588,7 @@ if (!array_intersect(['json'], $skip)){
     NEW_np_log($message);
     
     if(!in_array('csv' , $skip)){
-        $sheets = 'https://sheets.googleapis.com/v4/spreadsheets/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/values:batchGet?ranges=ny&ranges=pa&key=AIzaSyBmzLaF5VtQ2h_JNozhuBmK4-cB4KXlygA';
+        $sheets = 'https://sheets.googleapis.com/v4/spreadsheets/'.$spreadsheet_id.'/values:batchGet?ranges=ny&ranges=pa&key=AIzaSyBmzLaF5VtQ2h_JNozhuBmK4-cB4KXlygA';
 
     	$sheetresponse = fetch_with_exponential_backoff($sheets,6);
         if (!is_wp_error($sheetresponse)) {

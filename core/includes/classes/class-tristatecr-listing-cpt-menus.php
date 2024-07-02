@@ -148,6 +148,12 @@ class Tristatecr_Listing_Cpt_Menus
 
         // Add fields for Buildout API key
         add_settings_field('buildout_api_key', 'Buildout API Key:', array($this, 'trs_buildout_api_key_callback'), 'tristate_cr_settings', 'tristate_cr_settings_section');
+        
+        //Add field to for spreadsheet id
+        add_settings_field('spreadsheet_id', 'Spreadsheet Id:', array($this, 'trs_spreadsheet_id_callback'), 'tristate_cr_settings', 'tristate_cr_settings_section');
+        
+         //Add field to for spreadsheet id
+         add_settings_field('main_filter_page', 'Main Filter Page:', array($this, 'trs_main_filter_page_callback'), 'tristate_cr_settings', 'tristate_cr_settings_section');
     }
 
     /**
@@ -169,6 +175,15 @@ class Tristatecr_Listing_Cpt_Menus
         if (isset($input['buildout_api_key'])) {
             $sanitized_input['buildout_api_key'] = sanitize_text_field($input['buildout_api_key']);
         }
+        
+        if (isset($input['spreadsheet_id'])) {
+            $sanitized_input['spreadsheet_id'] = sanitize_text_field($input['spreadsheet_id']);
+        }
+        
+        if (isset($input['main_filter_page'])) {
+            $sanitized_input['main_filter_page'] = sanitize_text_field($input['main_filter_page']);
+        }
+
 
         return $sanitized_input;
     }
@@ -205,5 +220,22 @@ class Tristatecr_Listing_Cpt_Menus
         $settings = get_option('tristate_cr_settings');
         $buildout_api_key = isset($settings['buildout_api_key']) ? $settings['buildout_api_key'] : '';
         echo '<input type="text" class="regular-text" name="tristate_cr_settings[buildout_api_key]" value="' . esc_attr($buildout_api_key) . '" />';
+    }
+    
+    public function trs_spreadsheet_id_callback(){
+        $settings = get_option('tristate_cr_settings');
+        $spreadsheet_id = isset($settings['spreadsheet_id']) ? $settings['spreadsheet_id'] : '';
+        echo '<input type="text" class="regular-text" name="tristate_cr_settings[spreadsheet_id]" value="' . esc_attr($spreadsheet_id) . '" />';
+    }
+    
+    
+    public function trs_main_filter_page_callback(){
+    
+        $settings = get_option('tristate_cr_settings');
+        $selected =  isset($settings['main_filter_page']) ? $settings['main_filter_page'] : '';
+        wp_dropdown_pages( array(
+            'name' => 'tristate_cr_settings[main_filter_page]',
+            'selected' => $selected,
+        ) );
     }
 }

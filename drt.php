@@ -9,9 +9,13 @@ add_action('template_redirect', 'drt_restrict_page_access', 11);
 function drt_restrict_page_access()
 {
 
+
+
   global $wp;
+  $settings = get_option('tristate_cr_settings');
+  $selected_page =  isset($settings['main_filter_page']) ? $settings['main_filter_page'] : '';
   // Check if the current page is the page with ID 80575
-  if (is_page(2384)) {
+  if (is_page($selected_page)) {
     // Check if the user is not logged in
     if (!is_user_logged_in()) {
       // Check if the transient exists
