@@ -672,7 +672,7 @@ function drt_shortcode($_atts)
 
   <div class="filter-wrapper <?php echo !empty($atts['state']) ? 'ts-state-page' : ''; ?>" id="filter-wrapper" <?php if (!empty($atts['state'])) : ?> data-current_state="<?php echo strtoupper($atts['state']); ?>" <?php endif; ?>>
     <div class="MuiBox-root">
-      <div class="left-content">
+      <div class="left-content" id="<?php echo !empty($atts['state']) ? 'not-fixed' : 'fixed-left'; ?>">
         <div class="Filterform">
           <div class="MuiBox-root">
             <div id="select-container">
@@ -1371,46 +1371,58 @@ function drt_shortcode($_atts)
         var showForLease = $('#type_for_lease').is(':checked');
         var displayedListings = 0;
 
+  /*       let minPrice = parseFloat($('#rent-range-min').val().replace(/[$,]/g, '')) || 0;
+    let maxPrice = parseFloat($('#rent-range-max').val().replace(/[$,]/g, '')) || Infinity;
+    let minSize = parseFloat($('#size-range-min').val().replace(/[,]/g, '')) || 0;
+
+// Parse and handle maxSize properly
+let maxSizeValue = $('#size-range-max').val().replace(/[,SF]/g, '').trim();
+let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity : parseFloat(maxSizeValue);
+
+    let minRent = parseInt($('#month-rent-range-min').val().replace(/\D/g, '')) || 0;
+    let maxRent = parseInt($('#month-rent-range-max').val().replace(/\D/g, '')) || Infinity; */
+
+
         $(".propertylisting-content").each(function() {
           var $listing = $(this);
-          var showListing = true,
-            price = parseFloat($(this).data('price')),
-            priceSf = parseFloat($(this).data('pricesf')),
-            sizeMax = parseFloat($(this).data('maxsize')),
-            rent = parseFloat($(this).data('monthly-rent')),
-            isBetweenMaxMinPrice = (price >= priceRange[0]) && (price <= priceRange[1]),
-            isBetweenMaxMinPriceSf = (priceSf === 0) || ((priceSf >= priceRangeSf[0]) && (priceSf <= priceRangeSf[1])),
-            isBetweenMaxMinSize = (sizeMax >= sizeRangeSf[0]) && (sizeMax <= sizeRangeSf[1]),
-            isBetweenMaxMinMonthly = (rent >= monthlyRangeSf[0]) && (rent <= monthlyRangeSf[1]);
+          var showListing = true;
 
 
-          /*        if (selectedAgents.length > 0 && !selectedAgents.includes($listing.find("#tri_listing_agent").text().trim())) {
-                   showListing = false;
-                 }
 
-                 if (selectedUses.length > 0 && !selectedUses.includes($listing.find(".tri_use").text().trim())) {
-                   showListing = false;
-                 }
+          let minPrice = parseFloat($('#rent-range-min').val().replace(/[$,]/g, '')) || 0;
+    let maxPrice = parseFloat($('#rent-range-max').val().replace(/[$,]/g, '')) || Infinity;
+   
+   // let minSize = parseFloat($('#size-range-min').val().replace(/[,]/g, '')) || 0;
+   let minSizeValue = $('#size-range-min').val().replace(/[,SF]/g, '').trim();
+    let minSize = minSizeValue === "" || isNaN(parseFloat(minSizeValue)) ? Infinity : parseFloat(minSizeValue);
 
-                 if (selectedNeighborhoods.length > 0 && !selectedNeighborhoods.includes($listing.find("#tri_neighborhood").text().trim())) {
-                   showListing = false;
-                 }
+// Parse and handle maxSize properly
+let maxSizeValue = $('#size-range-max').val().replace(/[,SF]/g, '').trim();
+let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity : parseFloat(maxSizeValue);
 
-                 if (selectedZipcodes.length > 0 && !selectedZipcodes.includes($listing.find("#tri_zip_code").text().trim())) {
-                   showListing = false;
-                 }
+    let minRent = parseInt($('#month-rent-range-min').val().replace(/\D/g, '')) || 0;
+    let maxRent = parseInt($('#month-rent-range-max').val().replace(/\D/g, '')) || Infinity;
 
-                 if (selectedCities.length > 0 && !selectedCities.includes($listing.find("#tri_city").text().trim())) {
-                   showListing = false;
-                 }
 
-                 if (selectedStates.length > 0 && !selectedStates.includes($listing.find("#tri_state").text().trim())) {
-                   showListing = false;
-                 }
 
-                 if (selectedVented.length > 0 && !selectedVented.includes($listing.find("#tri_vented").text().trim())) {
-                   showListing = false;
-                 } */
+
+          let unitPrice = parseFloat($listing.data('pricesf')); //unit_per_sf
+    //let unitSize = parseFloat($listing.data('unit_size'));
+    let unitSize = parseFloat($listing.data('maxsizesf'));
+    var propertyMaxRent = parseInt($listing.data('maxrent'));
+    var salePrice = parseInt($listing.data('price'));
+
+
+    let minSalePrice = parseFloat($('#price-range-min').val().replace(/[$,]/g, '')) || 0;
+    let maxSalePrice = parseFloat($('#price-range-max').val().replace(/[$,]/g, '')) || Infinity;
+  
+
+
+
+ 
+
+     
+
           function getSelectedOptions(selector) {
             return $(selector)
               .find('.select2-selection__choice')
@@ -1508,21 +1520,7 @@ function drt_shortcode($_atts)
             }
           }
 
-          if (!isBetweenMaxMinPrice) {
-            showListing = false;
-          }
-          if (!isBetweenMaxMinMonthly) {
-            showListing = false;
-          }
-          if (!isBetweenMaxMinPriceSf) {
-            showListing = false;
-          }else{
-            
-          }
-
-          if (!isBetweenMaxMinSize) {
-            showListing = false;
-          }
+    
 
           if (changedSelect == 'clearall') {
             showListing = true;
@@ -1539,17 +1537,74 @@ function drt_shortcode($_atts)
             showListing = false;
           }
 
-          if (showListing) {
-            $listing.show();
 
+
+   
+  // Check filters
+  console.log("minSize is :"+minSize+" unitSize: "+unitSize+" maxSize: "+maxSize);
+  if (maxSize > 0 && !(unitSize >= minSize && (maxSize === Infinity || unitSize <= maxSize) || maxSize === 0)) {
+        showListing = false;
+    }
+if(minSize > 0 && maxSize ==0){
+    if (!(unitSize >= minSize && (minSize === Infinity || unitSize <= minSize) || minSize === 0)) {
+        showListing = false;
+    }
+  }
+
+    if (maxRent > 0 && !(propertyMaxRent !== 0 && (maxRent === Infinity || (propertyMaxRent >= minRent && propertyMaxRent <= maxRent)) || maxRent === 0)) {
+        showListing = false;
+    }
+
+    if (maxSalePrice > 0 && !(salePrice >= minSalePrice && (maxSalePrice === Infinity || salePrice <= maxSalePrice) || maxSalePrice === 0)) {
+        showListing = false;
+    }
+
+    if (maxPrice > 0 && !(unitPrice >= minPrice && (maxPrice === Infinity || unitPrice <= maxPrice) || maxPrice === 0)) {
+        showListing = false;
+    }
+
+    $listing.find(".trimmed-unit").each(function() {
+    let unitSizeSpan = $(this).find("[data-unit_size]");
+    let unitSize = parseFloat(unitSizeSpan.data('unit_size'));
+
+ 
+    
+    // Check if unitSize is less than or equal to maxSize
+    if (unitSize <= maxSize) {
+       showListing = true;
+      if (maxSize > 0 && !(unitSize >= minSize && (maxSize === Infinity || unitSize <= maxSize) || maxSize === 0)) {
+        showListing = false;
+    }
+
+    if (maxRent > 0 && !(propertyMaxRent !== 0 && (maxRent === Infinity || (propertyMaxRent >= minRent && propertyMaxRent <= maxRent)) || maxRent === 0)) {
+        showListing = false;
+    }
+
+    if (maxSalePrice > 0 && !(salePrice >= minSalePrice && (maxSalePrice === Infinity || salePrice <= maxSalePrice) || maxSalePrice === 0)) {
+        showListing = false;
+    }
+
+    if (maxPrice > 0 && !(unitPrice >= minPrice && (maxPrice === Infinity || unitPrice <= maxPrice) || maxPrice === 0)) {
+        showListing = false;
+    }
+    }
+});
+  
+
+if (showListing) {
+     /*        $listing.show();
             priceArray.push(price);
             pricesfArray.push(priceSf);
-            maxsizeArray.push(sizeMax);
+            maxsizeArray.push(sizeMax); */
+            $listing.css('display', 'block');
 
             displayedListings++;
           } else {
-            $listing.hide();
+          //  $listing.hide();
+          $listing.css('display', 'none');
+
           }
+
         });
 
         // Update displayed listings count
@@ -1563,7 +1618,15 @@ function drt_shortcode($_atts)
         var total_search_results = displayedListings; // Assuming $total_search_results is a PHP variable containing the total search results
 
         var $propertyListingContent = $('#propertylisting-content');
+        if(displayedListings=='0'){
+          if ($('.property-filter .listing-not-found').length === 0) {
+        $('.property-filter').append('<div class="listing-not-found">The combination of filters does not produce any result. Try something else.</div>');
+    }
+        }else {
+   
+   $('.property-filter .listing-not-found').remove();
 
+}
 
         var propertyFilter = $('.property-filter');
         if (displayedListings === 1) {
@@ -1589,10 +1652,10 @@ function drt_shortcode($_atts)
           propertyFilter.addClass(selectedOptionClass);
         }
 
-        var maxPrice = findMax(priceArray, 'price-range'),
+      /*   var maxPrice = findMax(priceArray, 'price-range'),
           maxsf = findMax(pricesfArray, 'price-range3'),
           maxSize = findMax(maxsizeArray, 'price-range2');
-        var dataSlided = $('#search-by-text-new').data('slided');
+        var dataSlided = $('#search-by-text-new').data('slided'); */
 
         //price
 
@@ -1802,9 +1865,8 @@ function drt_shortcode($_atts)
       });
 
       $("#price-range,#price-range3,#price-range2,#price-range4").on("slidestop", function(event, ui) {
-//start
+
         filterListings(null, $(this).prop('id'));
-        console.log(ui.values);
 
       });
 
@@ -2048,13 +2110,36 @@ function drt_shortcode($_atts)
         });
     }
 
-    $('#month-rent-range-min, #month-rent-range-max, #rent-range-min, #rent-range-max').on('input', function() {
+  /*   $('#month-rent-range-min, #month-rent-range-max, #rent-range-min, #rent-range-max').on('input', function() {
         checkPriceRange();
     });
 
     $('#size-range-min, #size-range-max').on('input', function() {
         checkSizeRange();
-    });
+    }); */
+
+  /*   $('').on('input', function() {
+    // checkAllRanges();
+        filterListings();
+    }); */
+
+    let timeoutId;
+
+$('#rent-range-min, #rent-range-max,#size-range-min, #size-range-max,#month-rent-range-min, #month-rent-range-max').on('input change', function() {
+    clearTimeout(timeoutId); // Clear any existing timeout
+
+    timeoutId = setTimeout(function() {
+        filterListings();
+    }, 250); // Delay in milliseconds 550
+});
+
+
+ /*    $('').on('input', function() {
+      filterListings();
+      //checkAllRanges();
+     
+    }); */
+
 
   // trimed clicker end
 
@@ -2185,6 +2270,144 @@ function get_usename_subtype($property_subtype_id)
   return $property_uses_subtype;
 }   
 
+
+function trs_format_number($number) {
+  $decimalPlaces = strlen(substr(strrchr($number, "."), 1));
+  return number_format($number, $decimalPlaces);
+}
+
+function get_leasetype_name_by_id($leaseTypeId)
+{
+  switch ($leaseTypeId) {
+    case "101":
+      return 'Office - Office Building';
+    case "102":
+      return 'Office - Creative/Loft';
+    case "103":
+      return 'Office - Executive Suites';
+    case "104":
+      return 'Office - Medical';
+    case "105":
+      return 'Office - Institutional/Governmental';
+    case "106":
+      return 'Office - Office Warehouse';
+    case "107":
+      return 'Office - Office Condo';
+    case "108":
+      return 'Office - Coworking';
+    case "109":
+      return 'Office - Lab';
+    case "201":
+      return 'Retail - Street Retail';
+    case "202":
+      return 'Retail - Strip Center';
+    case "203":
+      return 'Retail - Free Standing Building';
+    case "204":
+      return 'Retail - Regional Mall';
+    case "205":
+      return 'Retail - Retail Pad';
+    case "206":
+      return 'Retail - Vehicle Related';
+    case "207":
+      return 'Retail - Outlet Center';
+    case "208":
+      return 'Retail - Power Center';
+    case "209":
+      return 'Retail - Neighborhood Center';
+    case "210":
+      return 'Retail - Community Center';
+    case "211":
+      return 'Retail - Specialty Center';
+    case "212":
+      return 'Retail - Theme/Festival Center';
+    case "213":
+      return 'Retail - Restaurant';
+    case "214":
+      return 'Retail - Post Office';
+    case "215":
+      return 'Retail - Retail Condo';
+    case "216":
+      return 'Retail - Lifestyle Center';
+    case "301":
+      return 'Industrial - Manufacturing';
+    case "302":
+      return 'Industrial - Warehouse/Distribution';
+    case "303":
+      return 'Industrial - Flex Space';
+    case "304":
+      return 'Industrial - Research & Development';
+    case "305":
+      return 'Industrial - Refrigerated/Cold Storage';
+    case "306":
+      return 'Industrial - Office Showroom';
+    case "307":
+      return 'Industrial - Truck Terminal/Hub/Transit';
+    case "308":
+      return 'Industrial - Self Storage';
+    case "309":
+      return 'Industrial - Industrial Condo';
+    case "310":
+      return 'Industrial - Data Center';
+    case "501":
+      return 'Land - Office';
+    case "502":
+      return 'Land - Retail';
+    case "503":
+      return 'Land - Retail-Pad';
+    case "504":
+      return 'Land - Industrial';
+    case "505":
+      return 'Land - Residential';
+    case "506":
+      return 'Land - Multifamily';
+    case "507":
+      return 'Land - Other';
+    case "601":
+      return 'Multifamily - High-Rise';
+    case "602":
+      return 'Multifamily - Mid-Rise';
+    case "603":
+      return 'Multifamily - Low-Rise/Garden';
+    case "604":
+      return 'Multifamily - Government Subsidized';
+    case "605":
+      return 'Multifamily - Mobile Home Park';
+    case "606":
+      return 'Multifamily - Senior Living';
+    case "607":
+      return 'Multifamily - Skilled Nursing';
+    case "608":
+      return 'Multifamily - Single Family Rental Portfolio';
+    case "701":
+      return 'Special Purpose - School';
+    case "702":
+      return 'Special Purpose - Marina';
+    case "703":
+      return 'Special Purpose - Other';
+    case "704":
+      return 'Special Purpose - Golf Course';
+    case "705":
+      return 'Special Purpose - Church';
+    case "801":
+      return 'Hospitality - Full Service';
+    case "802":
+      return 'Hospitality - Limited Service';
+    case "803":
+      return 'Hospitality - Select Service';
+    case "804":
+      return 'Hospitality - Resort';
+    case "805":
+      return 'Hospitality - Economy';
+    case "806":
+      return 'Hospitality - Extended Stay';
+    case "807":
+      return 'Hospitality - Casino';
+    default:
+      return false;
+  }
+}
+
 function tristatecr_create_lease_space_table()
 {
 
@@ -2209,9 +2432,9 @@ function tristatecr_create_lease_space_table()
         floor varchar(255) NULL,
         deal_status varchar(32) NULL,
         space_type_id varchar(32) NULL,
-        lease_address  varchar(32) NULL,
-        suite varchar(32) NULL,
-        leasechecksum varchar(32)  NULL,
+        lease_address  varchar(255) NULL,
+        suite varchar(255) NULL,
+        leasechecksum varchar(155)  NULL,
         lease_desc varchar(255) NULL,
         lease_type_id varchar(32) NULL,
         PRIMARY KEY (id)) $charset_collate;";
@@ -2222,4 +2445,3 @@ function tristatecr_create_lease_space_table()
 
 
 add_action('plugin_loaded', 'tristatecr_create_lease_space_table');
-

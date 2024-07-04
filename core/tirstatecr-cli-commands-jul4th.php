@@ -3,10 +3,43 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+
 define('NEW_CRON_STATUS_OPTION', 'tristate_cron_status');
 
 define('NEW_CRON_LAST_RESULT_OPTION', 'tristate_cron_last_result');
 define('NEW_LOG_FILE', TRISTATECRLISTING_PLUGIN_DIR . 'debug.log');
+
+
+function fetch_with_exponential_backoff($url, $max_retries = 5) {
+    $attempt = 0;
+    $success = false;
+    $response = null;
+
+    while ($attempt < $max_retries && !$success) {
+        $response = wp_remote_get($url, array(
+            'headers' => array(
+                'Accept' => 'application/json',
+            ),
+        ));
+
+        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) == 200) {
+            $success = true;
+        } else {
+            $attempt++;
+            $wait_time = pow(2, $attempt); // Exponential backoff
+            sleep($wait_time);
+        }
+    }
+
+    if (!$success) {
+        NEW_np_log("Failed to fetch data after $max_retries attempts.");
+        return null;
+    }
+
+    return $response;
+}
+
+
 /**
  * Imports and syncs Buildout and Google Sheets data.
  */
@@ -20,6 +53,8 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
 
     $settings = get_option('tristate_cr_settings');
     $get_buildout_api_key = $settings['buildout_api_key'];
+    
+    $spreadsheet_id = $settings['spreadsheet_id'];
 
     // Arguments
     $skip = explode(',', $aargs['skip'] ?? '') ?? array();
@@ -49,6 +84,11 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
         'missing'     => 0,
         'matched'     => 0,
     );
+    
+  
+
+    
+    // $sheetdatas = [];
 
 /********************************--Brokers Sync Start--*****************************************/
 
@@ -542,127 +582,130 @@ if (!array_intersect(['json'], $skip)){
 /********************************--Properties Sync Ends--*****************************************/
 
 /********************************--Google Sheet Sync starts--*****************************************/
+
     $message = "\nReading Sheets CSV...";
     if (in_array('csv', $skip)) $message .= ' Skipping';
     NEW_np_log($message);
-    $filenames = array(
-        // https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/edit#gid=0
-        //'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=0',
-        // https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/edit#gid=1067035268
-        //'https://docs.google.com/spreadsheets/d/1nbR6Gxlxdf32sN4wfso51fxEaXktT4plsOzigNS_egw/gviz/tq?tqx=out:csv&sheet=0',
-       'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=ny',
-       'https://docs.google.com/spreadsheets/d/1R0-lie_XfdirjxoaXZ59w4etaQPWFBD5c45i-5CaaMk/gviz/tq?tqx=out:csv&sheet=pa'
-    );
-    if (!in_array('csv', $skip))
-        foreach ($filenames as $fn) {
-            defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Reading Sheets CSV');
-            defined('WP_CLI') && WP_CLI::log('Reading ' . $fn . '...');
-            if (($handle = fopen($fn, "r")) !== FALSE) {
-                $row = 0;
-                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                    $row++;
+    
+    if(!in_array('csv' , $skip)){
+        $sheets = 'https://sheets.googleapis.com/v4/spreadsheets/'.$spreadsheet_id.'/values:batchGet?ranges=ny&ranges=pa&key=AIzaSyBmzLaF5VtQ2h_JNozhuBmK4-cB4KXlygA';
 
-                    // Header row
+    	$sheetresponse = fetch_with_exponential_backoff($sheets,6);
+        if (!is_wp_error($sheetresponse)) {
+            $sheetsdata =  json_decode(wp_remote_retrieve_body($sheetresponse));
+            
+            $all_sheets = $sheetsdata->valueRanges;
+            
+            foreach($all_sheets as $as){
+                
+                NEW_np_log("Processing #$as->range \n");
+                sleep(1);
+                $row = 0;
+                foreach($as->values as $data){
+                    $row++;
                     if ($row == 1) {
                         $header = $data;
                         array_walk($header, function (&$item) {
                             $item = sanitize_title($item);
                             $item = strtolower(str_replace('-', '_', $item));
                         });
+                       
                         continue;
                     }
-
+                    if (count($header) !== count($data)) {
+                        $message = "Mismatch detected in row $row. Header count: " . count($header) . ", Row count: " . count($data);
+                        NEW_np_log($message);
+                        
+                        
+                        if (count($data) > count($header)) {
+                            $data = array_slice($data, 0, count($header));
+                        } else {
+                           
+                            while (count($data) < count($header)) {
+                                $data[] = null;
+                            }
+                        }
+                        $message = "Adjusted row $row data: " . implode(", ", $data);
+                        NEW_np_log($message);
+                    }    
                     // Data row
-                    $item         = (object) array_combine($header, $data);
-                    $id             = new_np_generate_google_csv_item_id($item);
+                    $item = (object) array_combine($header, $data);
+                    $id = new_np_generate_google_csv_item_id($item);
                     $checksum = md5(json_encode($item));
                     $message = "- Processing #$id";
-                    defined('WP_CLI') && WP_CLI::log($message);
-
+                    NEW_np_log($message);
+                    
                     if ($buildout_id = $item->buildout_id ?? false) {
                         $message = "-- Found Buildout ID $buildout_id for row";
-                        defined('WP_CLI') && WP_CLI::log($message);
+                        NEW_np_log($message);
                     } else {
                         $message = "-- No Buildout ID found for row";
-                        defined('WP_CLI') && WP_CLI::log($message);
+                        NEW_np_log($message);
                         $counter['missing']++;
                         continue;
                     }
-
+        
                     // Find the imported post_id
                     $post_id = array_search($buildout_id, $imported_ids);
                     if (!$post_id) {
                         $message = "-- No post ID found";
-                        defined('WP_CLI') && WP_CLI::log($message);
+                        NEW_np_log($message);
                         $counter['missing']++;
                         continue;
                     } else {
                         $message = "-- Found post ID $post_id";
-                        defined('WP_CLI') && WP_CLI::log($message);
+                        NEW_np_log($message);
                         $counter['found']++;
                     }
-
+        
                     // Check the checksum
                     $post_sheet_checksum = $sheets_checksums[$post_id] ?? false;
-
                     if (!$force_update && ($post_sheet_checksum && $post_sheet_checksum == $checksum)) {
                         $message = "--- No changes detected, checksum $checksum matches.";
-                        defined('WP_CLI') && WP_CLI::log($message);
+                        NEW_np_log($message);
                         $message = "--- Skipping.";
-                        defined('WP_CLI') && WP_CLI::log($message);
+                        NEW_np_log($message);
                         continue;
                     } else {
                         $message = "--- Changes detected, checksum $checksum does not match $post_sheet_checksum";
-                        defined('WP_CLI') && WP_CLI::log($message);
+                        NEW_np_log($message);
                     }
-
                     $sheet_meta = new_np_process_google_csv_item_meta($item);
-
-                    // Update the post meta
-                    $message = "--- Updating post_meta for post_id:$post_id buildout_id:$buildout_id";
-                    defined('WP_CLI') && WP_CLI::log($message);
-
                     foreach ($sheet_meta as $key => $value) {
-                        // $message = "---- Updating $key to $value";
-                        // defined('WP_CLI') && WP_CLI::log($message);
-                        // update_post_meta($post_id, $key, $value);
-                        // update_post_meta($post_id, '_gsheet_last_updated', time());
                         $message = "---- Updating $key to $value";
-                        defined('WP_CLI') && WP_CLI::log($message);
+                        NEW_np_log($message);
                         update_post_meta($post_id, $key, $value);
                         if ($key == '_gsheet_min_size') {
                             $new_min_val = (float) preg_replace('/[^0-9.]/', '', $value);
-                            update_post_meta($post_id, '_gsheet_min_size_fm',$new_min_val);
-                        }
-                        if ($key == '_gsheet_min_size') {
-                            $new_min_val = (float) preg_replace('/[^0-9.]/', '', $value);
-                            update_post_meta($post_id, '_gsheet_min_size_fm',$new_min_val);
-                        }
-                        if($key == '_gsheet_state'){
-                            update_post_meta($post_id, '_gsheet_state',strtoupper($value));
+                            update_post_meta($post_id, '_gsheet_min_size_fm', $new_min_val);
                         }
                         if ($key == '_gsheet_max_size') {
-                            $new_max_val =    (float) preg_replace('/[^0-9.]/', '', $value);
-                            update_post_meta($post_id, '_gsheet__max_size_fm',$new_max_val);
+                            $new_max_val = (float) preg_replace('/[^0-9.]/', '', $value);
+                            update_post_meta($post_id, '_gsheet_max_size_fm', $new_max_val);
                         }
-                        
-                        if($key == '_gsheet_monthly_rent'){
+                        if ($key == '_gsheet_monthly_rent') {
                             $newmnthrent = (float) preg_replace('/[^0-9.]/', '', $value);
-                            update_post_meta($post_id, '__gsheet__monthly_rent',$newmnthrent);
-                        
+                            update_post_meta($post_id, '_gsheet_monthly_rent', $newmnthrent);
                         }
-                        
+                        if ($key == '_gsheet_state') {
+                            update_post_meta($post_id, '_gsheet_state', strtoupper($value));
+                        }
                         update_post_meta($post_id, '_gsheet_last_updated', time());
                     }
-
-                    $counter['matched']++;
+                    
+                   
                 }
-                fclose($handle);
+                NEW_np_log("Processing #$as->range completed");
             }
-
-            $message = 'Found ' . $row . ' records in ' . $fn . '.';
-            NEW_np_log($message);
+            
+        }else{
+            
+            NEW_np_log('Unknown Error Occured');
         }
+    
+    
+    }
+
 /********************************--Google Sheet Sync ends--*****************************************/
     $message = "Counters: " . print_r($counter, true);
     defined('WP_CLI') && WP_CLI::log($message);

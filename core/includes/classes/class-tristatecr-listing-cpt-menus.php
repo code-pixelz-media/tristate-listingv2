@@ -236,6 +236,7 @@ class Tristatecr_Listing_Cpt_Menus
         wp_dropdown_pages( array(
             'name' => 'tristate_cr_settings[main_filter_page]',
             'selected' => $selected,
+            'post_status' => array('publish','draft','private')
         ) );
     }
 }

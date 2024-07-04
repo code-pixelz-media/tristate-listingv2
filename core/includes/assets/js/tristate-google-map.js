@@ -131,20 +131,18 @@ function get_markerData(fromId=true ,id){
     marker.setMap(null); 
   });
   markers = []; 
-  var statePageCheck = jQuery(document).find('.filter-wrapper').hasClass('ts-state-page');
   var allData = get_visible_properties(),
   markerData = fromId ? markersLatLng(id,true) : markersLatLng(JSON.stringify(allData.mapdata),false);
-
+ 
   if(markerData){
 
-  
-    
+ 
     var bounds = new google.maps.LatLngBounds();
     markerData.forEach(function(markerInfo) {
   
       var markerIcon = {
         url: markerInfo.imgIcon,
-        scaledSize: statePageCheck ? new google.maps.Size(50, 50) : new google.maps.Size(38, 38) // Adjust the size as per your requirement
+        scaledSize: new google.maps.Size(38, 38) // Adjust the size as per your requirement
       };
       
       var marker = new google.maps.Marker({

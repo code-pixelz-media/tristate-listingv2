@@ -24,9 +24,6 @@ function fetch_with_exponential_backoff($url, $max_retries = 5) {
 
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) == 200) {
             $success = true;
-        }else if(wp_remote_retrieve_response_code($response) == 400){
-            NEW_np_log("...Some Problem occured in spreadsheet URL...");
-            $success = true;
         } else {
             $attempt++;
             $wait_time = pow(2, $attempt); // Exponential backoff
@@ -234,6 +231,8 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
          $fetch_end_time = microtime(true);
          
          $fetch_time = $fetch_end_time - $fetch_start_time;
+         
+        
  
          // Logging for debugging
          NEW_np_log('Fetched ' . count($lease_spaces) . ' records in ' . $fetch_time . ' seconds. Total so far: ' . count($all_lease_spaces) . "\n");
@@ -258,20 +257,20 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
          });
          $extracted_data = array_map(function($space) {
              $values = [
-                 $space->id,//0
-                 $space->property_id,//1
-                 $space->lease_title ?? 'false',
-                 $space->lease_rate_units,//3
-                 $space->lease_rate,//4
-                 $space->space_size_units,//5
-                 $space->size_sf,//6
-                 $space->floor,//7
-                 $space->deal_status_id,//8
-                 $space->space_type_id,//9
-                 $space->address2 ?? 'false',//10
-                 $space->suite,//11
-                 $space->description,//12
-                 $space->lease_type_id,//13
+                 $space->id,//1
+                 $space->property_id,//2
+                 $space->lease_title ?? 'false',//3
+                 $space->lease_rate_units,//4
+                 $space->lease_rate,//5
+                 $space->space_size_units,//6
+                 $space->size_sf,//7
+                 $space->floor,//8
+                 $space->deal_status_id,//9
+                 $space->space_type_id,//10
+                 $space->address2 ?? ' ',//11
+                 $space->suite,//12
+                 $space->description,//13
+                 $space->lease_type_id,//14
                  
              ];
 
@@ -294,130 +293,118 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
              ];
          }, $filtered_lease_spaces);
  
-         $insert_data = [];
-         $update_data = [];
-         $update_placeholders = [];
- 
-         foreach ($extracted_data as $ed) {
-             $leasechecksum = $ed['leasechecksum'];
-             $lease_id = $ed['lease_id'];
-             $deal_stat = $ed['deal_status'];
-             $lease_title= false;
-             
-             if(!empty($ed['lease_address'])){
-                 $lease_title = $ed['lease_address'];
-                 
-                 if($ed['space_size_units']== 'sf' && !empty($ed['size_sf'])){
-                     
-                     $lease_title .= ' '. number_format($ed['size_sf']) . 'SF';
-                 } 
-             }
-             $existing_record = $wpdb->get_row($wpdb->prepare(
-                 "SELECT * FROM $space_tbl WHERE lease_id = %d",
-                 $ed['lease_id']
-             ));
-
-             if (!$existing_record) {
-                 
-                 // Collect data for batch insert
-                 $insert_data[] = [
-                     'lease_id' => $ed['lease_id'],//1
-                     'property_id' => $ed['property_id'],//2
-                     'lease_title' => $lease_title,//3
-                     'lease_rate_units' => $ed['lease_rate_units'],//4
-                     'lease_rate' => $ed['lease_rate'],//5
-                     'space_size_units' => $ed['space_size_units'],//6
-                     'size_sf' => $ed['size_sf'],//7
-                     'floor' => $ed['floor'],//8
-                     'deal_status' => $ed['deal_status'],//9
-                     'space_type_id' => $ed['space_type_id'],//10
-                     'lease_address' => $ed['lease_address'],//11
-                     'suite' => $ed['suite'],//12
-                     'leasechecksum' => $ed['leasechecksum'],//13
-                     'lease_desc' => $ed['lease_desc'],//14
-                     'lease_type_id' => $ed['lease_type_id'],//15
-                 ];
-             } else if ($existing_record->leasechecksum !== $leasechecksum) {
-                 // Collect data for batch update
-                 $update_data[] = [
-                     'lease_id' => $lease_id,//1
-                     'property_id' => $ed['property_id'],//2
-                     'lease_title' =>$lease_title,//3
-                     'lease_rate_units' => $ed['lease_rate_units'],//4
-                     'lease_rate' => $ed['lease_rate'],//5
-                     'space_size_units' => $ed['space_size_units'],//6
-                     'size_sf' => $ed['size_sf'],//7
-                     'floor' => $ed['floor'],//8
-                     'deal_status' => $ed['deal_status'],//9
-                     'space_type_id' => $ed['space_type_id'],//10
-                     'lease_address' => $ed['address'],//11
-                     'suite' => $ed['suite'],//12
-                     'leasechecksum' => $ed['leasechecksum'],//13
-                     'lease_desc' => $ed['lease_desc'],//14
-                     'lease_type_id' => $ed['lease_type_id'],//15
-                 ];
-                 // Prepare update placeholders
-                 $update_placeholders[] = $wpdb->prepare(
-                     "(%s, %s, %s, %s, %s, %s, %s, %s ,%s, %s, %s, %s, %s, %s ,%s)",
-                     $lease_id,//1
-                     $ed['property_id'],//2
-                     $ed['lease_title'],//3
-                     $ed['lease_rate_units'],//4
-                     $ed['lease_rate'],//5
-                     $ed['space_size_units'],//6
-                     $ed['size_sf'],//7
-                     $ed['floor'],//8
-                     $ed['deal_status'],//9
-                     $ed['space_type_id'],//10
-                     $ed['lease_address'],//11
-                     $ed['suite'],//12
-                     $ed['leasechecksum'],//13
-                     $ed['lease_desc'],//14
-                     $ed['lease_type_id'],//15
+        foreach ($extracted_data as $ed) {
+            $new_leasechecksum = $ed['leasechecksum'];
+            $lease_id = $ed['lease_id'];
+            $deal_stat = $ed['deal_status'];
+            $lease_title= 'false';
+            
+            if(!empty($ed['lease_address'])){
+                $lease_title = $ed['lease_address'];
+                
+                if($ed['space_size_units']== 'sf' && !empty($ed['size_sf'])){
                     
-                 );
-             }
-         }
+                    $lease_title .= ' '. number_format($ed['size_sf']) . 'SF';
+                } 
+            }
+            $existing_record = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $space_tbl WHERE lease_id = %d ",
+                (int) $ed['lease_id']
+            ));
+            if (is_null($existing_record)) {
+                NEW_np_log("Found new Lease Space #$lease_id  inserting...\n");
+                
+                $prepared_query = $wpdb->prepare(
+                    "INSERT INTO $space_tbl 
+                    (lease_id, property_id, lease_title, lease_rate_units, lease_rate, space_size_units, size_sf, 
+                    floor, deal_status, space_type_id, lease_address, suite, leasechecksum, lease_desc, lease_type_id) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    $ed['lease_id'], 
+                    $ed['property_id'], 
+                    $ed['lease_title'], 
+                    $ed['lease_rate_units'], 
+                    $ed['lease_rate'], 
+                    $ed['space_size_units'], 
+                    $ed['size_sf'], 
+                    $ed['floor'], 
+                    $ed['deal_status'], 
+                    $ed['space_type_id'], 
+                    $ed['lease_address'], 
+                    $ed['suite'], 
+                    $ed['leasechecksum'], 
+                    $ed['lease_desc'], 
+                    $ed['lease_type_id']
+                );
+                $result = $wpdb->query($prepared_query);
+                
+                if ($result === false) {
+                    NEW_np_log("Failed to insert data: " . $wpdb->last_error."\n");
+                } else {
+                    NEW_np_log("Lease space inserted successfully with ID: " . $wpdb->insert_id."\n");
+                }
+            }
+            if (!is_null($existing_record)) {
+            
+                NEW_np_log("Found Changes In Lease Space #$lease_id  validating checksum...\n");
+                $update_id = (int) $existing_record->id;
+                $checksum_check =  $existing_record->leasechecksum == $ed['leasechecksum'];
+                
+                if(!is_null($update_id) && $checksum_check){
+                    NEW_np_log("Checksum not matached.Updating #$update_id  for #{$ed['lease_id']}\n");
+                    $wpdb->update(
+                        $space_tbl,
+                        array(
+                            'property_id' => $ed['property_id'],
+                            'lease_title' => $ed['lease_title'],
+                            'lease_rate_units' => $ed['lease_rate_units'],
+                            'lease_rate' => $ed['lease_rate'],
+                            'space_size_units' => $ed['space_size_units'],
+                            'size_sf' => $ed['size_sf'],
+                            'floor' => $ed['floor'],
+                            'deal_status' => $ed['deal_status'],
+                            'space_type_id' => $ed['space_type_id'],
+                            'lease_address' => $ed['lease_address'] ?? '',
+                            'suite' => $ed['suite'],
+                            'leasechecksum' => $ed['leasechecksum'],
+                            'lease_desc' => $ed['lease_desc'],
+                            'lease_type_id' => $ed['lease_type_id']
+                        ),
+                        array('id' => $update_id),
+                        array(
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s',
+                            '%s'
+                        ),
+                        array('%d')
+                    );
+                    
+                    if ($wpdb->last_error) {
+                        NEW_np_log("Failed to update data for lease_id {$ed['lease_id']}: " . $wpdb->last_error."\n");
+                    } else {
+                        NEW_np_log("Data updated successfully for lease_id {$ed['lease_id']} with ID: " . $update_id."\n");
+                    }
+        
+                }else{
+                    NEW_np_log("Failed to update data for lease_id {$ed['lease_id']}.Not found in database \n");
+                }
+                update_option('tristatecr_datasync_lease_checksum', $new_leasechecksum);
+            }
+        }
  
-         // Debug logging for collected data
-         NEW_np_log('Insert data count: ' . count($insert_data) . "\n");
-         NEW_np_log('Update data count: ' . count($update_data) . "\n");
- 
-         // Batch insert
-         if (!empty($insert_data)) {
-             foreach ($insert_data as $data) {
-                 $result = $wpdb->insert(
-                     $space_tbl,
-                     $data,
-                     array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ,'%s','%s', '%s', '%s', '%s' ,'%s','%s')
-                 );
-                 if ($result === false) {
-                     NEW_np_log('Insert error', $wpdb->last_error);
-                 } else {
-                     NEW_np_log('Inserted lease_id: ' . $data['lease_id'] . "\n");
-                 }
-             }
-         }
-         // Batch update
-         if (!empty($update_data)) {
-             $query = "INSERT INTO $space_tbl (lease_id,property_id,lease_title, lease_rate_units, lease_rate, space_size_units, size_sf, floor, deal_status,space_type_id, leasechecksum,lease_desc,lease_type_id ) VALUES ";
-             $query .= implode(', ', $update_placeholders);
-             $query .= " ON DUPLICATE KEY UPDATE lease_id = VALUES(lease_id) , property_id = VALUES(property_id),lease_title = VALUES(lease_title) , lease_rate_units = VALUES(lease_rate_units), lease_rate = VALUES(lease_rate), space_size_units = VALUES(space_size_units), size_sf = VALUES(size_sf), floor=VALUES(floor), deal_status=VALUES(deal_status),space_type_id=values(space_type_id), lease_address=values(lease_address),suite = VALUES(suite),leasechecksum = VALUES(leasechecksum), lease_desc=values(lease_desc),lease_type_id=VALUES(lease_type_id)";
-             $result = $wpdb->query($query);
-             if ($result === false) {
-                 NEW_np_log('Update error', $wpdb->last_error);
-             } else {
-                 NEW_np_log('Updated lease_id(s): ' . implode(', ', array_column($update_data, 'lease_id')) . "\n");
-             }
-         }
- 
-         // Update the checksum in the options table
-         update_option('tristatecr_datasync_lease_checksum', $new_checksum);
-     } else {
-         NEW_np_log('Data checksum matches, no update needed.\n');
-     }
  
      NEW_np_log("Data synchronization process completed for lease spaces.\n");
+    }
  }
 /********************************--Lease Space Sync Ends--*****************************************/
  

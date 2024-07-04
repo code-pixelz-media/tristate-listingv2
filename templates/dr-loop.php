@@ -86,14 +86,14 @@ $formatted_type = str_replace(' ', '', trim(strtolower($type)));
 $monthly_rent_lease = false;
 //if the property is of forlease type
 if($formatted_type == 'forlease'){
-    $monthly_rent_lease = !empty($_price) ? 'Monthly rent: $'. number_format($_price) : false;
-    $new_price = !empty($_price_sf  ) ? 'Price per SF: $'. number_format($_price_sf) : false;
+    $monthly_rent_lease = !empty($_price) ? 'Monthly rent: $'. trs_format_number($_price) : false;
+    $new_price = !empty($_price_sf  ) ? 'Price per SF: $'. trs_format_number($_price_sf) : false;
     
 //if the property is of forsale type    
 }else if($formatted_type == 'forsale'){
 
     $sale_price = meta_of_api_sheet($ID, 'sale_price_dollars');
-    $new_price = !empty($sale_price) ? 'Price : $'. number_format($sale_price) : false;
+    $new_price = !empty($sale_price) ? 'Price : $'. trs_format_number($sale_price) : false;
 // if the price is not found
 }else {
     $new_price = false;
@@ -330,7 +330,7 @@ $long = get_post_meta($ID, '_buildout_longitude', true);
  $m_d = tristate_get_marker_data($ID);
  if($buildout_lease == '1' && $_price !==0 && !empty($_price) ){
         
-        $displaying_price ='$' . number_format($_price).'/month';
+        $displaying_price ='$' . trs_format_number($_price).'/month';
  }
 $json_data = json_encode($m_d);
 $date_created = get_post_meta($ID,'_buildout_created_at',true);
@@ -472,6 +472,7 @@ if($args['state']) { ?>
             <?php 
              $lsp_price_per_sf =[];
              $lsp_monthly_rent =[];
+             $lsp_price_per_sf_yr=[];
             if(!empty($l_meta)  && $formatted_type == 'forlease'){
                $all_units_count = count($l_meta);
                echo '<div class="trimmed-unit">';
@@ -482,6 +483,9 @@ if($args['state']) { ?>
                         $l, '1'
                     );
                     $lsp = $wpdb->get_row($query, ARRAY_A);
+                    
+                    $lease_type = $lsp['space_type_id'];
+                    $lease_type_name =  get_leasetype_name_by_id($lease_type);
     
                     $title = $lsp['lease_address'];
                     $price_units = $lsp['lease_rate_units'];
@@ -508,6 +512,7 @@ if($args['state']) { ?>
                             if($price_units == 'dollars_per_sf_per_year'){
                                 $postfix = '/SF per year';
                                 $attr = 'data-unit_per_sf';
+                                $lsp_price_per_sf_yr[] = $price;
                             }else if($price_units == 'dollars_per_sf_per_month'){
                                 $postfix = '/SF per month';
                                 $attr = 'data-unit_sf_month';
@@ -520,7 +525,7 @@ if($args['state']) { ?>
                                 $postfix = '';
                                 $attr = 'data-nothing';
                             }
-                            $price_with_postfix = '$'.number_format($price).$postfix;
+                            $price_with_postfix = '$'.$price.$postfix;
                             echo "<li><p>Price: <span $attr='".$price."'>$price_with_postfix</span></p></li>";
                         endif;
                         
@@ -533,7 +538,9 @@ if($args['state']) { ?>
                             $size_pfix = $size . ' ' . $pfix;
                             echo "<li><p>Size: <span data-unit_size='".$size."'>$size_pfix</span></p></li>";
                         endif;
-                        
+                        // if($lease_type_name):
+                        //     echo "<li class='tri_use'><p>Type: <span>$lease_type_name</span></p></li>";
+                        // endif;
                         if(empty($title) && empty($price) && empty($size)){
                             echo "<li><p>N/A</li>";
                         }
@@ -562,18 +569,68 @@ if($args['state']) { ?>
     <div class="plc-bottom">
    
     <?php if(!empty($lsp_monthly_rent) && count(array_unique($lsp_monthly_rent)) === 1 ) : ?>
-        <p class="font-13 color-red"><?php echo 'Monthly rent: $'. number_format($lsp_monthly_rent[0]); ?></p>
+        <p class="font-13 color-red"><?php echo 'Monthly rent: $'. trs_format_number($lsp_monthly_rent[0]); ?></p>
     <?php endif; ?>
     <!-- Starting P for Price -->
         <p class="price">
             <?php 
             
             if(!empty($lsp_price_per_sf) && count(array_unique($lsp_price_per_sf)) === 1  && $formatted_type='forlease'){
-               echo 'Price per SF: $'. number_format($lsp_price_per_sf[0]);
+               echo 'Price per SF: $'. trs_format_number($lsp_price_per_sf[0]);
             }elseif($formatted_type='forsale' && !empty($bo_price)){
-                echo 'Sales Price : $'. number_format($bo_price);
+                echo 'Sales Price : $'. trs_format_number($bo_price);
             }else{
-                _e('Price: Call For Price','tristatecr');
+                $lable = 'Price: ';
+                $displaying_sf = false;
+                $displaying_rent = false;
+                $displaying_sf_yr=false;
+                
+                // var_dump($lsp_price_per_sf ,$lsp_monthly_rent, $lsp_price_per_sf_yr);
+                // monthly per sf
+                if(!empty($lsp_price_per_sf)){
+                    $min_psf = min($lsp_price_per_sf);
+                    $max_psf = max($lsp_price_per_sf);
+                    $sf_pfix= '/SF per month';
+                    $displaying_sf = $min_psf == $max_psf ? $lable.'$'.trs_format_number($max_psf). $sf_pfix : 
+                                     $lable.'$'. trs_format_number($min_psf) .'-'. '$'.trs_format_number($max_psf).$sf_pfix; 
+                               
+                            //    var_dump(1);
+                            
+                               
+                // exact monthly rent
+                }elseif(!empty($lsp_monthly_rent)){
+                      $max_rent =  max($lsp_monthly_rent);
+                      $min_rent =  min($lsp_monthly_rent);
+                      $rent_pfix = '/monthly';
+                      $displaying_rent =  $max_rent == $min_rent ? $lable.'$'.trs_format_number($max_rent). $rent_pfix : 
+                                          $lable.'$'.trs_format_number($min_rent) .'-'.'$'. trs_format_number($max_rent).$rent_pfix; 
+                        //  var_dump(2);
+                // yearly rent
+                }elseif(!empty($lsp_price_per_sf_yr)){
+                    $max_sf_yr =  max($lsp_price_per_sf_yr);
+                    $min_sf_yr =  min($lsp_price_per_sf_yr);
+                    $sf_yr_pfix = '/SF per year';
+                    $displaying_sf_yr =  $max_sf_yr == $min_sf_yr ? $lable.'$'.trs_format_number($max_sf_yr). $sf_yr_pfix : 
+                                        $lable.'$'. trs_format_number($min_sf_yr) .'-'. '$'.trs_format_number($max_sf_yr).$sf_yr_pfix; 
+                        // var_dump(3);
+                }
+                
+                if($displaying_sf){
+                    echo $displaying_sf;
+                }
+                
+                if($displaying_rent){
+                    echo $displaying_rent;
+                }
+                if($displaying_sf_yr){
+                    
+                    echo $displaying_sf_yr;
+                }
+                
+                if(!$displaying_sf && !$displaying_rent && !$displaying_sf_yr){
+                    
+                    echo  $lable. 'Call For Price ';
+                }
             }
             
            

@@ -158,11 +158,11 @@ function tristate_cr_single_scripts()
         wp_enqueue_script('jquery');
     } */
 
+    wp_enqueue_script('single-scripts', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/js/frontend-scripts.js', array(), time(), true);
     wp_enqueue_script('jqueryui', '//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js', array(), '1.0.0', true);
-    //wp_enqueue_script('swiperjs', 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js', array(), '1.0.0', true);
+    wp_enqueue_script('swiperjs', 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js', array(), '1.0.0', true);
     wp_enqueue_script('select2js-script', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', array(), '1.0.0', true);
 
-    wp_enqueue_script('single-scripts', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/js/frontend-scripts.js', array(), time(), true);
    
 
     wp_enqueue_style('jqueryuicss', '//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css', array(), '1.0.0');
@@ -179,13 +179,10 @@ function tristate_cr_single_scripts()
 
    wp_enqueue_style('single-styles', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/css/frontend-styles.css', array(), time());
     wp_enqueue_style('allfontawesome', TRISTATECRLISTING_PLUGIN_URL . 'core/includes/assets/css/all.min.css', array(), '1.0.0');
-    //wp_enqueue_style('swipercss', 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.css', array(), '1.0.0');
+    wp_enqueue_style('swipercss', 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.css', array(), '1.0.0');
     
     
     if(is_single('properties') || is_singular('properties') ){
-        wp_enqueue_script('swiperjs', 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js', array(), '1.0.0', true);
-        wp_enqueue_style('swipercss', 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.css', array(), '1.0.0');
-    
          wp_enqueue_script('fancyboxjs', 'https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js', array(), '1.0.0', true);
         wp_enqueue_style('fancyboxcss', 'https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css', array(), '1.0.0');
     }
@@ -224,3 +221,5 @@ function tristatecr_single_property_googe_map($lat, $lng)
 
 <?php
 }
+
+

@@ -9,7 +9,7 @@
   --colorgreen: #00bf7a;
   --colorred: #cc6849;
   --coloryellow: #eebf47;
-  --bg-ligt: #f9f9f9;
+  --bg-ligt: #eeeeee91;
   --off-black: #515962;
   --off-black-v2: #c8c6c7;
 }
@@ -18,9 +18,7 @@
   margin: 0;
   padding: 0;
 }
-body.page-id-80575, body.single-properties_search {
-  background: #fff;
-}
+
 .bg-green {
   background: var(--colorgreen) !important;
 }
@@ -62,9 +60,11 @@ body.page-id-80575, body.single-properties_search {
 }
 
 .font-13 {
-  font-size: 13px;
+  font-size: 12px;
   margin-block-start: 0;
   margin-block-end: -0.1rem;
+  color: #333333;
+  font-weight: 500;
 }
 
 h1,
@@ -183,13 +183,15 @@ div#filter-wrapper {
 .Filterform input[type="text"], #map-layer-content select {
   padding: 0 8px;
   border: 1px solid rgba(25, 118, 210, 0.5) !important;
-  border-radius: 4px;
+  border-radius: 3px;
   transition: all 0.3s;
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
 }
-
+#map-layer-content select {
+  height: 26px;
+}
 .slider-box input[type="text"] {
   background: none;
   border: none !important;
@@ -342,7 +344,7 @@ ul {
   padding: 4px 12px;
   border-radius: 4px;
   color: var(--colorwhite);
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .ul-content li {
@@ -352,13 +354,14 @@ ul {
 }
 
 .ul-content li p {
+  font-weight: 600;
   margin: 0;
   font-family: "Poppins", sans-serif;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 ul.ul-features li span {
-  font-weight: 600;
+  font-weight: 400;
   font-family: "Poppins", sans-serif;
 }
 h4.lease-space-title {
@@ -369,7 +372,7 @@ h4.lease-space-title {
 .trimmed-control {
   background: var(--colorgreen);
   border-radius: 3px;
-  color: var(--bg-ligt);
+  color: var(--colorwhite);
   margin-left: 5px;
   line-height: 13px;
   display: block;
@@ -381,6 +384,8 @@ h4.lease-space-title {
 div#trimmed-container {
   margin: 5px 0;
   float: left;
+}
+div#trimmed-container h4 {
   margin-right: 10px;
 }
 #trimmed-container ul li {
@@ -389,9 +394,7 @@ div#trimmed-container {
   margin-bottom: 6px;
   margin-right: 6px;
 }
-#trimmed-container ul li:first-child {
-  margin-left: 5px;
-}
+
 .type_for_lease_listing {
   background: #184e78 !important;
   padding: 4px 12px;
@@ -420,19 +423,29 @@ div#trimmed-container {
 }
 
 .propertylisting-content {
-  width: 26%;
+  width: 29%;
   display: flex;
   flex-direction: column;
   /* justify-content: space-between; */
   gap: 10px;
 }
-
+.listing-not-found {
+  background: var(--colorred);
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 14px;
+}
 .column-one .propertylisting-content {
   width: 100%;
 }
 
 .column-two .propertylisting-content {
   width: 45%;
+}
+.fixed_navbar {
+  position: fixed;
+  top: 80px; /* Adjust to be below the header when fixed */
+  z-index: 1000; /* Ensure it stays above other content */
 }
 
 .plc-top {
@@ -442,8 +455,9 @@ div#trimmed-container {
 }
 
 .plc-top .description-container {
-  font-size: 14px;
+  font-size: 12px;
 }
+
 .plc-top .css-ajk2hm > .ul-content.ul-features {
   clear: both;
 }
@@ -457,15 +471,14 @@ div#trimmed-container {
 
 .propertylisting-content h4 {
   font-family: "Poppins", sans-serif;
-  font-size: 13px !important;
+  font-size: 10px !important;
   font-weight: 500 !important;
   margin: 0;
-  line-height: 1.2;
 }
 
 p.price {
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 13px;
 }
 
 .mobile-search-icon {
@@ -485,12 +498,10 @@ body.single-properties {
 .left-content {
   width: 26%;
   background: var(--bg-ligt);
-  position: sticky;
-  position: -webkit-sticky;
-  top: 90px;
   height: 100vh;
   z-index: 9;
   padding: 5px;
+  border-radius: 3px;
 }
 
 .right-content {
@@ -581,6 +592,7 @@ body.page-template.pojo-a11y-focusable .wrapper-site #wrapper-content #filter-wr
 
 .tristate-column-select select option {
   background: var(--colorwhite);
+  color: var(--colorblack);
 }
 
 div#search_count_area input {
@@ -596,7 +608,7 @@ div#search_count_area input {
 
 .slider-box {
   width: 100%;
-  padding: 0; 
+  padding: 0;
 }
 
 .slider-box label {
@@ -616,7 +628,7 @@ div#search_count_area input {
 .desc-less {
   padding: 3px 5px;
   line-height: 1;
-  font-size: 12px;
+  font-size: 10px;
   text-transform: uppercase;
   cursor: pointer;
   background-color: #fff;
@@ -629,7 +641,7 @@ div#search_count_area input {
 .desc-more {
   padding: 3px 5px;
   line-height: 1;
-  font-size: 12px;
+  font-size: 10px;
   text-transform: uppercase;
   cursor: pointer;
   background-color: #fff;
@@ -643,7 +655,7 @@ div#search_count_area input {
   background: var(--colorblue) !important;
   padding: 3px 5px;
   line-height: 1;
-  font-size: 12px;
+  font-size: 10px;
   text-transform: uppercase;
   cursor: pointer;
   border-radius: 3px;
@@ -654,7 +666,7 @@ div#search_count_area input {
   background: var(--colorblue) !important;
   padding: 3px 5px;
   line-height: 1;
-  font-size: 12px;
+  font-size: 10px;
   text-transform: uppercase;
   cursor: pointer;
   color: #fff;
@@ -683,7 +695,6 @@ div#sale_lease {
 div#for_sale,
 div#for_lease_monthly_rent {
   margin: 0 0 10px 0;
-  
 }
 
 div#for_lease {
@@ -1291,6 +1302,7 @@ ul.ul-disc {
   border: none !important;
   background: #cacaca;
   top: 10px;
+display: none;
 }
 
 .ui-slider-horizontal .ui-slider-range {
@@ -1300,7 +1312,6 @@ ul.ul-disc {
 .price-range-btm .MuiButton-colorPrimary,
 .MuiButton-colorPrimary,
 #submit_map_layer,
-#submit_new_map_layer,
 a.button {
   display: inline-flex;
   -webkit-box-align: center;
@@ -1333,7 +1344,7 @@ a.button {
     color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   border: 1px solid rgba(25, 118, 210, 0.5);
   color: rgb(25, 118, 210);
-  width: auto;
+  width: 100%;
 }
 .tcr-layer-footer {
   display: flex;
@@ -1344,7 +1355,17 @@ a.button {
 }
 
 .plc-bottom p.price {
-  margin-bottom: 12px;
+  margin-bottom: 5px;
+}
+
+.plc-bottom {
+  background: #eeeeee91;
+  padding: 10px;
+  border-radius: 3px;
+}
+
+.plc-bottom a {
+  align-self: flex-end;
 }
 
 button#save_map_layer {
@@ -1391,7 +1412,6 @@ a.button:hover {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 10000;
-  /* display: none; */
   pointer-events: auto;
 }
 
@@ -1532,7 +1552,6 @@ li.tab_last {
 #price-range, #price-range4, #price-range2 {
   display: none !important;
 }
-
 .price-range-btm .MuiBox-root {
   display: contents;
 }
@@ -1558,7 +1577,13 @@ li.tab_last {
 .price-range-btm>.MuiBox-root>div {
   width: 100%;
 }
+.ts-state-page.filter-wrapper .filter-search {
+  justify-content: flex-end;
+}
 
+.ts-state-page .price-range-btm>.MuiBox-root>div {
+  width: auto;
+}
 /* ------------Map Popups -------------- */
 #container {
   max-width: 1100px;
@@ -1684,7 +1709,7 @@ div.listings .listing--price {}
   display: none !important;
 }
 
-#bodyContent .firstHeading {
+.firstHeading {
   font-size: 16px !important;
   margin-bottom: 5px;
   line-height: 1.2;
@@ -1699,7 +1724,7 @@ div.listings .listing--price {}
   font-weight: bold;
 }
 
-#bodyContent  .secondHeading {
+.secondHeading {
   font-size: 18px;
   margin-bottom: 0;
   line-height: 1.2;
@@ -1715,14 +1740,7 @@ div.listings .listing--price {}
   background-color: rgba(204, 104, 73, 0.7) !important;
 }
 
-
-#bodyContent {
-  font-size: 14px;
-  line-height: 1.2;
-  display: flex;
-  gap: 5px;
-}
-#bodyContent .thirdHeading {
+.thirdHeading {
   margin-bottom: 10px;
   line-height: 1.2;
   position: absolute;
@@ -1731,6 +1749,13 @@ div.listings .listing--price {}
   color: #fff;
   font-size: 14px;
   padding: 5px 8px;
+}
+
+#bodyContent {
+  font-size: 14px;
+  line-height: 1.2;
+  display: flex;
+  gap: 5px;
 }
 
 #bodyContent img {
@@ -1749,7 +1774,6 @@ div.listings .listing--price {}
   font-family: "Poppins", sans-serif;
   color: #848484;
   margin: 0;
-  line-height: 1.5;
 }
 
 #bodyContent .listing-more {
@@ -1944,6 +1968,7 @@ button:hover {
 
 .ts-state-page.filter-wrapper .MuiBox-root .propertylisting-content {
   width: 100%;
+  overflow: hidden;
 }
 
 .ts-state-page.filter-wrapper .MuiBox-root .propertylisting-content a {
@@ -1960,7 +1985,7 @@ button:hover {
 .ts-state-page.filter-wrapper .MuiBox-root .lisiting-feature-img {
   display: block !important;
   float: left;
-  width: 100%;
+  width: 30%;
   line-height: 0;
   position: relative;
 }
@@ -2123,14 +2148,12 @@ a.button {
   padding-right: 15%;
   /* box-shadow: 0px 3px 4px 0 #cdcdcd; */
 }
-.ts-state-page.filter-wrapper .filter-search {
-  justify-content: flex-end;
-}
 .ts-state-page .right-content {
-  margin-top: 105px;
+  margin-top: 92px;
 }
 .ts-state-page #for_lease {
   margin-top: 14px;
+  margin-bottom: 0;
 }
 .close-icon {
   position: absolute;
@@ -2402,8 +2425,6 @@ body.single-properties_search #container a.button:hover {
   /* background: #c36 !important; */
   color: #fff;
 }
-
-
 /* Devs Code */
 #propertylisting-content a {
   text-decoration: none;
