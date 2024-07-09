@@ -8,11 +8,10 @@ $title          = meta_of_api_sheet($ID, 'sale_listing_web_title');
 $subtitle       = implode(', ', array(meta_of_api_sheet($ID, 'city'), meta_of_api_sheet($ID, 'county'), meta_of_api_sheet($ID, 'state')));
 
 $property_use_type = get_post_meta($ID,'_buildout_property_type_id',true);
-$property_use_subtype = get_post_meta($ID,'_buildout_property_subtype_id',true);
-$additional_property_subtype_ids = get_post_meta($ID,'_buildout_additional_property_subtype_ids',true);
+$propert_use_subtype = get_post_meta($ID,'_buildout_property_subtype_id',true);
 
 $property_use_type_name = get_usesname_by_propertyID($property_use_type);
-$property_use_sub_type_name =get_uses_name_subtype_by_id($property_use_subtype);
+$property_use_sub_type_name =get_usename_subtype($propert_use_subtype);
 
 
 if($property_use_type_name && $property_use_sub_type_name ){
@@ -24,11 +23,8 @@ if($property_use_type_name && $property_use_sub_type_name ){
 }
 
 
-
-
 $badges         = array(
                     'use' =>$use_str ?? '',
-                    'additional_use' => $additional_property_subtype_ids,
                     'type' =>  ($buildout_lease == '1' && $buildout_sale == '1') ? 'for Lease' :
                     (($buildout_lease == '1') ? 'for Lease' :
                     (($buildout_sale == '1') ? 'for Sale' : false)),
@@ -425,10 +421,6 @@ if($args['state']) { ?>
                                 case 'use':
                                     $class = 'tri_use bg-blue';
                                     break;
-                                case 'additional_use' :
-                                    $class = 'tri_use bg-blue';
-                                    break;
-                                
                                 case 'type':
                                     if($value == 'for Lease'){
                                         $class = 'tri_for_lease btn-forlease';
@@ -459,35 +451,10 @@ if($args['state']) { ?>
                                 default:
                                     $class = '';
                             }
-                            
-                            if($key == 'additional_use'){
-                            
-                                if(!empty($value)){
-                                    foreach($value as $v){
-                                        $primary_uses = get_usesname_subtype_by_id($v);
-                                        $secondary_use = get_uses_name_subtype_by_id($v);
-                                        if($secondary_use){
-                                       //     echo '<li class="' . $class . '"><span>' . $primary_uses.' ,,' . $secondary_use. '</span></li>';
-                                            echo '<li class="' . $class . '"><span>' . $primary_uses.'/' . $secondary_use. '</span></li>';
-                                        }
-                                       
-                                    }
-                                }
-                            
-                            }else{
-                                //echo '<li style="display:none;" class="' . $class . '"><span>' . $value . ',,</span></li>';
-                                echo '<li class="' . $class . '"><span>' . $value . '</span></li>';
-                            }
-                            
-                          
-                            
+                            echo '<li class="' . $class . '"><span>' . $value . '</span></li>';
                         }
                     }
-                   
-                   
                 }
-               
-                
                 ?>
 
 
@@ -510,7 +477,7 @@ if($args['state']) { ?>
              $lsp_price_per_sf_yr=[];
             if(!empty($l_meta)  && $formatted_type == 'forlease'){
                $all_units_count = count($l_meta);
-               echo '<div class="trimmed-unit">';
+               echo '<div class="trimmed-unit" data-allUnits="'.$all_units_count.'">';
                 $counter =1;
                 foreach($l_meta as $l){
                     $query = $wpdb->prepare(
@@ -534,16 +501,16 @@ if($args['state']) { ?>
                    
                 
                 ?>
-                <div id="trimmed-container" class="trimmed-unit-<?php echo $counter ?>">
+                <div id="trimmed-container-<?php echo $counter ?>" class="trimmed-container">
                     <h4 class="lease-space-title" style="cursor:pointer;">Unit <?=$counter ?><?=$plusSpan; ?></h4>
-                    <ul class="ul-content ul-features" style="<?=$display?>">
+                    <ul class="ul-content ul-features units-contents" style="<?=$display?>">
                         <?php 
                         if(!empty($title)) : 
                             echo "<li><p>Title: <span>$title</span></p></li>";
                          endif; 
                          
                         if(!empty($price)) :
-                            
+                            $attrclass = '';
                             if($price_units == 'dollars_per_sf_per_year'){
                                 $postfix = '/SF per year';
                                 $attr = 'data-unit_per_sf';
@@ -552,6 +519,7 @@ if($args['state']) { ?>
                                 $postfix = '/SF per month';
                                 $attr = 'data-unit_sf_month';
                                 $lsp_price_per_sf[] = $price;
+                                
                             }elseif($price_units == 'dollars_per_month'){
                                 $postfix = '/per month';
                                 $attr = 'data-unit_per_sf';
@@ -561,7 +529,7 @@ if($args['state']) { ?>
                                 $attr = 'data-nothing';
                             }
                             $price_with_postfix = '$'.trs_format_number($price).$postfix;//kk
-                            echo "<li><p>Price: <span $attr='".$price."'>$price_with_postfix</span></p></li>";
+                            echo "<li><p>Price: <span class='price-span $price_units' $attr='".$price."'>$price_with_postfix</span></p></li>";
                         endif;
                         
                         if($size) :
@@ -571,7 +539,7 @@ if($args['state']) { ?>
                                 $pfix = '';
                             }
                             $size_pfix = trs_format_number($size) . ' ' . $pfix;
-                            echo "<li><p>Size: <span data-unit_size='".$size."'>$size_pfix</span></p></li>";
+                            echo "<li><p>Size: <span class='size-span' data-unit_size='".$size."'>$size_pfix</span></p></li>";
                         endif;
                         // if($lease_type_name):
                         //     echo "<li class='tri_use'><p>Type: <span>$lease_type_name</span></p></li>";

@@ -127,6 +127,7 @@ function get_infowindow_html(markerInfo, currentIndex = 0, totalMarkers = 1) {
 
 
 function get_markerData(fromId=true ,id){
+  var statePageCheck = jQuery(document).find('.filter-wrapper').hasClass('ts-state-page');
   markers.forEach(function(marker) {
     marker.setMap(null); 
   });
@@ -142,7 +143,7 @@ function get_markerData(fromId=true ,id){
   
       var markerIcon = {
         url: markerInfo.imgIcon,
-        scaledSize: new google.maps.Size(38, 38) // Adjust the size as per your requirement
+        scaledSize: statePageCheck ? new google.maps.Size(50, 50) : new google.maps.Size(38, 38) // Adjust the size as per your requirement
       };
       
       var marker = new google.maps.Marker({

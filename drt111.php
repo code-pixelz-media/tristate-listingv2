@@ -1210,7 +1210,6 @@ function drt_shortcode($_atts)
       // Extract unique values from the HTML for select2 options
       var agents = new Set();
       var uses = new Set();
-      // var subtype = new Set();
       var neighborhoods = new Set();
       var zipcodes = new Set();
       var cities = new Set();
@@ -1219,14 +1218,7 @@ function drt_shortcode($_atts)
 
       $(".propertylisting-content").each(function() {
         agents.add($(this).find("#tri_listing_agent").text().trim());
-       // uses.add($(this).find(".tri_use").text().trim());
-    //    uses.add($(this).find(".tri_use").text().trim());
-    //upload
-        $(".tri_use").each(function() {
-          uses.add($(this).text().trim());
-            });
-    //upload 
-        // subtype.add($(this).find(".tri_use_subtype").text().trim())
+        uses.add($(this).find(".tri_use").text().trim());
         neighborhoods.add($(this).find("#tri_neighborhood").text().trim());
         zipcodes.add($(this).find("#tri_zip_code").text().trim());
         cities.add($(this).find("#tri_city").text().trim());
@@ -1445,7 +1437,6 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
           // Fetch all selected options for each criterion
           const selectedAgents = getSelectedOptions('#select2-select2_agents-container');
           const selectedUses = getSelectedOptions('#select2-select2_uses-container');
-          
           const selectedNeighborhoods = getSelectedOptions('#select2-select2_neighborhoods-container');
           const selectedZipcodes = getSelectedOptions('#select2-select2_zipcodes-container');
           const selectedCities = getSelectedOptions('#select2-select2_cities-container');
@@ -1455,10 +1446,6 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
           // Get the respective fields from the listing
           const listingAgent = $listing.find("#tri_listing_agent").text().trim();
           const listingUse = $listing.find(".tri_use").text().trim();
-          //upload
-          const listingUses = $listing.find(".tri_use").map(function() { return $(this).text().trim(); }).get();
-          //upload
-          
           const listingNeighborhood = $listing.find("#tri_neighborhood").text().trim();
           const listingZipcode = $listing.find("#tri_zip_code").text().trim();
           const listingCity = $listing.find("#tri_city").text().trim();
@@ -1496,14 +1483,10 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
 
           /* multiple agents select working end */
 
-          if (selectedUses.length > 0 && !selectedUses.some(use => listingUses.includes(use))) {
+
+          if (selectedUses.length > 0 && !selectedUses.includes(listingUse)) {
             showListing = false;
           }
-
-          // if (selectedUses.length > 0 && !selectedUses.includes(listingUse)) {
-          //   showListing = false;
-            
-          // }
 
           if (selectedNeighborhoods.length > 0 && !selectedNeighborhoods.includes(listingNeighborhood)) {
             showListing = false;
@@ -1799,15 +1782,7 @@ if (showListing) {
           });
 
           // Add other filter values to respective sets
-          // filterValues.uses.add($(this).find(".tri_use").text().trim());
-          ////upload
-          $(".tri_use").each(function() {
-              // uses.add($(this).text().trim());
-              filterValues.uses.add($(this).text().trim());
-            });
-            //upload
-          
-          //filterValues.uses.add($(this).find(".tri_use").text().trim());
+          filterValues.uses.add($(this).find(".tri_use").text().trim());
           filterValues.neighborhoods.add($(this).find("#tri_neighborhood").text().trim());
           filterValues.zipcodes.add($(this).find("#tri_zip_code").text().trim());
           filterValues.cities.add($(this).find("#tri_city").text().trim());
@@ -1817,7 +1792,6 @@ if (showListing) {
 
         // Iterate through each filter value set
         $.each(filterValues, function(key, values) {
-
           if (key !== changedSelect) {
             var select = $('#select2_' + key);
             var options = select.find('option');
@@ -2161,30 +2135,64 @@ if (showListing) {
         filterListings();
     }); */
 
-
-
-    function setEmptyFieldsToZero() {
-    $('#rent-range-min, #size-range-min, #size-range-max, #rent-range-max, #month-rent-range-min, #month-rent-range-max, #price-range-min, #price-range-max').each(function() {
-        if ($(this).val() === '') {
-            $(this).val(0);
-        }
-    });
-}
-
-$('#rent-range-min, #size-range-min, #size-range-max, #rent-range-max, #month-rent-range-min, #month-rent-range-max, #price-range-min, #price-range-max').on('blur', function() {
-    setEmptyFieldsToZero(); 
-});
-
     let timeoutId;
 
-$('#rent-range-min, #rent-range-max,#size-range-min, #size-range-max,#month-rent-range-min, #month-rent-range-max,#price-range-min,#price-range-max').on('input change', function() {
+$('#rent-range-min, #rent-range-max,#size-range-min, #size-range-max,#month-rent-range-min, #month-rent-range-max').on('change', function() {
     clearTimeout(timeoutId); // Clear any existing timeout
 
     timeoutId = setTimeout(function() {
         filterListings();
-    }, 250); // Delay in milliseconds 550
-});
+        
 
+    }, 250); // Delay in milliseconds 550
+    
+    var id = $(this).prop('id');
+    
+    if (id === 'rent-range-min' || id === 'rent-range-max') {
+      showHideUnits('#rent-range-min', '#rent-range-max', '.price-span[data-unit_sf_month]', 'data-unit_sf_month');
+    }
+    
+    if (id === 'month-rent-range-min' || id === 'month-rent-range-max') {
+      showHideUnits('#month-rent-range-min', '#month-rent-range-max', '.price-span[data-unit_per_sf]', 'data-unit_per_sf');
+    }
+    
+    if (id === 'size-range-min' || id === 'size-range-max') {
+      showHideUnits('#size-range-min', '#size-range-max', '.size-span[data-unit_size]', 'data-unit_size');
+    }
+    
+   });
+   
+   
+   function showHideUnits(minSelector, maxSelector, spanSelector, dataAttr) {
+    var max_val = parseInt($(maxSelector).val().replace(/[^0-9]/g, ''));
+    var min_val = parseInt($(minSelector).val().replace(/[^0-9]/g, ''));
+
+    console.log("minSelector:", minSelector, "maxSelector:", maxSelector, "spanSelector:", spanSelector, "dataAttr:", dataAttr);
+    console.log("min_val:", min_val, "max_val:", max_val);
+
+    $('.propertylisting-content:visible').each(function() {
+        var $unitsContents = $(this).find('.units-contents');
+        $unitsContents.each(function() {
+            var $span = $(this).find(spanSelector);
+            console.log("Found spans:", $span.length);
+            
+            if ($span.length) {
+                var unitValue = parseInt($span.attr(dataAttr));
+              
+                if (unitValue >= min_val && unitValue <= max_val) {
+                    $(this).css('display', 'block');
+                    $(this).siblings('.lease-space-title').find('.trimmed-control').text('-');
+                } else {
+                    $(this).css('display', 'none');
+                    $(this).siblings('.lease-space-title').find('.trimmed-control').text('+');
+                }
+            } else {
+                $(this).css('display', 'block');
+                $(this).siblings('.lease-space-title').find('.trimmed-control').text('+');
+            }
+        });
+    });
+}
 
  /*    $('').on('input', function() {
       filterListings();
@@ -2232,6 +2240,95 @@ $('#rent-range-min, #rent-range-max,#size-range-min, #size-range-max,#month-rent
 
   return ob_get_clean();
 }
+
+
+function get_usesname_by_propertyID($propertyTypeID)
+{
+
+
+  switch ($propertyTypeID) {
+    case "1":
+      $property_uses_name = 'Office';
+      break;
+    case "2":
+      $property_uses_name = 'Retail';
+      break;
+    case "3":
+      $property_uses_name = 'Industrial';
+      break;
+    case "5":
+      $property_uses_name = 'Land';
+      break;
+    case "6":
+      $property_uses_name = 'Multifamily';
+      break;
+    case "7":
+      $property_uses_name = 'Special Purpose';
+      break;
+    case "8":
+      $property_uses_name = 'Hospitality';
+      break;
+    default:
+      $property_uses_name = false;
+  }
+
+  return $property_uses_name;
+}
+function get_usename_subtype($property_subtype_id)
+{
+
+  switch ($property_subtype_id) {
+    case "201":
+      $property_uses_subtype = 'Street Retail';
+      break;
+    case "202":
+      $property_uses_subtype = 'Strip Center';
+      break;
+    case "203":
+      $property_uses_subtype = 'Free Standing Building';
+      break;
+    case "204":
+      $property_uses_subtype = 'Regional Mall';
+      break;
+    case "205":
+      $property_uses_subtype = 'Retail Pad';
+      break;
+    case "206":
+      $property_uses_subtype = 'Vehicle Related';
+      break;
+    case "207":
+      $property_uses_subtype = 'Outlet Center';
+      break;
+    case "208":
+      $property_uses_subtype = 'Power Center';
+      break;
+    case "209":
+      $property_uses_subtype = 'Neighborhood Center';
+      break;
+    case "210":
+      $property_uses_subtype = 'Community Center';
+      break;
+    case "211":
+      $property_uses_subtype = 'Specialty Center';
+      break;
+    case "212":
+      $property_uses_subtype = 'Theme/Festival Center';
+      break;
+    case "213":
+      $property_uses_subtype = 'Restaurant';
+      break;
+    case "214":
+      $property_uses_subtype = 'Post Office';
+      break;
+    case "216":
+      $property_uses_subtype = 'Lifestyle Center';
+      break;
+    default:
+      $property_uses_subtype = false;
+  }
+
+  return $property_uses_subtype;
+}   
 
 
 function trs_format_number($number) {

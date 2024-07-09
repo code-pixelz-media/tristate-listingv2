@@ -381,14 +381,14 @@ h4.lease-space-title {
   height: 12px;
   float: right;
 }
-div#trimmed-container {
+div.trimmed-container {
   margin: 5px 0;
   float: left;
 }
-div#trimmed-container h4 {
+div.trimmed-container h4 {
   margin-right: 10px;
 }
-#trimmed-container ul li {
+.trimmed-container ul li {
   float: left;
   line-height: 1;
   margin-bottom: 6px;
@@ -416,6 +416,7 @@ div#trimmed-container h4 {
 .property-list-wrapper {
   margin: 20px 0;
   color: var(--colorblack);
+  min-height: 350px;
 }
 
 .property-filter-wrapper {
@@ -2419,6 +2420,7 @@ a.button {
   gap: 10px;
   justify-content: space-between;
   width: 100%;
+  flex-direction: column;
 }
 
 body.single-properties_search #container a.button:hover {

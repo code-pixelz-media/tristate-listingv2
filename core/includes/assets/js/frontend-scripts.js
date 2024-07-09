@@ -550,7 +550,12 @@ jQuery(document).ready(function () {
   });
   
   jQuery('.propertylisting-content').each(function(){
-    jQuery(this).wrap('<a href="'+ jQuery(this).data('permalink')+'"></a>');
+    // jQuery(this).wrap('<a href="'+ jQuery(this).data('permalink')+'"></a>');
+    jQuery(this).on('click',function(){
+      window.location = jQuery(this).data('permalink'); 
+      return false;
+    });
+    
   });
 }
 

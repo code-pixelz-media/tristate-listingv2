@@ -299,14 +299,6 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
             $deal_stat = $ed['deal_status'];
             $lease_title= 'false';
             
-            if(!empty($ed['lease_address'])){
-                $lease_title = $ed['lease_address'];
-                
-                if($ed['space_size_units']== 'sf' && !empty($ed['size_sf'])){
-                    
-                    $lease_title .= ' '. number_format($ed['size_sf']) . 'SF';
-                } 
-            }
             $existing_record = $wpdb->get_row($wpdb->prepare(
                 "SELECT * FROM $space_tbl WHERE lease_id = %d ",
                 (int) $ed['lease_id']
@@ -347,7 +339,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
             
                 NEW_np_log("Found Changes In Lease Space #$lease_id  validating checksum...\n");
                 $update_id = (int) $existing_record->id;
-                $checksum_check =  $existing_record->leasechecksum == $ed['leasechecksum'];
+                $checksum_check =  $existing_record->leasechecksum !== $ed['leasechecksum'];
                 
                 if(!is_null($update_id) && $checksum_check){
                     NEW_np_log("Checksum not matached.Updating #$update_id  for #{$ed['lease_id']}\n");

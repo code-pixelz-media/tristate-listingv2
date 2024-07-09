@@ -75,6 +75,9 @@ require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tristatecr-rest-api.php';
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tristatecr-deactivate.php';   
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/includes/classes/class-tristatecr-listing-cpt-menus.php'; 
 
+//upload
+require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tristatecr-api-functions.php'; 
+
 if (class_exists('Tristatecr_Listing_Cpt_Menus')) {
     $tristatecr_listing_cpt_menus = new Tristatecr_Listing_Cpt_Menus();
 }
