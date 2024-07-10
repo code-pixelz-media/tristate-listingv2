@@ -299,6 +299,14 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
             $deal_stat = $ed['deal_status'];
             $lease_title= 'false';
             
+            if(!empty($ed['lease_address'])){
+                $lease_title = $ed['lease_address'];
+                
+                if($ed['space_size_units']== 'sf' && !empty($ed['size_sf'])){
+                    
+                    $lease_title .= ' '. number_format($ed['size_sf']) . 'SF';
+                } 
+            }
             $existing_record = $wpdb->get_row($wpdb->prepare(
                 "SELECT * FROM $space_tbl WHERE lease_id = %d ",
                 (int) $ed['lease_id']
@@ -974,8 +982,8 @@ function new_np_process_google_csv_item_meta($data = null)
 add_filter('cron_schedules', 'tristatecr_syncapi_cron_schedules');
 function tristatecr_syncapi_cron_schedules($schedules) {
     $schedules['every_two_days'] = array(
-        'interval' => 2 * DAY_IN_SECONDS,
-        'display'  => __('Every Two days'),
+        'interval' => 5 * HOUR_IN_SECONDS,
+        'display'  => __('Every Five Hours'),
     );
     return $schedules;
 }

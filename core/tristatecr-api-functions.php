@@ -254,3 +254,5 @@ function get_usename_subtype($property_subtype_id)
 
   return $property_uses_subtype;
 }   
+
+

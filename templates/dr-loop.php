@@ -427,8 +427,7 @@ if($args['state']) { ?>
                                     break;
                                 case 'additional_use' :
                                     $class = 'tri_use bg-blue';
-                                    break;
-                                
+                                break;
                                 case 'type':
                                     if($value == 'for Lease'){
                                         $class = 'tri_for_lease btn-forlease';
@@ -459,15 +458,14 @@ if($args['state']) { ?>
                                 default:
                                     $class = '';
                             }
-                            
-                            if($key == 'additional_use'){
+                            if( $key == 'additional_use'){
                             
                                 if(!empty($value)){
                                     foreach($value as $v){
                                         $primary_uses = get_usesname_subtype_by_id($v);
                                         $secondary_use = get_uses_name_subtype_by_id($v);
                                         if($secondary_use){
-                                       //     echo '<li class="' . $class . '"><span>' . $primary_uses.' ,,' . $secondary_use. '</span></li>';
+                                    
                                             echo '<li class="' . $class . '"><span>' . $primary_uses.'/' . $secondary_use. '</span></li>';
                                         }
                                        
@@ -475,19 +473,12 @@ if($args['state']) { ?>
                                 }
                             
                             }else{
-                                //echo '<li style="display:none;" class="' . $class . '"><span>' . $value . ',,</span></li>';
+                              
                                 echo '<li class="' . $class . '"><span>' . $value . '</span></li>';
                             }
-                            
-                          
-                            
                         }
                     }
-                   
-                   
                 }
-               
-                
                 ?>
 
 
@@ -520,7 +511,7 @@ if($args['state']) { ?>
                     $lsp = $wpdb->get_row($query, ARRAY_A);
                     
                     $lease_type = $lsp['space_type_id'];
-                    $lease_type_name =  get_leasetype_name_by_id($lease_type);
+                    // $lease_type_name =  get_leasetype_name_by_id($lease_type);
     
                     $title = $lsp['lease_address'];
                     $price_units = $lsp['lease_rate_units'];

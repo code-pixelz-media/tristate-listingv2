@@ -60,8 +60,6 @@ $buildout_sale_highlights            = get_post_meta($ID, '_buildout_sale_bullet
 $buildout_lease_bullets_highlights            = get_post_meta($ID, '_buildout_lease_bullets', true);
 $_buildout_documents          = get_post_meta($ID, '_buildout_documents', true);
 
-$property_img_gallerys = get_post_meta($ID, '_buildout_photos', true);
-
 $lat               = get_post_meta($ID, '_buildout_latitude', true);
 $lng               = get_post_meta($ID, '_buildout_longitude', true);
 
@@ -81,7 +79,10 @@ $final_space_size_text = trim($fspace_size_text);
 
 $doc_link = $_buildout_documents[0]->url;
 $doc_name = $_buildout_documents[0]->name;
-// var_dump('332190876',$price);
+
+
+
+
 
 /* ---------------------End of Meta Keys------------------------- */
 
@@ -95,20 +96,15 @@ $doc_name = $_buildout_documents[0]->name;
       </div>
 
       <?php if ($_type == 'for Sale') {
-      if(!empty($price)){
         echo ' <div class="haeder_left tristate_cr_col_4 text-right">
-        <h2 class="h2">$'.trs_format_number($price) . '</h2>
+        <h2 class="h2">$'.$price . '</h2>
         <h3>Sale Price</h3>
       </div>';
-      }
-        
       } elseif ($_type == 'for lease' || $_type == 'for Lease') {
-      if(!empty($price)){
         echo ' <div class="haeder_left tristate_cr_col_4 text-right">
-          <h2 class="h2">$'.trs_format_number($price) . '</h2>
-          <h3>Lease Rate</h3>
-        </div>';
-      }
+        <h2 class="h2">$'.$price . '</h2>
+        <h3>Lease Rate</h3>
+      </div>';
       } else {
         echo ' <div class="haeder_left tristate_cr_col_4 text-right">
         <h2 class="h2">Call: 215-300-9688 </h2>

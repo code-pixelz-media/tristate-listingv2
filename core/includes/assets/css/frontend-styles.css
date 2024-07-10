@@ -381,14 +381,14 @@ h4.lease-space-title {
   height: 12px;
   float: right;
 }
-div.trimmed-container {
+div#trimmed-container {
   margin: 5px 0;
   float: left;
 }
-div.trimmed-container h4 {
+div#trimmed-container h4 {
   margin-right: 10px;
 }
-.trimmed-container ul li {
+#trimmed-container ul li {
   float: left;
   line-height: 1;
   margin-bottom: 6px;
@@ -913,9 +913,9 @@ ul.tcr_tabs li.active {
   object-fit: cover;
 }
 
-.gallery-thumbs .swiper-slide-active,
-.gallery-thumbs1 .swiper-slide-active,
-.tcr_tab_wrapper .mySwiper2 swiper-slide.swiper-slide-active {
+.gallery-thumbs .swiper-slide-thumb-active,
+.gallery-thumbs1 .swiper-slide-thumb-active,
+.tcr_tab_wrapper .mySwiper2 swiper-slide.swiper-slide-thumb-active {
   opacity: 1;
 }
 
@@ -1113,7 +1113,7 @@ table.spaces-table tbody>tr:nth-child(odd)>th {
 
 .right-header h2 {
   margin: 0;
-  color: var(--bg-ligt);
+  color: var(--colorwhite);
 }
 
 .tcr_members_wrapper {

@@ -1210,23 +1210,17 @@ function drt_shortcode($_atts)
       // Extract unique values from the HTML for select2 options
       var agents = new Set();
       var uses = new Set();
-      // var subtype = new Set();
       var neighborhoods = new Set();
       var zipcodes = new Set();
       var cities = new Set();
       var states = new Set();
-      var vented = new Set();
+      var vented = new Set(); 
 
       $(".propertylisting-content").each(function() {
         agents.add($(this).find("#tri_listing_agent").text().trim());
-       // uses.add($(this).find(".tri_use").text().trim());
-    //    uses.add($(this).find(".tri_use").text().trim());
-    //upload
         $(".tri_use").each(function() {
           uses.add($(this).text().trim());
-            });
-    //upload 
-        // subtype.add($(this).find(".tri_use_subtype").text().trim())
+        });
         neighborhoods.add($(this).find("#tri_neighborhood").text().trim());
         zipcodes.add($(this).find("#tri_zip_code").text().trim());
         cities.add($(this).find("#tri_city").text().trim());
@@ -1403,8 +1397,8 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
 
 
 
-    let minPrice = parseFloat($('#rent-range-min').val().replace(/[$,]/g, '')) || 0;
-    let maxPrice = parseFloat($('#rent-range-max').val().replace(/[$,]/g, '')) || Infinity;
+/*     let minPrice = parseFloat($('#rent-range-min').val().replace(/[$,]/g, '')) || 0;
+    let maxPrice = parseFloat($('#rent-range-max').val().replace(/[$,]/g, '')) || Infinity; */
    
    // let minSize = parseFloat($('#size-range-min').val().replace(/[,]/g, '')) || 0;
    let minSizeValue = $('#size-range-min').val().replace(/[,SF]/g, '').trim();
@@ -1417,7 +1411,13 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
     let minRent = parseInt($('#month-rent-range-min').val().replace(/\D/g, '')) || 0;
     let maxRent = parseInt($('#month-rent-range-max').val().replace(/\D/g, '')) || Infinity;
 
-    let unitPrice = parseFloat($listing.data('pricesf')); //unit_per_sf
+
+    let minPrice = parseInt($('#rent-range-min').val().replace(/\D/g, '')) || 0;
+    let maxPrice = parseInt($('#rent-range-max').val().replace(/\D/g, '')) || Infinity;
+
+
+   // let unitPrice = parseFloat($listing.data('pricesf')); //unit_per_sf
+   let unitPrice = parseInt($listing.data('pricesf')); //unit_per_sf
     //let unitSize = parseFloat($listing.data('unit_size'));
     let unitSize = parseFloat($listing.data('maxsizesf'));
     var propertyMaxRent = parseInt($listing.data('maxrent'));
@@ -1445,7 +1445,6 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
           // Fetch all selected options for each criterion
           const selectedAgents = getSelectedOptions('#select2-select2_agents-container');
           const selectedUses = getSelectedOptions('#select2-select2_uses-container');
-          
           const selectedNeighborhoods = getSelectedOptions('#select2-select2_neighborhoods-container');
           const selectedZipcodes = getSelectedOptions('#select2-select2_zipcodes-container');
           const selectedCities = getSelectedOptions('#select2-select2_cities-container');
@@ -1454,11 +1453,7 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
 
           // Get the respective fields from the listing
           const listingAgent = $listing.find("#tri_listing_agent").text().trim();
-          const listingUse = $listing.find(".tri_use").text().trim();
-          //upload
-          const listingUses = $listing.find(".tri_use").map(function() { return $(this).text().trim(); }).get();
-          //upload
-          
+          const listingUse =$listing.find(".tri_use").map(function() { return $(this).text().trim(); }).get();
           const listingNeighborhood = $listing.find("#tri_neighborhood").text().trim();
           const listingZipcode = $listing.find("#tri_zip_code").text().trim();
           const listingCity = $listing.find("#tri_city").text().trim();
@@ -1496,14 +1491,13 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
 
           /* multiple agents select working end */
 
-          if (selectedUses.length > 0 && !selectedUses.some(use => listingUses.includes(use))) {
-            showListing = false;
-          }
 
           // if (selectedUses.length > 0 && !selectedUses.includes(listingUse)) {
           //   showListing = false;
-            
           // }
+          if (selectedUses.length > 0 && !selectedUses.some(use => listingUse.includes(use))) {
+            showListing = false;
+          }
 
           if (selectedNeighborhoods.length > 0 && !selectedNeighborhoods.includes(listingNeighborhood)) {
             showListing = false;
@@ -1574,12 +1568,27 @@ if(minSize > 0 && maxSize ==0){
     if (maxRent > 0 && !(propertyMaxRent !== 0 && (maxRent === Infinity || (propertyMaxRent >= minRent && propertyMaxRent <= maxRent)) || maxRent === 0)) {
         showListing = false;
     }
-
+/* 
     if (maxSalePrice > 0 && !(salePrice >= minSalePrice && (maxSalePrice === Infinity || salePrice <= maxSalePrice) || maxSalePrice === 0)) {
         showListing = false;
     }
 
     if (maxPrice > 0 && !(unitPrice >= minPrice && (maxPrice === Infinity || unitPrice <= maxPrice) || maxPrice === 0)) {
+        showListing = false;
+    } */
+
+if(maxPrice === Infinity ){
+  maxPrice = "0";
+}
+    if (maxPrice > 0 && !(unitPrice !== 0 && (maxPrice === Infinity || (unitPrice >= minPrice && unitPrice <= maxPrice)) || maxPrice === 0)) {
+        showListing = false;
+    }
+
+
+    if(maxSalePrice === Infinity ){
+      maxSalePrice = "0";
+}
+    if (maxSalePrice > 0 && !(salePrice !== 0 && (maxSalePrice === Infinity || (salePrice >= minSalePrice && salePrice <= maxSalePrice)) || maxSalePrice === 0)) {
         showListing = false;
     }
 
@@ -1600,13 +1609,22 @@ if(minSize > 0 && maxSize ==0){
         showListing = false;
     }
 
-    if (maxSalePrice > 0 && !(salePrice >= minSalePrice && (maxSalePrice === Infinity || salePrice <= maxSalePrice) || maxSalePrice === 0)) {
+    // if (maxSalePrice > 0 && !(salePrice >= minSalePrice && (maxSalePrice === Infinity || salePrice <= maxSalePrice) || maxSalePrice === 0)) {
+    //     showListing = false;
+    // }
+
+    // if (maxPrice > 0 && !(unitPrice >= minPrice && (maxPrice === Infinity || unitPrice <= maxPrice) || maxPrice === 0)) {
+    //     showListing = false;
+    // }
+
+    if (maxSalePrice > 0 && !(salePrice !== 0 && (maxSalePrice === Infinity || (salePrice >= minSalePrice && salePrice <= maxSalePrice)) || maxSalePrice === 0)) {
         showListing = false;
     }
 
-    if (maxPrice > 0 && !(unitPrice >= minPrice && (maxPrice === Infinity || unitPrice <= maxPrice) || maxPrice === 0)) {
+    if (maxPrice > 0 && !(unitPrice !== 0 && (maxPrice === Infinity || (unitPrice >= minPrice && unitPrice <= maxPrice)) || maxPrice === 0)) {
         showListing = false;
     }
+
     }
 });
   
@@ -1797,17 +1815,14 @@ if (showListing) {
           agentsArray.forEach(function(agent) {
             filterValues.agents.add(agent);
           });
-
+/* 
           // Add other filter values to respective sets
-          // filterValues.uses.add($(this).find(".tri_use").text().trim());
-          ////upload
           $(".tri_use").each(function() {
-              // uses.add($(this).text().trim());
               filterValues.uses.add($(this).text().trim());
-            });
-            //upload
-          
-          //filterValues.uses.add($(this).find(".tri_use").text().trim());
+          }); */
+          $(this).find(".tri_use").each(function() {
+        filterValues.uses.add($(this).text().trim());
+      });
           filterValues.neighborhoods.add($(this).find("#tri_neighborhood").text().trim());
           filterValues.zipcodes.add($(this).find("#tri_zip_code").text().trim());
           filterValues.cities.add($(this).find("#tri_city").text().trim());
@@ -1817,7 +1832,6 @@ if (showListing) {
 
         // Iterate through each filter value set
         $.each(filterValues, function(key, values) {
-
           if (key !== changedSelect) {
             var select = $('#select2_' + key);
             var options = select.find('option');
@@ -2165,8 +2179,22 @@ if (showListing) {
 
     function setEmptyFieldsToZero() {
     $('#rent-range-min, #size-range-min, #size-range-max, #rent-range-max, #month-rent-range-min, #month-rent-range-max, #price-range-min, #price-range-max').each(function() {
-        if ($(this).val() === '') {
-            $(this).val(0);
+      const value = $(this).val();
+      if (value === '' || value === '$' || value === 'SF') {
+            switch ($(this).attr('id')) {
+                case 'rent-range-min':
+                case 'rent-range-max':
+                case 'month-rent-range-min':
+                case 'month-rent-range-max':
+                case 'price-range-min':
+                case 'price-range-max':
+                    $(this).val('$0');
+                    break;
+                case 'size-range-min':
+                case 'size-range-max':
+                    $(this).val('0 SF');
+                    break;
+            }
         }
     });
 }
@@ -2234,142 +2262,270 @@ $('#rent-range-min, #rent-range-max,#size-range-min, #size-range-max,#month-rent
 }
 
 
-function trs_format_number($number) {
-  $decimalPlaces = strlen(substr(strrchr($number, "."), 1));
-  return number_format($number, $decimalPlaces);
+function get_usesname_by_propertyID($propertyTypeID)
+{
+
+  switch ($propertyTypeID) {
+    case "1":
+      $property_uses_name = 'Office';
+      break;
+    case "2":
+      $property_uses_name = 'Retail';
+      break;
+    case "3":
+      $property_uses_name = 'Industrial';
+      break;
+    case "5":
+      $property_uses_name = 'Land';
+      break;
+    case "6":
+      $property_uses_name = 'Multifamily';
+      break;
+    case "7":
+      $property_uses_name = 'Special Purpose';
+      break;
+    case "8":
+      $property_uses_name = 'Hospitality';
+      break;
+    default:
+      $property_uses_name = false;
+  }
+
+  return $property_uses_name;
 }
 
-function get_leasetype_name_by_id($leaseTypeId)
+function get_usesname_subtype_by_id($subtypeID)
 {
-  switch ($leaseTypeId) {
-    case "101":
-      return 'Office - Office Building';
-    case "102":
-      return 'Office - Creative/Loft';
-    case "103":
-      return 'Office - Executive Suites';
-    case "104":
-      return 'Office - Medical';
-    case "105":
-      return 'Office - Institutional/Governmental';
-    case "106":
-      return 'Office - Office Warehouse';
-    case "107":
-      return 'Office - Office Condo';
-    case "108":
-      return 'Office - Coworking';
-    case "109":
-      return 'Office - Lab';
-    case "201":
-      return 'Retail - Street Retail';
-    case "202":
-      return 'Retail - Strip Center';
-    case "203":
-      return 'Retail - Free Standing Building';
-    case "204":
-      return 'Retail - Regional Mall';
-    case "205":
-      return 'Retail - Retail Pad';
-    case "206":
-      return 'Retail - Vehicle Related';
-    case "207":
-      return 'Retail - Outlet Center';
-    case "208":
-      return 'Retail - Power Center';
-    case "209":
-      return 'Retail - Neighborhood Center';
-    case "210":
-      return 'Retail - Community Center';
-    case "211":
-      return 'Retail - Specialty Center';
-    case "212":
-      return 'Retail - Theme/Festival Center';
-    case "213":
-      return 'Retail - Restaurant';
-    case "214":
-      return 'Retail - Post Office';
-    case "215":
-      return 'Retail - Retail Condo';
-    case "216":
-      return 'Retail - Lifestyle Center';
-    case "301":
-      return 'Industrial - Manufacturing';
-    case "302":
-      return 'Industrial - Warehouse/Distribution';
-    case "303":
-      return 'Industrial - Flex Space';
-    case "304":
-      return 'Industrial - Research & Development';
-    case "305":
-      return 'Industrial - Refrigerated/Cold Storage';
-    case "306":
-      return 'Industrial - Office Showroom';
-    case "307":
-      return 'Industrial - Truck Terminal/Hub/Transit';
-    case "308":
-      return 'Industrial - Self Storage';
-    case "309":
-      return 'Industrial - Industrial Condo';
-    case "310":
-      return 'Industrial - Data Center';
-    case "501":
-      return 'Land - Office';
-    case "502":
-      return 'Land - Retail';
-    case "503":
-      return 'Land - Retail-Pad';
-    case "504":
-      return 'Land - Industrial';
-    case "505":
-      return 'Land - Residential';
-    case "506":
-      return 'Land - Multifamily';
-    case "507":
-      return 'Land - Other';
-    case "601":
-      return 'Multifamily - High-Rise';
-    case "602":
-      return 'Multifamily - Mid-Rise';
-    case "603":
-      return 'Multifamily - Low-Rise/Garden';
-    case "604":
-      return 'Multifamily - Government Subsidized';
-    case "605":
-      return 'Multifamily - Mobile Home Park';
-    case "606":
-      return 'Multifamily - Senior Living';
-    case "607":
-      return 'Multifamily - Skilled Nursing';
-    case "608":
-      return 'Multifamily - Single Family Rental Portfolio';
-    case "701":
-      return 'Special Purpose - School';
-    case "702":
-      return 'Special Purpose - Marina';
-    case "703":
-      return 'Special Purpose - Other';
-    case "704":
-      return 'Special Purpose - Golf Course';
-    case "705":
-      return 'Special Purpose - Church';
-    case "801":
-      return 'Hospitality - Full Service';
-    case "802":
-      return 'Hospitality - Limited Service';
-    case "803":
-      return 'Hospitality - Select Service';
-    case "804":
-      return 'Hospitality - Resort';
-    case "805":
-      return 'Hospitality - Economy';
-    case "806":
-      return 'Hospitality - Extended Stay';
-    case "807":
-      return 'Hospitality - Casino';
-    default:
-      return false;
-  }
+    $property_uses = [
+      "Office" =>[
+        "101" => "Office Building",
+        "102" => "Creative/Loft",
+        "103" => "Executive Suites",
+        "104" => "Medical",
+        "105" => "Institutional/Governmental",
+        "106" => "Office Warehouse",
+        "107" => "Office Condo",
+        "108" => "Coworking",
+        "109" => "Lab",
+      ],
+      "Retail" =>[
+        "201" => "Street Retail",
+        "202" => "Strip Center",
+        "203" => "Free Standing Building",
+        "204" => "Regional Mall",
+        "205" => "Retail Pad",
+        "206" => "Vehicle Related",
+        "207" => "Outlet Center",
+        "208" => "Power Center",
+        "209" => "Neighborhood Center",
+        "210" => "Community Center",
+        "211" => "Specialty Center",
+        "212" => "Theme/Festival Center",
+        "213" => "Restaurant",
+        "214" => "Post Office",
+        "215" => "Retail Condo",
+        "216" => "Lifestyle Center",
+      ],
+      
+      "Industrial" =>[
+        "301" => "Manufacturing",
+        "302" => "Warehouse/Distribution",
+        "303" => "Flex Space",
+        "304" => "Research & Development",
+        "305" => "Refrigerated/Cold Storage",
+        "306" => "Office Showroom",
+        "307" => "Truck Terminal/Hub/Transit",
+        "308" => "Self Storage",
+        "309" => "Industrial Condo",
+        "310" => "Data Center",
+      ],
+      
+      "Land" => [
+        "501" => "Office",
+        "502" => "Retail",
+        "503" => "Retail-Pad",
+        "504" => "Industrial",
+        "505" => "Residential",
+        "506" => "Multifamily",
+        "507" => "Other",
+      ],
+      
+      "Multifamily" => [
+        "601" => "High-Rise",
+        "602" => "Mid-Rise",
+        "603" => "Low-Rise/Garden",
+        "604" => "Government Subsidized",
+        "605" => "Mobile Home Park",
+        "606" => "Senior Living",
+        "607" => "Skilled Nursing",
+        "608" => "Single Family Rental Portfolio",
+      ],
+      
+      "Special Purpose" => [
+        "701" => "School",
+        "702" => "Marina",
+        "703" => "Other",
+        "704" => "Golf Course",
+        "705" => "Church",
+      ],
+      
+      "Hospitality" => [
+        "801" => "Full Service",
+        "802" => "Limited Service",
+        "803" => "Select Service",
+        "804" => "Resort",
+        "805" => "Economy",
+        "806" => "Extended Stay",
+        "807" => "Casino"
+      ]
+
+
+    ];
+
+    $result = array_filter($property_uses, function($subtypes) use ($subtypeID) {
+      return array_key_exists($subtypeID, $subtypes);
+  });
+
+  return !empty($result) ? array_keys($result)[0] : false;
 }
+
+
+function get_uses_name_subtype_by_id($subtypeID)
+{
+    $property_uses = [
+      
+        "101" => "Office Building",
+        "102" => "Creative/Loft",
+        "103" => "Executive Suites",
+        "104" => "Medical",
+        "105" => "Institutional/Governmental",
+        "106" => "Office Warehouse",
+        "107" => "Office Condo",
+        "108" => "Coworking",
+        "109" => "Lab",
+        "201" => "Street Retail",
+        "202" => "Strip Center",
+        "203" => "Free Standing Building",
+        "204" => "Regional Mall",
+        "205" => "Retail Pad",
+        "206" => "Vehicle Related",
+        "207" => "Outlet Center",
+        "208" => "Power Center",
+        "209" => "Neighborhood Center",
+        "210" => "Community Center",
+        "211" => "Specialty Center",
+        "212" => "Theme/Festival Center",
+        "213" => "Restaurant",
+        "214" => "Post Office",
+        "215" => "Retail Condo",
+        "216" => "Lifestyle Center",
+        "301" => "Manufacturing",
+        "302" => "Warehouse/Distribution",
+        "303" => "Flex Space",
+        "304" => "Research & Development",
+        "305" => "Refrigerated/Cold Storage",
+        "306" => "Office Showroom",
+        "307" => "Truck Terminal/Hub/Transit",
+        "308" => "Self Storage",
+        "309" => "Industrial Condo",
+        "310" => "Data Center",
+        "501" => "Office",
+        "502" => "Retail",
+        "503" => "Retail-Pad",
+        "504" => "Industrial",
+        "505" => "Residential",
+        "506" => "Multifamily",
+        "507" => "Other",
+        "601" => "High-Rise",
+        "602" => "Mid-Rise",
+        "603" => "Low-Rise/Garden",
+        "604" => "Government Subsidized",
+        "605" => "Mobile Home Park",
+        "606" => "Senior Living",
+        "607" => "Skilled Nursing",
+        "608" => "Single Family Rental Portfolio",
+        "701" => "School",
+        "702" => "Marina",
+        "703" => "Other",
+        "704" => "Golf Course",
+        "705" => "Church",
+        "801" => "Full Service",
+        "802" => "Limited Service",
+        "803" => "Select Service",
+        "804" => "Resort",
+        "805" => "Economy",
+        "806" => "Extended Stay",
+        "807" => "Casino"
+    ];
+
+    return $property_uses[$subtypeID] ?? false;
+}
+
+
+function get_usename_subtype($property_subtype_id)
+{
+
+  switch ($property_subtype_id) {
+    case "201":
+      $property_uses_subtype = 'Street Retail';
+      break;
+    case "202":
+      $property_uses_subtype = 'Strip Center';
+      break;
+    case "203":
+      $property_uses_subtype = 'Free Standing Building';
+      break;
+    case "204":
+      $property_uses_subtype = 'Regional Mall';
+      break;
+    case "205":
+      $property_uses_subtype = 'Retail Pad';
+      break;
+    case "206":
+      $property_uses_subtype = 'Vehicle Related';
+      break;
+    case "207":
+      $property_uses_subtype = 'Outlet Center';
+      break;
+    case "208":
+      $property_uses_subtype = 'Power Center';
+      break;
+    case "209":
+      $property_uses_subtype = 'Neighborhood Center';
+      break;
+    case "210":
+      $property_uses_subtype = 'Community Center';
+      break;
+    case "211":
+      $property_uses_subtype = 'Specialty Center';
+      break;
+    case "212":
+      $property_uses_subtype = 'Theme/Festival Center';
+      break;
+    case "213":
+      $property_uses_subtype = 'Restaurant';
+      break;
+    case "214":
+      $property_uses_subtype = 'Post Office';
+      break;
+    case "216":
+      $property_uses_subtype = 'Lifestyle Center';
+      break;
+    default:
+      $property_uses_subtype = false;
+  }
+
+  return $property_uses_subtype;
+}   
+
+ 
+
+
+function trs_format_number($number) {
+  $decimalPlaces = strlen(substr(strrchr($number, "."), 1));
+  return !empty($number) ? number_format($number, $decimalPlaces) : '';
+}
+
 
 function tristatecr_create_lease_space_table()
 {
@@ -2408,3 +2564,30 @@ function tristatecr_create_lease_space_table()
 
 
 add_action('plugin_loaded', 'tristatecr_create_lease_space_table');
+
+function tristate_cr_ogdata() {
+
+  if (is_singular('properties')) {
+    $property_ID = get_the_ID();
+    $property_img_gallerys = get_post_meta($property_ID, '_buildout_photos', true);
+    $desc =get_post_meta($property_ID, '_buildout_location_description', true);
+
+    $title = get_the_title($property_ID);
+    if(!empty($property_img_gallerys)){
+      $image_url = $property_img_gallerys[0]->url;
+     
+      echo '<meta property="og:image" content="'.$image_url.'" />';
+     
+      
+    }
+    if(!empty($title)){
+      echo '<meta property="og:title" content="'.$title.'" />';
+    }
+    if(!empty($desc)){
+      echo '<meta property="og:description" content="'.$desc.'" />';
+    }
+    
+  }
+ 
+}
+add_action('wp_head', 'tristate_cr_ogdata');
