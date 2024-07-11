@@ -1341,8 +1341,13 @@ function drt_shortcode($_atts)
           updateSelect2Options(options);
           $(this).data('state', 'unselecting');
         }).on('select2:unselect', function(e) {
-          updateSelect2Options(options);
-          $(this).data('state', 'unselecting');
+         
+          var selectElement = $(this);
+        setTimeout(function() {
+            selectElement.select2("close");
+        }, 0); 
+          // updateSelect2Options(options);
+        //  $(this).data('state', 'unselecting');
         }).on('select2:opening', function(e) {
           if ($(this).data('state') === 'unselecting') {
             updateSelect2Options(options);
