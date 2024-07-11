@@ -92,7 +92,7 @@ function pop_tristate_save_results_as_layer()
 	$posts = triget_posts_by_author($get_current_user);
 	// var_dump($posts);
 
-	$select_options = '<option value="">Create a new map layer</option>';
+	$select_options = '<option value="">Create a new map or select existing one</option>';
 
 	if (is_array($posts)) {
 		foreach ($posts as $post) {
