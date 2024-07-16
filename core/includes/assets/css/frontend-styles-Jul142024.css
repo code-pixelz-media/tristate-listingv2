@@ -220,9 +220,7 @@ div#filter-wrapper {
   padding: 2px 6px !important;
   font-family: "Poppins", sans-serif;
 }
-.select2-results__option--disabled {
-  color: #e0e0e0 !important;
-}
+
 .Filterform .multi-select > div {
   min-height: 25px;
 }
@@ -494,10 +492,9 @@ div#trimmed-container h4 {
 
 .propertylisting-content h4 {
   font-family: "Poppins", sans-serif;
-  font-size: 9px !important;
-  font-weight: 600 !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
   margin: 0;
-color: #6ea4b9;
 }
 
 p.price {
@@ -640,15 +637,13 @@ div#search_count_area input {
 
 .slider-box {
   width: 100%;
-  padding-top: 10px;
+  padding: 0;
 }
 
 .slider-box label {
   margin: 0 0 2px 0;
 }
-.main-filter-page .slider-box {
-  padding-top: 0 !important;
-}
+
 .range-min-max input[type="text"] {
   border: 1px solid #aaa !important;
   padding: 5px;
@@ -734,10 +729,6 @@ div#sale_lease {
 
 div#_gsheet_listing_type {
   margin-top: 10px;
-    border-top-style: solid;
-    border-top-color: #dddddd;
-    border-top-width: medium;
-    padding-top: 10px;
 }
 
 label,
@@ -1289,7 +1280,6 @@ ul.ul-disc {
   margin-bottom: 0;
   width: auto;
   display: inline-block;
-font-size: 12px;
 }
 
 .checkbox-wrapper > div > input {
@@ -1438,11 +1428,7 @@ a.button:hover {
   color: var(--colorwhite);
   border: 1px solid transparent;
 }
-.layers-wrapper {
-  display: flex;
-  justify-content: space-between;
-}
-.copy-map i { margin-left: 5px;}
+
 /* Popup */
 #tcr-popup-wrapper {
   display: none;
@@ -1611,7 +1597,7 @@ li.tab_last {
 }
 .range-min label,
 .range-max label {
-  font-size: 8px;
+  font-size: 12px;
   font-weight: normal;
 }
 .price-range-btm {
@@ -1619,7 +1605,7 @@ li.tab_last {
   justify-content: space-between;
   gap: 8px !important;
   margin-top: 10px;
-  flex-direction: column-reverse;
+  flex-direction: row;
   flex-wrap: wrap;
 }
 
@@ -1627,7 +1613,7 @@ li.tab_last {
   width: 100%;
 }
 .ts-state-page.filter-wrapper .filter-search {
-  align-items: flex-end !important;
+  justify-content: flex-end;
 }
 
 .ts-state-page .price-range-btm > .MuiBox-root > div {
@@ -2116,6 +2102,7 @@ button:hover {
 
 .ts-state-page.filter-wrapper .MuiBox-root #select-container {
   display: flex;
+  display: flex;
   flex-wrap: nowrap;
   gap: 10px;
   margin-right: 10px;
@@ -2156,10 +2143,7 @@ a.button {
   background-color: #1671ad !important;
   color: #fff !important;
 }
-.ts-state-page.filter-wrapper .MuiBox-root .MuiButton-colorPrimary {
-  padding: 5px 80px;
-  width: auto;
-}
+
 .ts-state-page.filter-wrapper .MuiBox-root #state-more-filter {
   padding-left: 35px;
 }
@@ -2270,9 +2254,6 @@ a.button {
   .price-range-btm {
     flex-direction: column;
   }
-  .fixed_navbar {
-    width: 25% !important;
-  }
 }
 
 @media only screen and (min-width: 320px) and (max-width: 767px) {
@@ -2295,7 +2276,6 @@ a.button {
     display: none;
   }
 
-
   .ts-state-page.filter-wrapper .MuiBox-root .left-content {
     display: block;
   }
@@ -2307,10 +2287,10 @@ a.button {
   .left-content.open {
     display: block;
     width: 100% !important;
-    padding: 10px;
+    padding: 0 10px;
     z-index: 9;
     background: #eee;
-    margin-top: 0;
+    margin-top: 105px;
   }
 
   .haeder_left.text-right {
@@ -2319,7 +2299,7 @@ a.button {
 
   .right-content {
     width: 100%;
-    padding: 0;
+    padding: 20px;
     z-index: 9;
     margin-left: 0 !important;
   }
@@ -2403,29 +2383,15 @@ a.button {
     gap: 25px;
     flex-direction: column;
   }
-  .fixed_navbar {
-    position: relative;
-    top: 0;
-  }
+
   .checkbox-wrapper {
     flex-direction: row;
   }
-  .main-filter-page .checkbox-wrapper {
-    margin-top: 0 !important;
-    border-top: 0 !important;
-    padding-top: 5px !important;
-  }
+
   .tcr_members_wrapper {
     flex-direction: row;
   }
-  .main-filter-page div#search_count_area div#tristate-result-count {
-    text-align: left;
-    align-items: flex-start;
-    width: 80%;
-  }
-  .main-filter-page .tristate-column-select {
-    width: 20%;
-  }
+
   .tristate_cr_header {
     padding: 0 20px;
   }
@@ -2515,14 +2481,6 @@ a.button {
 #single-gmap {
     border-radius: 10px;
 }
-option:disabled {
-    color: #ddd !important;
-    font-weight: 300;
-}
-select:invalid {
-   color: #ddd !important;
-    font-weight: 300;
-}
 
 .filter-search {
   display: flex;
@@ -2533,17 +2491,6 @@ select:invalid {
   flex-direction: column;
 }
 
-.Filterform .MuiBox-root #select-container {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-.ts-state-page .Filterform .MuiBox-root #select-container  {
-flex-direction: row;
-}
-.main-filter-page .Filterform .MuiBox-root #select-container {
-  gap: 0;
-}
 body.single-properties_search #container a.button:hover {
   /* background: #c36 !important; */
   color: #fff;

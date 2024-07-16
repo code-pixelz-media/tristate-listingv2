@@ -663,7 +663,7 @@ if($args['state']) { ?>
             ?>
         </p>
     <!-- p for price ends  -->
-        <a href="<?php echo get_the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> More Info </a>
+        <a href="<?php echo get_the_permalink(); ?>"  class="MuiButton-colorPrimary tri-more-info"> More Info </a>
     </div>
     <?php if($args['state']) { ?>
 </a>

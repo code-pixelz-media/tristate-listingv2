@@ -27,6 +27,13 @@ jQuery(document).ready(function($){
 	// 	},
 	
 	//   });
+	
+	// $(document).find('.copy-map').on('click', function(){
+	// var link = $(this).data('link');
+	
+	// });
+	
+	$(document).find('.tri-more-info').attr('target', '_blank');
 	  
 	// for price per sf slider 
   $(document).on("click", ".trimmed-control", function () {

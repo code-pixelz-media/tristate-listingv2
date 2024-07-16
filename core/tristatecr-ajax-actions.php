@@ -92,7 +92,7 @@ function pop_tristate_save_results_as_layer()
 	$posts = triget_posts_by_author($get_current_user);
 	// var_dump($posts);
 
-	$select_options = '<option value="">Create a new map or select existing one</option>';
+	$select_options = '<option value="">Create a new map</option>';
 
 	if (is_array($posts)) {
 		foreach ($posts as $post) {
@@ -121,7 +121,7 @@ function pop_tristate_save_results_as_layer()
 	// Render the HTML if savedSearchId is not empty
 	$render_map_title =
 		'
-			<li><label>Save to your existing Map!</label>
+			<li><label>Create a new map or select existing one</label>
               ' . $select_html . '
           </li>
 			
@@ -137,7 +137,6 @@ function pop_tristate_save_results_as_layer()
 
 		<div class="tcr-popup-content" id="tcr-req-acc-output">
 			
-				<h4>SAVE TO A NEW MAP LAYER</h4>
 				<form id="tri-popup-form" method="POST">
 					<div id="map-layer-content">
 						<ul>

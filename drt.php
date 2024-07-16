@@ -164,7 +164,7 @@ function get_pricesf_minmax($type = "min", $formatted = true)
 
 
   $formatted_max_val = number_format($max_rent);
-  $formatted_min_val = '$0';
+  $formatted_min_val = '0';
 
   if ($formatted) {
 
@@ -192,7 +192,7 @@ function get_mnth_rent_min_max($type = "min", $formatted = true)
 
 
   $formatted_max_val = number_format($max_rent);
-  $formatted_min_val = '$0';
+  $formatted_min_val = '0';
 
   if ($formatted) {
 
@@ -219,7 +219,7 @@ function get_size_minmax($type = "min", $formatted = true)
 
 
   $formatted_max_val = number_format($max_size);
-  $formatted_min_val = '0 SF';
+  $formatted_min_val = '0';
 
   if ($formatted) {
 
@@ -248,7 +248,7 @@ function get_price_minmax($type = "min", $formatted = true)
 ");
 
   $formatted_max_price = number_format($max_price);
-  $formatted_min_price = '$0';
+  $formatted_min_price = '0';
 
   if ($formatted) {
 
@@ -670,12 +670,12 @@ function drt_shortcode($_atts)
 
 
 
-  <div class="filter-wrapper <?php echo !empty($atts['state']) ? 'ts-state-page' : ''; ?>" id="filter-wrapper" <?php if (!empty($atts['state'])) : ?> data-current_state="<?php echo strtoupper($atts['state']); ?>" <?php endif; ?>>
+  <div class="filter-wrapper <?php echo !empty($atts['state']) ? 'ts-state-page' : 'main-filter-page'; ?>" id="filter-wrapper" <?php if (!empty($atts['state'])) : ?> data-current_state="<?php echo strtoupper($atts['state']); ?>" <?php endif; ?>>
     <div class="MuiBox-root">
       <div class="left-content" id="<?php echo !empty($atts['state']) ? 'not-fixed' : 'fixed-left'; ?>">
         <div class="Filterform">
           <div class="MuiBox-root">
-            <div id="select-container">
+            <div id="select-container">  
               <?php
               if (!empty($atts['state'])) {
               ?>
@@ -720,7 +720,7 @@ function drt_shortcode($_atts)
                     </div>
                     <div class="range-max">
                       <label>Max</label>
-                      <input type="text" class="range-inputs" id="price-range-max" data-default="$0" name="price_range_max" value="$0">
+                      <input type="text" class="range-inputs" id="price-range-max" data-default="0" name="price_range_max" value="0">
                     </div>
                   </div>
                   <div id="price-range" class="slider" data-min="<?php echo get_price_minmax('min', false) ?>" data-max="<?php echo get_price_minmax('max', false); ?>"></div>
@@ -741,7 +741,7 @@ function drt_shortcode($_atts)
                   </div>
                   <div class="range-max">
                     <label>Max</label>
-                    <input type="text" class="range-inputs" id="rent-range-max" data-default="$0" name="range_max_rent" value="$0">
+                    <input type="text" class="range-inputs" id="rent-range-max" data-default="0" name="range_max_rent" value="0">
                   </div>
                   </div>
                   <div id="price-range3" class="slider" data-min="<?php echo get_pricesf_minmax('min', false) ?>" data-max="<?php echo get_pricesf_minmax('max', false); ?>"></div>
@@ -762,7 +762,7 @@ function drt_shortcode($_atts)
                     </div>
                     <div class="range-max">
                       <label>Max</label>
-                      <input type="text" class="range-inputs" id="month-rent-range-max" data-default="$0" name="month_range_max_rent" value="$0">
+                      <input type="text" class="range-inputs" id="month-rent-range-max" data-default="0" name="month_range_max_rent" value="0">
                     </div>
                   </div>
                   <div id="price-range4" class="slider" data-min="<?php echo get_mnth_rent_min_max('min', false) ?>" data-max="<?php echo get_mnth_rent_min_max('max', false); ?>"></div>
@@ -787,7 +787,7 @@ function drt_shortcode($_atts)
                   </div>
                   <div class="range-max">
                     <label>Max</label>
-                    <input type="text" class="range-inputs" id="size-range-max" data-default="0 SF" name="size_range_max" value="0 SF">
+                    <input type="text" class="range-inputs" id="size-range-max" data-default="0" name="size_range_max" value="0">
                   </div>
                 </div>
                 <div id="price-range2" class="slider" data-min="<?php echo get_size_minmax('min', false) ?>" data-max="<?php echo get_size_minmax('max', false); ?>"></div>
@@ -1028,6 +1028,25 @@ function drt_shortcode($_atts)
   <!-- dr new test for generate automatic options -->
   <script>
     jQuery(document).ready(function($) {
+
+
+       // Restrict input to numbers only
+    $('#rent-range-min, #size-range-min, #size-range-max, #rent-range-max, #month-rent-range-min, #month-rent-range-max, #price-range-min, #price-range-max').on('input', function() {
+      
+      this.value = this.value.replace(/[^0-9]/g, '');
+
+      // Ensure the value is at least 0
+      if (this.value !== '' && parseInt(this.value) < 0) {
+          this.value = 0;
+      }
+  });
+
+  $('#rent-range-min, #size-range-min, #size-range-max, #rent-range-max, #month-rent-range-min, #month-rent-range-max, #price-range-min, #price-range-max').on('keypress', function(e) {
+      // Allow control keys (backspace, delete, etc.)
+      if (e.which < 48 || e.which > 57) {
+          e.preventDefault();
+      }
+  });
 
       $('#state-sorting').change(function() {
         var sortingType = $(this).val();
@@ -1341,13 +1360,8 @@ function drt_shortcode($_atts)
           updateSelect2Options(options);
           $(this).data('state', 'unselecting');
         }).on('select2:unselect', function(e) {
-         
-          var selectElement = $(this);
-        setTimeout(function() {
-            selectElement.select2("close");
-        }, 0); 
-          // updateSelect2Options(options);
-        //  $(this).data('state', 'unselecting');
+          updateSelect2Options(options);
+          $(this).data('state', 'unselecting');
         }).on('select2:opening', function(e) {
           if ($(this).data('state') === 'unselecting') {
             updateSelect2Options(options);
@@ -1605,7 +1619,43 @@ if(maxPrice === Infinity ){
     
     // Check if unitSize is less than or equal to maxSize
     if (unitSize <= maxSize) {
-       showListing = true;
+      if(!showListing){
+      showListing = true;
+      /* check filter any selected or not */
+
+if (selectedAgents.length > 0 && !isAnyPartIncluded(selectedAgents, listingAgent)) {
+            showListing = false;
+          }
+
+          /* multiple agents select working end */
+
+          if (selectedUses.length > 0 && !selectedUses.some(use => listingUse.includes(use))) {
+            showListing = false;
+          }
+
+          if (selectedNeighborhoods.length > 0 && !selectedNeighborhoods.includes(listingNeighborhood)) {
+            showListing = false;
+          }
+
+          if (selectedZipcodes.length > 0 && !selectedZipcodes.includes(listingZipcode)) {
+            showListing = false;
+          }
+
+          if (selectedCities.length > 0 && !selectedCities.includes(listingCity)) {
+            showListing = false;
+          }
+
+          if (selectedStates.length > 0 && !selectedStates.includes(listingState)) {
+            showListing = false;
+          }
+
+          //
+
+          if (selectedVented.length > 0 && !selectedVented.includes(listingVented)) {
+            showListing = false;
+          }
+/* check filter any selected or not end */
+    }
       if (maxSize > 0 && !(unitSize >= minSize && (maxSize === Infinity || unitSize <= maxSize) || maxSize === 0)) {
         showListing = false;
     }
@@ -1649,6 +1699,14 @@ if (showListing) {
             pricesfArray.push(priceSf);
             maxsizeArray.push(sizeMax); */
             $listing.css('display', 'block');
+            var regex = new RegExp('(' + keyword + ')', 'gi');
+			
+      			// $listing.find('.lisiitng__title_state,.trimmed-desc,li p span,h4').each(function(){
+      				
+      			// 	var text = $(this).text().toLowerCase();
+      			// 	var highlightedText = text.replace(regex, '<mark>$1</mark>');
+      			// 	$(this).html(highlightedText);
+      			// });
 
             displayedListings++;
           } else {
@@ -2143,7 +2201,7 @@ if (showListing) {
                 trimmedControl.click();
                 trimmedControl.closest('.propertylisting').find('.propertylisting-content').css('display', 'block');
             }
-            console.log("minPrice: "+minPrice+" maxPrice "+maxPrice+" unitPrice:"+unitPrice);
+         //   console.log("minPrice: "+minPrice+" maxPrice "+maxPrice+" unitPrice:"+unitPrice);
         });
 
     }
@@ -2193,11 +2251,11 @@ if (showListing) {
                 case 'month-rent-range-max':
                 case 'price-range-min':
                 case 'price-range-max':
-                    $(this).val('$0');
+                    $(this).val('0');
                     break;
                 case 'size-range-min':
                 case 'size-range-max':
-                    $(this).val('0 SF');
+                    $(this).val('0');
                     break;
             }
         }
@@ -2596,3 +2654,16 @@ function tristate_cr_ogdata() {
  
 }
 add_action('wp_head', 'tristate_cr_ogdata');
+
+//fromat phone numbers
+function tristate_format_phone_number($phone) {
+
+  $phone = preg_replace('/\D/', '', $phone);
+
+  
+  if (strlen($phone) == 10) {
+      return substr($phone, 0, 3) . '.' . substr($phone, 3, 3) . '.' . substr($phone, 6, 4);
+  }
+
+  return $phone;
+}

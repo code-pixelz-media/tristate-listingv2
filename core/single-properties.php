@@ -6,17 +6,17 @@ get_header();
 
 /* ---------------------Start of Meta Keys------------------------- */
 $ID               = get_the_ID();
-$buildout_id       = (int) get_post_meta($ID, '_buildout_id', true);
-$title             = get_post_meta($ID, '_buildout_sale_listing_web_title', true);
+$buildout_id      = (int) get_post_meta($ID, '_buildout_id', true);
+$title            = get_post_meta($ID, '_buildout_sale_listing_web_title', true);
 $subtitle         = implode(', ', array(get_post_meta($ID, '_buildout_city', true), get_post_meta($ID, '_buildout_county', true), get_post_meta($ID, '_buildout_state', true)));
-$badges           = array(
-  'use'         => get_post_meta($ID, '_gsheet_use', true),
-  'type'         => get_post_meta($ID, '_gsheet_listing_type', true),
-  'price_sf'     => get_post_meta($ID, '_gsheet_price_sf', true),
-  'commission'   => get_post_meta($ID, '_gsheet_commission', true)
-);
-$_use             = get_post_meta($ID, '_gsheet_use', true);
-$_type             = get_post_meta($ID, '_gsheet_listing_type', true);
+
+$_type            = get_post_meta($ID, '_gsheet_listing_type', true);
+$buildout_lease   = meta_of_api_sheet($ID ,'lease');
+$buildout_sale    =  meta_of_api_sheet($ID, 'sale');
+$type             = ($buildout_lease == '1' && $buildout_sale == '1') ? 'lease' :
+                  (($buildout_lease == '1') ? 'lease' :
+                  (($buildout_sale == '1') ? 'sale' : false));
+        
 $_price_sf         = get_post_meta($ID, '_gsheet_price_sf', true);
 $_price_sf         = preg_replace('/\.[0-9]+/', '', $_price_sf);
 $_price_sf         = (int) preg_replace('/[^0-9]/', '', $_price_sf);
@@ -83,6 +83,8 @@ $doc_link = $_buildout_documents[0]->url;
 $doc_name = $_buildout_documents[0]->name;
 // var_dump('332190876',$price);
 
+
+
 /* ---------------------End of Meta Keys------------------------- */
 
 ?>
@@ -93,27 +95,49 @@ $doc_name = $_buildout_documents[0]->name;
         <h1><?php the_title(); ?></h1>
         <h3><?php echo $subtitle; ?></h3>
       </div>
-
-      <?php if ($_type == 'for Sale') {
-      if(!empty($price)){
-        echo ' <div class="haeder_left tristate_cr_col_4 text-right">
-        <h2 class="h2">$'.trs_format_number($price) . '</h2>
-        <h3>Sale Price</h3>
-      </div>';
-      }
+      
+      <?php
+         $call_for_price = ' <div class="haeder_left tristate_cr_col_4 text-right">
+                               <h2 class="h2">Price: Call 718.437.6100 </h2>
+                             </div>';
+        if($type == 'sale'){
+           
+          if(!empty($bo_price)){
+            echo ' <div class="haeder_left tristate_cr_col_4 text-right">
+            <h2 class="h2">$'.trs_format_number($bo_price) . '</h2>
+            <h3>Sale Price</h3>
+            </div>';
+          }else{
+            echo $call_for_price;
+          }
         
-      } elseif ($_type == 'for lease' || $_type == 'for Lease') {
-      if(!empty($price)){
-        echo ' <div class="haeder_left tristate_cr_col_4 text-right">
-          <h2 class="h2">$'.trs_format_number($price) . '</h2>
-          <h3>Lease Rate</h3>
-        </div>';
-      }
-      } else {
-        echo ' <div class="haeder_left tristate_cr_col_4 text-right">
-        <h2 class="h2">Call: 215-300-9688 </h2>
-      </div>';
-      }
+        }elseif($type == 'lease' ){
+            
+            echo $call_for_price;
+        }
+      
+      ?>
+
+      <?php //if ($_type == 'for Sale') {
+      // if(!empty($price)){
+      //   echo ' <div class="haeder_left tristate_cr_col_4 text-right">
+      //   <h2 class="h2">$'.trs_format_number($price) . '</h2>
+      //   <h3>Sale Price</h3>
+      // </div>';
+      // }
+        
+      // } elseif ($_type == 'for lease' || $_type == 'for Lease') {
+      // if(!empty($price)){
+      //   echo ' <div class="haeder_left tristate_cr_col_4 text-right">
+      //     <h2 class="h2">$'.trs_format_number($price) . '</h2>
+      //     <h3>Lease Rate</h3>
+      //   </div>';
+      // }
+      // } else {
+      //   echo ' <div class="haeder_left tristate_cr_col_4 text-right">
+      //   <h2 class="h2">Call: 215-300-9688 </h2>
+      // </div>';
+      // }
       ?>
     </div>
     <div class="tristate_cr-tabs">
@@ -123,7 +147,7 @@ $doc_name = $_buildout_documents[0]->name;
         <li rel="tcr_tab2"><i class="fa fa-briefcase"></i> Spaces</li>
 
         <?php if ($doc_link && $doc_name) { ?>
-          <li rel="tcr_tab3"><i class="fa fa-file"></i> Documents</li>
+          <li rel="tcr_tab3"><i class="fa-solid fa-file-pdf"></i> Documents</li>
         <?php } ?>
 
         <?php if ($property_img_gallerys) { ?>
@@ -304,7 +328,7 @@ if ($property_img_gallerys=='test') {
                 if ($doc_link || $doc_name) {
                 ?>
                   <a target="_blank" href="<?php echo $doc_link; ?>">
-                    <h2><i class="fa fa-file"></i> <?php echo $doc_name; ?></h2>
+                    <h2><i class="fa-solid fa-file-pdf"></i> <?php echo $doc_name; ?></h2>
                   </a>
                 <?php } ?>
               </div>
@@ -343,7 +367,7 @@ if ($property_img_gallerys=='test') {
                 <div class="tcr_members_details">
                   <h4>' . $get_broker_full_name . '</h4>
                   <h5>' . $get_broker_job_title . '</h5>
-                  <div><a href="tel:' . $get_broker_phone_number . '"><i class="fa fa-phone-alt"></i> ' . $get_broker_phone_number . '</a></div>
+                  <div><a href="tel:' . $get_broker_phone_number . '"><i class="fa fa-phone-alt"></i> ' .tristate_format_phone_number($get_broker_phone_number) . '</a></div>
                   <div><a href="mailto:' . $get_broker_email . '"><i class="fa fa-envelope"></i> ' . $get_broker_email . '</a></div>
                 </div>
 
@@ -451,7 +475,7 @@ if ($property_img_gallerys=='test') {
                   $document_url =  $buildout_document->url;
                   $document_name =  $buildout_document->name;
                   # code...
-                  echo '<tr><td><i class="fa fa-file-pdf"></i> <a target="_blank" href="' . $document_url . '">' . $document_name . '</a> </td>
+                  echo '<tr><td><i class="fa-solid fa-file-pdf"></i> <a target="_blank" href="' . $document_url . '">' . $document_name . '</a> </td>
                 </tr>';
                 }
               }
@@ -634,7 +658,7 @@ $get_google_map_api_key = $settings['google_maps_api_key'];
       map = new Map(document.getElementById(div), {
         zoom: 12,
         center: position,
-        mapId: "roadmap",
+        mapId: "terrain",
       });
       const iconimg = document.createElement("img");
       iconimg.src = "http://s3.amazonaws.com/buildout-production/brandings/2138/profile_photo/small.png";

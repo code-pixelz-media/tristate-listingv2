@@ -8,7 +8,8 @@
     <?php if (have_posts()) : the_post(); ?>
 
         <h1 class="page-title"><?php echo get_the_title(); ?></h1>
-
+<div class="layers-wrapper">
+    <div class="layers-left">
         <?php
         $listing_layers = get_post_meta(get_the_ID(), 'listing_ids', false);
         $layer_names         = get_post_meta(get_the_ID(), 'layer_name', false);
@@ -44,7 +45,19 @@
     ?>
         <p><a class="button" href="<?php echo $new_link; ?>" target="_blank">Add layers to this search</a></p>
     <?php endif; ?>
-
+    </div>
+    <style>
+        /* Add CSS for the fadeout effect */
+        .copy-map.fadeout {
+            opacity: 0;
+            transition: opacity 1s ease-out;
+        }
+    </style>
+    <div class="layers-right">
+        <a class="copy-map button" data-link="<?php echo get_the_permalink(); ?>" onclick="copyToClipboard(this)">Copy Map <i class="fa-solid fa-copy"></i></a> 
+    </div>
+    </div>
+   
     <section id="content">
         <div class="listings"></div>
 
@@ -68,10 +81,32 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyASjYF9QSfmERIuCuLv1X9PSglIo7QRVkM&callback=updateMap&v=weekly" defer></script>
 
     <script>
+    
+        function copyToClipboard(element) {
+           
+            const link = element.getAttribute('data-link');
+            navigator.clipboard.writeText(link).then(() => {
+             
+               
+                element.innerHTML = 'Copied <i class="fa-solid fa-check"></i>';
+                
+               
+                setTimeout(() => {
+                    element.classList.add('fadeout');
+                }, 1000);
+                
+                
+                setTimeout(() => {
+                    element.classList.remove('fadeout');
+                    element.innerHTML = 'Copy Map <i class="fa-solid fa-copy"></i>';
+                }, 2000); 
+            }).catch(err => {
+           
+                console.error('Failed to copy: ', err);
+            });
+        }
         let REST_URL = '<?php echo get_rest_url(); ?>';
         
-     
-
         let LISTINGS_ROUTE_URL = REST_URL + 'tristatectr/v3/listings';
         let BROKERS_ROUTE_URL = REST_URL + 'tristatectr/v1/brokers';
         console.log(LISTINGS_ROUTE_URL);
@@ -128,6 +163,7 @@
             const map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 10,
                 center: centerCoord,
+                mapTypeId: "terrain",
             });
 
             let bounds = new google.maps.LatLngBounds();
@@ -151,7 +187,7 @@
                     
                     var markerIcon = {
                         url:listing._icon,
-                        scaledSize: new google.maps.Size(38, 38) 
+                        scaledSize: new google.maps.Size(50, 50) 
                       };
                     
                    
@@ -240,7 +276,7 @@
                     listingElement.querySelector('.listing--title').innerHTML = listing.title;
                      listingElement.querySelector('.listing--subtitle').innerHTML = listingType;
                     listingElement.querySelector('.listing--type').innerHTML = listing._type;
-                    listingElement.querySelector('.listing--price').innerHTML = listing.price ? listing.price : '';
+                    listingElement.querySelector('.listing--price').innerHTML = 'Call for price';
                     listingsList.appendChild(listingElement);
   
 
