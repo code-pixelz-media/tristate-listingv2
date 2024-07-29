@@ -3,14 +3,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-
 define('NEW_CRON_STATUS_OPTION', 'tristate_cron_status');
 
 define('NEW_CRON_LAST_RESULT_OPTION', 'tristate_cron_last_result');
 define('NEW_LOG_FILE', TRISTATECRLISTING_PLUGIN_DIR . 'debug.log');
 
-
-function fetch_with_exponential_backoff($url, $max_retries = 5) {
+function fetch_with_exponential_backoff($url, $max_retries = 5)
+{
     $attempt = 0;
     $success = false;
     $response = null;
@@ -39,7 +38,6 @@ function fetch_with_exponential_backoff($url, $max_retries = 5) {
     return $response;
 }
 
-
 /**
  * Imports and syncs Buildout and Google Sheets data.
  */
@@ -53,7 +51,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
 
     $settings = get_option('tristate_cr_settings');
     $get_buildout_api_key = $settings['buildout_api_key'];
-    
+
     $spreadsheet_id = $settings['spreadsheet_id'];
 
     // Arguments
@@ -75,28 +73,28 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
     // Counters
     $counter = array(
         // buildout
-        'errors'         => 0,
-        'updated'     => 0,
-        'imported'     => 0,
-        'skipped'     => 0,
+        'errors' => 0,
+        'updated' => 0,
+        'imported' => 0,
+        'skipped' => 0,
         // sheets
-        'found'         => 0,
-        'missing'     => 0,
-        'matched'     => 0,
+        'found' => 0,
+        'missing' => 0,
+        'matched' => 0,
     );
-    
-  
 
-    
     // $sheetdatas = [];
 
 /********************************--Brokers Sync Start--*****************************************/
 
     $message = "\nReading Brokers...";
-    if (array_intersect(['json'], $skip)) $message .= ' Skipping';
+    if (array_intersect(['json'], $skip)) {
+        $message .= ' Skipping';
+    }
+
     NEW_np_log($message);
 
-    if (!array_intersect(['json'], $skip)) :
+    if (!array_intersect(['json'], $skip)):
         defined('DOING_CRON') && update_option(NEW_CRON_STATUS_OPTION, 'Reading Brokers');
         $fn = 'https://buildout.com/api/v1/' . $get_buildout_api_key . '/brokers.json?limit=999';
         $contents = file_get_contents($fn);
@@ -115,7 +113,6 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
             //     $broker_fullname = implode(' ', array($item->first_name, $item->last_name));
             //     $brokers[$broker_id] = $broker_fullname;
             // }
-
 
             /*  ----------Start New broker Data sync -------------- */
             //$brokers_data = $data;
@@ -162,328 +159,332 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
     endif;
 /********************************--Brokers Sync Ends--*****************************************/
 
-
 /********************************--Lease Space Sync--*****************************************/
- $message = "\nReading LeaseSpace JSON...";
- if (array_intersect(['json'], $skip)) $message .= ' Skipping';
- NEW_np_log($message);
- if (!array_intersect(['json'], $skip)){
-   
-     if (defined('TRI_STATE_SYNC_LEASE_SPACE_RUNNING') && TRI_STATE_SYNC_LEASE_SPACE_RUNNING) {
-         return;
-     }
-     define('TRI_STATE_SYNC_LEASE_SPACE_RUNNING', true);
-     $offset = 0;
-     $limit = 100;  
-     $all_lease_spaces = [];
-     $new_checksum = '';
-     $max_retries = 10;  
-     $timeout = 20;  
- 
-     NEW_np_log("Starting data synchronization process for lease spaces...\n");
- 
-     // Record the start time for the whole process
-     $total_start_time = microtime(true);
- 
-     // Fetch data in chunks using offset and limit
-     while (true) {
-         $attempt = 0;
-         $success = false;
-         $fetch_start_time = microtime(true);
- 
-         while ($attempt < $max_retries && !$success) {
-             $response = wp_remote_get('https://buildout.com/api/v1/' . $get_buildout_api_key . '/lease_spaces.json?limit=' . $limit . '&offset=' . $offset, array(
-                 'headers' => array(
-                     'Accept' => 'application/json',
-                 ),
-                 'timeout' => $timeout  
-             ));
- 
-             if (is_wp_error($response)) {
-                 NEW_np_log('Buildout API request failed on attempt ' . ($attempt + 1), $response->get_error_message());
-                 $attempt++;
-                 if ($attempt >= $max_retries) {
-                     NEW_np_log("Max retries reached. Exiting the synchronization process.\n");
-                     return;  
-                 }
-             } else {
-                 $success = true;
-             }
-         }
- 
-         if (200 !== wp_remote_retrieve_response_code($response)) {
-             NEW_np_log('Unexpected response code: ' . wp_remote_retrieve_response_code($response) . "\n");
-             break;  // Exit if the response is not successful
-         }
- 
-         $lease_data = json_decode(wp_remote_retrieve_body($response));
-         $lease_spaces = $lease_data->lease_spaces;
-         
-         if (empty($lease_spaces)) {
-             break; 
-         }
- 
-         // Accumulate fetched data
-         $all_lease_spaces = array_merge($all_lease_spaces, $lease_spaces);
-         // Increment the offset by the limit
-         $offset += $limit;
-         // Record the end time for each fetch and calculate the elapsed time
-         $fetch_end_time = microtime(true);
-         
-         $fetch_time = $fetch_end_time - $fetch_start_time;
-         
-        
- 
-         // Logging for debugging
-         NEW_np_log('Fetched ' . count($lease_spaces) . ' records in ' . $fetch_time . ' seconds. Total so far: ' . count($all_lease_spaces) . "\n");
-     }
- 
-     // Record the end time for the whole process and calculate the elapsed time
-     $total_end_time = microtime(true);
-     $total_time = $total_end_time - $total_start_time;
-     NEW_np_log('Total time required to fetch all data: ' . $total_time . ' seconds' . "\n");
- 
-     // Calculate checksum for the new data
-     $new_checksum = md5(json_encode($all_lease_spaces));
-     NEW_np_log('New checksum: ' . $new_checksum . "\n");
- 
-     // Compare with the stored checksum
-     if ($new_checksum != get_option('tristatecr_datasync_lease_checksum')) {
-         NEW_np_log('Checksum Changed..Inserting...' . $new_checksum . "\n");
-         global $wpdb;
-         $space_tbl = $wpdb->prefix . 'lease_spaces';
-         $filtered_lease_spaces = array_filter($all_lease_spaces, function($space) {
-             return $space->deal_status_id == 1;
-         });
-         $extracted_data = array_map(function($space) {
-             $values = [
-                 $space->id,//1
-                 $space->property_id,//2
-                 $space->lease_title ?? 'false',//3
-                 $space->lease_rate_units,//4
-                 $space->lease_rate,//5
-                 $space->space_size_units,//6
-                 $space->size_sf,//7
-                 $space->floor,//8
-                 $space->deal_status_id,//9
-                 $space->space_type_id,//10
-                 $space->address2 ?? ' ',//11
-                 $space->suite,//12
-                 $space->description,//13
-                 $space->lease_type_id,//14
-                 
-             ];
+    $message = "\nReading LeaseSpace JSON...";
+    if (array_intersect(['json'], $skip)) {
+        $message .= ' Skipping';
+    }
 
-             return [
-                 'lease_id' => $values[0],//1
-                 'property_id' => $values[1],//2
-                 'lease_title' => $values[2],//3
-                 'lease_rate_units' => $values[3],//4
-                 'lease_rate' => $values[4],//5
-                 'space_size_units' => $values[5],//6
-                 'size_sf' => $values[6],//7
-                 'floor' => $values[7],//8
-                 'deal_status'=> $values[8],//9
-                 'space_type_id' => $values[9],//10
-                 'lease_address' => $values[10],//11
-                 'suite'=> $values[11],//12
-                 'leasechecksum' => md5(implode('', $values)),//13
-                 'lease_desc' => $values[12],//14
-                 'lease_type_id'=> $values[13],//15
-             ];
-         }, $filtered_lease_spaces);
- 
-        foreach ($extracted_data as $ed) {
-            $new_leasechecksum = $ed['leasechecksum'];
-            $lease_id = $ed['lease_id'];
-            $deal_stat = $ed['deal_status'];
-            $lease_title= 'false';
-            
-            if(!empty($ed['lease_address'])){
-                $lease_title = $ed['lease_address'];
-                
-                if($ed['space_size_units']== 'sf' && !empty($ed['size_sf'])){
-                    
-                    $lease_title .= ' '. number_format($ed['size_sf']) . 'SF';
-                } 
-            }
-            $existing_record = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM $space_tbl WHERE lease_id = %d ",
-                (int) $ed['lease_id']
-            ));
-            if (is_null($existing_record)) {
-                NEW_np_log("Found new Lease Space #$lease_id  inserting...\n");
-                
-                $prepared_query = $wpdb->prepare(
-                    "INSERT INTO $space_tbl 
-                    (lease_id, property_id, lease_title, lease_rate_units, lease_rate, space_size_units, size_sf, 
-                    floor, deal_status, space_type_id, lease_address, suite, leasechecksum, lease_desc, lease_type_id) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                    $ed['lease_id'], 
-                    $ed['property_id'], 
-                    $ed['lease_title'], 
-                    $ed['lease_rate_units'], 
-                    $ed['lease_rate'], 
-                    $ed['space_size_units'], 
-                    $ed['size_sf'], 
-                    $ed['floor'], 
-                    $ed['deal_status'], 
-                    $ed['space_type_id'], 
-                    $ed['lease_address'], 
-                    $ed['suite'], 
-                    $ed['leasechecksum'], 
-                    $ed['lease_desc'], 
-                    $ed['lease_type_id']
-                );
-                $result = $wpdb->query($prepared_query);
-                
-                if ($result === false) {
-                    NEW_np_log("Failed to insert data: " . $wpdb->last_error."\n");
-                } else {
-                    NEW_np_log("Lease space inserted successfully with ID: " . $wpdb->insert_id."\n");
-                }
-            }
-            if (!is_null($existing_record)) {
-            
-                NEW_np_log("Found Changes In Lease Space #$lease_id  validating checksum...\n");
-                $update_id = (int) $existing_record->id;
-                $checksum_check =  $existing_record->leasechecksum !== $ed['leasechecksum'];
-                
-                if(!is_null($update_id) && $checksum_check){
-                    NEW_np_log("Checksum not matached.Updating #$update_id  for #{$ed['lease_id']}\n");
-                    $wpdb->update(
-                        $space_tbl,
-                        array(
-                            'property_id' => $ed['property_id'],
-                            'lease_title' => $ed['lease_title'],
-                            'lease_rate_units' => $ed['lease_rate_units'],
-                            'lease_rate' => $ed['lease_rate'],
-                            'space_size_units' => $ed['space_size_units'],
-                            'size_sf' => $ed['size_sf'],
-                            'floor' => $ed['floor'],
-                            'deal_status' => $ed['deal_status'],
-                            'space_type_id' => $ed['space_type_id'],
-                            'lease_address' => $ed['lease_address'] ?? '',
-                            'suite' => $ed['suite'],
-                            'leasechecksum' => $ed['leasechecksum'],
-                            'lease_desc' => $ed['lease_desc'],
-                            'lease_type_id' => $ed['lease_type_id']
-                        ),
-                        array('id' => $update_id),
-                        array(
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s',
-                            '%s'
-                        ),
-                        array('%d')
-                    );
-                    
-                    if ($wpdb->last_error) {
-                        NEW_np_log("Failed to update data for lease_id {$ed['lease_id']}: " . $wpdb->last_error."\n");
-                    } else {
-                        NEW_np_log("Data updated successfully for lease_id {$ed['lease_id']} with ID: " . $update_id."\n");
+    NEW_np_log($message);
+    if (!array_intersect(['json'], $skip)) {
+
+        if (defined('TRI_STATE_SYNC_LEASE_SPACE_RUNNING') && TRI_STATE_SYNC_LEASE_SPACE_RUNNING) {
+            return;
+        }
+        define('TRI_STATE_SYNC_LEASE_SPACE_RUNNING', true);
+        $offset = 0;
+        $limit = 100;
+        $all_lease_spaces = [];
+        $new_checksum = '';
+        $max_retries = 10;
+        $timeout = 20;
+
+        NEW_np_log("Starting data synchronization process for lease spaces...\n");
+
+        // Record the start time for the whole process
+        $total_start_time = microtime(true);
+
+        // Fetch data in chunks using offset and limit
+        while (true) {
+            $attempt = 0;
+            $success = false;
+            $fetch_start_time = microtime(true);
+
+            while ($attempt < $max_retries && !$success) {
+                $response = wp_remote_get('https://buildout.com/api/v1/' . $get_buildout_api_key . '/lease_spaces.json?limit=' . $limit . '&offset=' . $offset, array(
+                    'headers' => array(
+                        'Accept' => 'application/json',
+                    ),
+                    'timeout' => $timeout,
+                ));
+
+                if (is_wp_error($response)) {
+                    NEW_np_log('Buildout API request failed on attempt ' . ($attempt + 1), $response->get_error_message());
+                    $attempt++;
+                    if ($attempt >= $max_retries) {
+                        NEW_np_log("Max retries reached. Exiting the synchronization process.\n");
+                        return;
                     }
-        
-                }else{
-                    NEW_np_log("Failed to update data for lease_id {$ed['lease_id']}.Not found in database \n");
+                } else {
+                    $success = true;
                 }
-                update_option('tristatecr_datasync_lease_checksum', $new_leasechecksum);
             }
+
+            if (200 !== wp_remote_retrieve_response_code($response)) {
+                NEW_np_log('Unexpected response code: ' . wp_remote_retrieve_response_code($response) . "\n");
+                break; // Exit if the response is not successful
+            }
+
+            $lease_data = json_decode(wp_remote_retrieve_body($response));
+            $lease_spaces = $lease_data->lease_spaces;
+
+            if (empty($lease_spaces)) {
+                break;
+            }
+
+            // Accumulate fetched data
+            $all_lease_spaces = array_merge($all_lease_spaces, $lease_spaces);
+            // Increment the offset by the limit
+            $offset += $limit;
+            // Record the end time for each fetch and calculate the elapsed time
+            $fetch_end_time = microtime(true);
+
+            $fetch_time = $fetch_end_time - $fetch_start_time;
+
+            // Logging for debugging
+            NEW_np_log('Fetched ' . count($lease_spaces) . ' records in ' . $fetch_time . ' seconds. Total so far: ' . count($all_lease_spaces) . "\n");
         }
- 
- 
-     NEW_np_log("Data synchronization process completed for lease spaces.\n");
+
+        // Record the end time for the whole process and calculate the elapsed time
+        $total_end_time = microtime(true);
+        $total_time = $total_end_time - $total_start_time;
+        NEW_np_log('Total time required to fetch all data: ' . $total_time . ' seconds' . "\n");
+
+        // Calculate checksum for the new data
+        $new_checksum = md5(json_encode($all_lease_spaces));
+        NEW_np_log('New checksum: ' . $new_checksum . "\n");
+
+        // Compare with the stored checksum
+        if ($new_checksum != get_option('tristatecr_datasync_lease_checksum')) {
+            NEW_np_log('Checksum Changed..Inserting...' . $new_checksum . "\n");
+            global $wpdb;
+            $space_tbl = $wpdb->prefix . 'lease_spaces';
+            $filtered_lease_spaces = array_filter($all_lease_spaces, function ($space) {
+                return $space->deal_status_id == 1;
+            });
+            $extracted_data = array_map(function ($space) {
+                $values = [
+                    $space->id, //1
+                    $space->property_id, //2
+                    $space->lease_title ?? 'false', //3
+                    $space->lease_rate_units, //4
+                    $space->lease_rate, //5
+                    $space->space_size_units, //6
+                    $space->size_sf, //7
+                    $space->floor, //8
+                    $space->deal_status_id, //9
+                    $space->space_type_id, //10
+                    $space->address2 ?? ' ', //11
+                    $space->suite, //12
+                    $space->description, //13
+                    $space->lease_type_id, //14
+
+                ];
+
+                return [
+                    'lease_id' => $values[0], //1
+                    'property_id' => $values[1], //2
+                    'lease_title' => $values[2], //3
+                    'lease_rate_units' => $values[3], //4
+                    'lease_rate' => $values[4], //5
+                    'space_size_units' => $values[5], //6
+                    'size_sf' => $values[6], //7
+                    'floor' => $values[7], //8
+                    'deal_status' => $values[8], //9
+                    'space_type_id' => $values[9], //10
+                    'lease_address' => $values[10], //11
+                    'suite' => $values[11], //12
+                    'leasechecksum' => md5(implode('', $values)), //13
+                    'lease_desc' => $values[12], //14
+                    'lease_type_id' => $values[13], //15
+                ];
+            }, $filtered_lease_spaces);
+
+            foreach ($extracted_data as $ed) {
+                $new_leasechecksum = $ed['leasechecksum'];
+                $lease_id = $ed['lease_id'];
+                $deal_stat = $ed['deal_status'];
+                $lease_title = 'false';
+
+                if (!empty($ed['lease_address'])) {
+                    $lease_title = $ed['lease_address'];
+
+                    if ($ed['space_size_units'] == 'sf' && !empty($ed['size_sf'])) {
+
+                        $lease_title .= ' ' . number_format($ed['size_sf']) . 'SF';
+                    }
+                }
+                $existing_record = $wpdb->get_row($wpdb->prepare(
+                    "SELECT * FROM $space_tbl WHERE lease_id = %d ",
+                    (int) $ed['lease_id']
+                ));
+                if (is_null($existing_record)) {
+                    NEW_np_log("Found new Lease Space #$lease_id  inserting...\n");
+
+                    $prepared_query = $wpdb->prepare(
+                        "INSERT INTO $space_tbl
+                    (lease_id, property_id, lease_title, lease_rate_units, lease_rate, space_size_units, size_sf,
+                    floor, deal_status, space_type_id, lease_address, suite, leasechecksum, lease_desc, lease_type_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                        $ed['lease_id'],
+                        $ed['property_id'],
+                        $ed['lease_title'],
+                        $ed['lease_rate_units'],
+                        $ed['lease_rate'],
+                        $ed['space_size_units'],
+                        $ed['size_sf'],
+                        $ed['floor'],
+                        $ed['deal_status'],
+                        $ed['space_type_id'],
+                        $ed['lease_address'],
+                        $ed['suite'],
+                        $ed['leasechecksum'],
+                        $ed['lease_desc'],
+                        $ed['lease_type_id']
+                    );
+                    $result = $wpdb->query($prepared_query);
+
+                    if ($result === false) {
+                        NEW_np_log("Failed to insert data: " . $wpdb->last_error . "\n");
+                    } else {
+                        NEW_np_log("Lease space inserted successfully with ID: " . $wpdb->insert_id . "\n");
+                    }
+                }
+                if (!is_null($existing_record)) {
+
+                    NEW_np_log("Found Changes In Lease Space #$lease_id  validating checksum...\n");
+                    $update_id = (int) $existing_record->id;
+                    $checksum_check = $existing_record->leasechecksum !== $ed['leasechecksum'];
+
+                    if (!is_null($update_id) && $checksum_check) {
+                        NEW_np_log("Checksum not matached.Updating #$update_id  for #{$ed['lease_id']}\n");
+                        $wpdb->update(
+                            $space_tbl,
+                            array(
+                                'property_id' => $ed['property_id'],
+                                'lease_title' => $ed['lease_title'],
+                                'lease_rate_units' => $ed['lease_rate_units'],
+                                'lease_rate' => $ed['lease_rate'],
+                                'space_size_units' => $ed['space_size_units'],
+                                'size_sf' => $ed['size_sf'],
+                                'floor' => $ed['floor'],
+                                'deal_status' => $ed['deal_status'],
+                                'space_type_id' => $ed['space_type_id'],
+                                'lease_address' => $ed['lease_address'] ?? '',
+                                'suite' => $ed['suite'],
+                                'leasechecksum' => $ed['leasechecksum'],
+                                'lease_desc' => $ed['lease_desc'],
+                                'lease_type_id' => $ed['lease_type_id'],
+                            ),
+                            array('id' => $update_id),
+                            array(
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                                '%s',
+                            ),
+                            array('%d')
+                        );
+
+                        if ($wpdb->last_error) {
+                            NEW_np_log("Failed to update data for lease_id {$ed['lease_id']}: " . $wpdb->last_error . "\n");
+                        } else {
+                            NEW_np_log("Data updated successfully for lease_id {$ed['lease_id']} with ID: " . $update_id . "\n");
+                        }
+
+                    } else {
+                        NEW_np_log("Failed to update data for lease_id {$ed['lease_id']}.Not found in database \n");
+                    }
+                    update_option('tristatecr_datasync_lease_checksum', $new_leasechecksum);
+                }
+            }
+
+            NEW_np_log("Data synchronization process completed for lease spaces.\n");
+        }
     }
- }
 /********************************--Lease Space Sync Ends--*****************************************/
- 
+
 /********************************--Properties Sync Start--*****************************************/
-   
-$message = "\nReading Buildout JSON...";
-if (array_intersect(['json'], $skip)) $message .= ' Skipping';
-NEW_np_log($message);
-if (!array_intersect(['json'], $skip)){
-    $limit = 100; 
-    $offset = 0;
-    $max_retries = 20; 
-    $timeout = 30;  
-    $total_records = 0;
-    $all_properties = [];
-    $total_start_prop_time = microtime(true);
-    while (true) {
-        $attempt = 0;
-        $success = false;
-        $fetch_start_time = microtime(true);
-        while ($attempt < $max_retries && !$success) {
-            $response = wp_remote_get('https://buildout.com/api/v1/' . $get_buildout_api_key . '/properties.json?limit=' . $limit . '&offset=' . $offset, array(
-                'headers' => array(
-                    'Accept' => 'application/json',
-                ),
-                'timeout' => $timeout  
-            ));
 
-            if (is_wp_error($response)) {
-                NEW_np_log('Buildout Properties API request failed on attempt ' . ($attempt + 1), $response->get_error_message());
-                $attempt++;
-                if ($attempt >= $max_retries) {
-                    NEW_np_log("Max retries for properties sync reached. Exiting the synchronization process.\n");
-                    return;  
-                }
-            } else {
-                $success = true;
-            }
-        }
-        if (200 !== wp_remote_retrieve_response_code($response)) {
-            NEW_np_log('Unexpected response code for properties API: ' . wp_remote_retrieve_response_code($response) . "\n");
-            break; 
-        }
-
-        $properties_data = json_decode(wp_remote_retrieve_body($response));
-        $properties = $properties_data->properties;
-        
-        if (empty($properties)) {
-            break; 
-        }
-
-        
-        $all_properties = array_merge($all_properties, $properties);
-      
-        $offset += $limit;
-        
-        $fetch_end_time = microtime(true);
-        
-        $fetch_time = $fetch_end_time - $fetch_start_time;
-
-        NEW_np_log('Fetched ' . count($properties) . ' properties in ' . $fetch_time . ' seconds. Total so far: ' . count($all_properties) . "\n");
-        
+    $message = "\nReading Buildout JSON...";
+    if (array_intersect(['json'], $skip)) {
+        $message .= ' Skipping';
     }
-  
-    $total_end_time = microtime(true);
-    
-    $total_time = $total_end_time - $total_start_prop_time;
-    NEW_np_log('Total time required to fetch all properties: ' . $total_time . ' seconds' . "\n");
-    $new_checksum = md5(json_encode($all_properties));
-    NEW_np_log('New properties checksum: ' . $new_checksum . "\n");
-    
-    $space_tbl_name = $wpdb->prefix . 'lease_spaces';
-    $lease_space_properties = $wpdb->get_results("SELECT * FROM $space_tbl_name", ARRAY_A);
 
-    
-    foreach((object) $all_properties as $item){
+    NEW_np_log($message);
+    if (!array_intersect(['json'], $skip)) {
+        $limit = 100;
+        $offset = 0;
+        $max_retries = 20;
+        $timeout = 30;
+        $total_records = 0;
+        $all_properties = [];
+        $total_start_prop_time = microtime(true);
+        while (true) {
+            $attempt = 0;
+            $success = false;
+            $fetch_start_time = microtime(true);
+            while ($attempt < $max_retries && !$success) {
+                $response = wp_remote_get('https://buildout.com/api/v1/' . $get_buildout_api_key . '/properties.json?limit=' . $limit . '&offset=' . $offset, array(
+                    'headers' => array(
+                        'Accept' => 'application/json',
+                    ),
+                    'timeout' => $timeout,
+                ));
 
-            if($item->proposal ) continue;
-            $id     = NEW_np_generate_buildout_item_id($item);
+                if (is_wp_error($response)) {
+                    NEW_np_log('Buildout Properties API request failed on attempt ' . ($attempt + 1), $response->get_error_message());
+                    $attempt++;
+                    if ($attempt >= $max_retries) {
+                        NEW_np_log("Max retries for properties sync reached. Exiting the synchronization process.\n");
+                        return;
+                    }
+                } else {
+                    $success = true;
+                }
+            }
+            if (200 !== wp_remote_retrieve_response_code($response)) {
+                NEW_np_log('Unexpected response code for properties API: ' . wp_remote_retrieve_response_code($response) . "\n");
+                break;
+            }
+
+            $properties_data = json_decode(wp_remote_retrieve_body($response));
+            $properties = $properties_data->properties;
+
+            if (empty($properties)) {
+                break;
+            }
+
+            $all_properties = array_merge($all_properties, $properties);
+
+            $offset += $limit;
+
+            $fetch_end_time = microtime(true);
+
+            $fetch_time = $fetch_end_time - $fetch_start_time;
+
+            NEW_np_log('Fetched ' . count($properties) . ' properties in ' . $fetch_time . ' seconds. Total so far: ' . count($all_properties) . "\n");
+
+        }
+
+        $total_end_time = microtime(true);
+
+        $total_time = $total_end_time - $total_start_prop_time;
+        NEW_np_log('Total time required to fetch all properties: ' . $total_time . ' seconds' . "\n");
+        $new_checksum = md5(json_encode($all_properties));
+        NEW_np_log('New properties checksum: ' . $new_checksum . "\n");
+
+        $space_tbl_name = $wpdb->prefix . 'lease_spaces';
+        $lease_space_properties = $wpdb->get_results("SELECT * FROM $space_tbl_name", ARRAY_A);
+        $all_active_props_id = [];
+        foreach ((object) $all_properties as $item) {
+
+            if ($item->proposal) {
+                continue;
+            }
+            // buildout id from the api
+            $id = NEW_np_generate_buildout_item_id($item);
+            $all_active_props_id[] = $id;
             $name = $item->name;
             $checksum = md5(json_encode($item));
             $message = "Processing #$id: \"$name\"";
@@ -494,7 +495,7 @@ if (!array_intersect(['json'], $skip)){
                 $message = '-- Existing post ID ' . $found_id . ' for ' . $id . '.';
                 defined('WP_CLI') && WP_CLI::log($message);
                 $post_id = $postarr['ID'] = $found_id;
-        
+
                 $existing_checksum = $buildout_checksums[$found_id] ?? '';
                 if (!$force_update && ($existing_checksum == $checksum)) {
                     $message = "--- No changes detected, checksum $checksum matches";
@@ -507,7 +508,7 @@ if (!array_intersect(['json'], $skip)){
                     $message = "--- Changes detected, checksum $checksum does not match $existing_checksum";
                     defined('WP_CLI') && WP_CLI::log($message);
                 }
-        
+
                 $result = wp_update_post($postarr);
                 if (is_wp_error($result)) {
                     $message = $result->get_error_message();
@@ -520,78 +521,93 @@ if (!array_intersect(['json'], $skip)){
                 }
             } else {
 
-        // Creating new post for the given ID
-        $message = '-- Creating new post for ' . $id . '.';
-        defined('WP_CLI') && WP_CLI::log($message);
+                // Creating new post for the given ID
+                $message = '-- Creating new post for ' . $id . '.';
+                defined('WP_CLI') && WP_CLI::log($message);
 
-        $result = wp_insert_post($postarr);
-        
-        if (is_wp_error($result)) {
-            $message = '--- Error creating post: ' . $result->get_error_message();
-            defined('WP_CLI') && WP_CLI::error($message);
-            $counter['errors']++;
-        } else {
-        
-            $query = $wpdb->prepare(
-                "SELECT * FROM $space_tbl_name WHERE property_id = %s AND deal_status=%s",
-                $id, '1'
-            );
-            //gets buildout id not post id 
-            $lease_space_properties = $wpdb->get_results($query, ARRAY_A);
-            
-            $post_id = $result;
-            
-            $message = '--- Created new post ID ' . $result;
-            defined('WP_CLI') && WP_CLI::log($message);
-            $counter['imported']++;
-            $imported_ids[$post_id] = $id;
-            
-            if (!empty($lease_space_properties)) {
-            
-                NEW_np_log('--- Found ' . count($lease_space_properties) . ' Lease Space Properties for "' . get_the_title($result) . '" ---');
-                update_post_meta($result,'lease_space_childrens',$lease_space_properties);
-                $child_lease_ids = [];
-                foreach ($lease_space_properties as $lsp) {
-                    $child_lease_ids[] = $lsp['id'];
+                $result = wp_insert_post($postarr);
+
+                if (is_wp_error($result)) {
+                    $message = '--- Error creating post: ' . $result->get_error_message();
+                    defined('WP_CLI') && WP_CLI::error($message);
+                    $counter['errors']++;
+                } else {
+
+                    $query = $wpdb->prepare(
+                        "SELECT * FROM $space_tbl_name WHERE property_id = %s AND deal_status=%s",
+                        $id, '1'
+                    );
+                    //gets buildout id not post id
+                    $lease_space_properties = $wpdb->get_results($query, ARRAY_A);
+
+                    $post_id = $result;
+
+                    $message = '--- Created new post ID ' . $result;
+                    defined('WP_CLI') && WP_CLI::log($message);
+                    $counter['imported']++;
+                    $imported_ids[$post_id] = $id;
+
+                    if (!empty($lease_space_properties)) {
+
+                        NEW_np_log('--- Found ' . count($lease_space_properties) . ' Lease Space Properties for "' . get_the_title($result) . '" ---');
+                        update_post_meta($result, 'lease_space_childrens', $lease_space_properties);
+                        $child_lease_ids = [];
+                        foreach ($lease_space_properties as $lsp) {
+                            $child_lease_ids[] = $lsp['id'];
+                        }
+
+                        if (!empty($child_lease_ids)) {
+                            update_post_meta($result, 'lease_space_table_id', $child_lease_ids);
+                        }
+                    }
                 }
-                
-                if(!empty($child_lease_ids)){
-                    update_post_meta($result,'lease_space_table_id',$child_lease_ids);
-                }
+
             }
+            if ($post_id) {
+
+                update_post_meta($post_id, '_buildout_last_updated', time());
+
+            }
+            
+            
         }
-
-    }
-    if ($post_id) {
-
-        update_post_meta($post_id, '_buildout_last_updated', time());
         
+        // delete non existing properties
+        $all_new_results = $wpdb->get_results("SELECT post_id, meta_value FROM {$wpdb->prefix}postmeta WHERE meta_key = '_import_buildout_id'");
+        $new_imported_ids = wp_list_pluck($all_new_results, 'meta_value', 'post_id');
+        foreach($new_imported_ids as $key=>$val){
+              if(!in_array($val,$all_active_props_id)){
+              
+                wp_delete_post($key,true);
+              } 
+        }
     }
-    }
-}
 /********************************--Properties Sync Ends--*****************************************/
 
 /********************************--Google Sheet Sync starts--*****************************************/
 
     $message = "\nReading Sheets CSV...";
-    if (in_array('csv', $skip)) $message .= ' Skipping';
-    NEW_np_log($message);
-    
-    if(!in_array('csv' , $skip)){
-        $sheets = 'https://sheets.googleapis.com/v4/spreadsheets/'.$spreadsheet_id.'/values:batchGet?ranges=ny&ranges=pa&key=AIzaSyBmzLaF5VtQ2h_JNozhuBmK4-cB4KXlygA';
+    if (in_array('csv', $skip)) {
+        $message .= ' Skipping';
+    }
 
-    	$sheetresponse = fetch_with_exponential_backoff($sheets,6);
+    NEW_np_log($message);
+
+    if (!in_array('csv', $skip)) {
+        $sheets = 'https://sheets.googleapis.com/v4/spreadsheets/' . $spreadsheet_id . '/values:batchGet?ranges=ny&ranges=pa&key=AIzaSyBmzLaF5VtQ2h_JNozhuBmK4-cB4KXlygA';
+
+        $sheetresponse = fetch_with_exponential_backoff($sheets, 6);
         if (!is_wp_error($sheetresponse)) {
-            $sheetsdata =  json_decode(wp_remote_retrieve_body($sheetresponse));
-            
+            $sheetsdata = json_decode(wp_remote_retrieve_body($sheetresponse));
+
             $all_sheets = $sheetsdata->valueRanges;
-            
-            foreach($all_sheets as $as){
-                
+
+            foreach ($all_sheets as $as) {
+
                 NEW_np_log("Processing #$as->range \n");
                 sleep(1);
                 $row = 0;
-                foreach($as->values as $data){
+                foreach ($as->values as $data) {
                     $row++;
                     if ($row == 1) {
                         $header = $data;
@@ -599,32 +615,31 @@ if (!array_intersect(['json'], $skip)){
                             $item = sanitize_title($item);
                             $item = strtolower(str_replace('-', '_', $item));
                         });
-                       
+
                         continue;
                     }
                     if (count($header) !== count($data)) {
                         $message = "Mismatch detected in row $row. Header count: " . count($header) . ", Row count: " . count($data);
                         NEW_np_log($message);
-                        
-                        
+
                         if (count($data) > count($header)) {
                             $data = array_slice($data, 0, count($header));
                         } else {
-                           
+
                             while (count($data) < count($header)) {
                                 $data[] = null;
                             }
                         }
                         $message = "Adjusted row $row data: " . implode(", ", $data);
                         NEW_np_log($message);
-                    }    
+                    }
                     // Data row
                     $item = (object) array_combine($header, $data);
                     $id = new_np_generate_google_csv_item_id($item);
                     $checksum = md5(json_encode($item));
                     $message = "- Processing #$id";
                     NEW_np_log($message);
-                    
+
                     if ($buildout_id = $item->buildout_id ?? false) {
                         $message = "-- Found Buildout ID $buildout_id for row";
                         NEW_np_log($message);
@@ -634,7 +649,7 @@ if (!array_intersect(['json'], $skip)){
                         $counter['missing']++;
                         continue;
                     }
-        
+
                     // Find the imported post_id
                     $post_id = array_search($buildout_id, $imported_ids);
                     if (!$post_id) {
@@ -647,7 +662,7 @@ if (!array_intersect(['json'], $skip)){
                         NEW_np_log($message);
                         $counter['found']++;
                     }
-        
+
                     // Check the checksum
                     $post_sheet_checksum = $sheets_checksums[$post_id] ?? false;
                     if (!$force_update && ($post_sheet_checksum && $post_sheet_checksum == $checksum)) {
@@ -682,18 +697,16 @@ if (!array_intersect(['json'], $skip)){
                         }
                         update_post_meta($post_id, '_gsheet_last_updated', time());
                     }
-                    
-                   
+
                 }
                 NEW_np_log("Processing #$as->range completed");
             }
-            
-        }else{
-            
+
+        } else {
+
             NEW_np_log('Unknown Error Occured');
         }
-    
-    
+
     }
 
 /********************************--Google Sheet Sync ends--*****************************************/
@@ -712,10 +725,11 @@ if (!array_intersect(['json'], $skip)){
 }
 defined('WP_CLI') && WP_CLI::add_command('datasync', 'tristatectr_datasync_command_v2');
 
-
 function NEW_np_log($message, $data = null)
 {
-    if (!is_null($data)) $message . ' ' . print_r($data, 1);
+    if (!is_null($data)) {
+        $message . ' ' . print_r($data, 1);
+    }
 
     if (defined('WP_CLI')) {
         WP_CLI::log($message);
@@ -739,23 +753,21 @@ function new_tristatectr_get_brokers_with_excluded($broker_ids = array())
     return array_filter($array);
 }
 
-
 function NEW_np_generate_buildout_item_id($data = null)
 {
     return (int) $data->id;
 }
 
-
 function new_np_process_buildout_item($data = null)
 {
     $result = array();
-    $result['post_title']     = $data->name ?? '';
+    $result['post_title'] = $data->name ?? '';
     $result['post_content'] = $data->description ?? '';
     $result['post_excerpt'] = $data->location_description ?? '';
-    $result['post_status']     = 'publish';
-    $result['post_type']     = 'properties';
-    $result['tax_input']     = array();
-    $result['meta_input']     = new_np_process_buildout_item_meta($data);
+    $result['post_status'] = 'publish';
+    $result['post_type'] = 'properties';
+    $result['tax_input'] = array();
+    $result['meta_input'] = new_np_process_buildout_item_meta($data);
 
     // defined('WP_CLI') && WP_CLI::log(print_r(array_keys((array) $data), 1));
     return $result;
@@ -765,8 +777,8 @@ function new_np_process_buildout_item_meta($data = null)
 {
     $checksum = md5(json_encode($data));
     $result = array(
-        '_import_buildout_id'             => NEW_np_generate_buildout_item_id($data),
-        '_import_from'                             => 'buildout',
+        '_import_buildout_id' => NEW_np_generate_buildout_item_id($data),
+        '_import_from' => 'buildout',
         '_import_buildout_checksum' => $checksum,
     );
 
@@ -964,7 +976,7 @@ function new_np_process_google_csv_item_meta($data = null)
 {
     $checksum = md5(json_encode($data));
     $result = array(
-        '_import_from'                         => 'sheets',
+        '_import_from' => 'sheets',
         '_import_gsheet_checksum' => $checksum,
     );
 
@@ -980,24 +992,27 @@ function new_np_process_google_csv_item_meta($data = null)
 
 // Register a custom interval for every two days
 add_filter('cron_schedules', 'tristatecr_syncapi_cron_schedules');
-function tristatecr_syncapi_cron_schedules($schedules) {
+function tristatecr_syncapi_cron_schedules($schedules)
+{
     $schedules['every_two_days'] = array(
         'interval' => 5 * HOUR_IN_SECONDS,
-        'display'  => __('Every Five Hours'),
+        'display' => __('Every Five Hours'),
     );
     return $schedules;
 }
 
 // Schedule the event if not already scheduled
 add_action('wp', 'schedule_tristatecr_syncapi_cron_job');
-function schedule_tristatecr_syncapi_cron_job() {
+function schedule_tristatecr_syncapi_cron_job()
+{
     if (!wp_next_scheduled('tristatecr_syncapi_cron_job')) {
         wp_schedule_event(time(), 'every_two_days', 'tristatecr_syncapi_cron_job');
     }
 }
 
 // Define the callback function
-function tristatecr_syncapi_cron_job_function() {
+function tristatecr_syncapi_cron_job_function()
+{
     // Your custom code here
     update_option('tristatecr_datasync_cron_last_startedv2', time());
 
@@ -1012,29 +1027,29 @@ function tristatecr_syncapi_cron_job_function() {
         'skip' => 'remote',
     );
     $result = tristatectr_datasync_command_v2($args, $aargs);
-  
+
     $message = "\nResults: " . print_r($result, 1) . "\n";
     error_log($message, 3, NEW_LOG_FILE);
 
     $args = array(
         'post_type' => 'properties',
         'post_status' => 'publish',
-        'posts_per_page' => -1 
+        'posts_per_page' => -1,
     );
 
     $query = new WP_Query($args);
 
-    if($query->have_posts()) {
+    if ($query->have_posts()) {
         while ($query->have_posts()) {
             $query->the_post();
             $buildout_agent = get_post_meta(get_the_id(), '_buildout_broker_id', true);
-            if(!empty($buildout_agent)){
+            if (!empty($buildout_agent)) {
                 global $wpdb;
                 $agquery = $wpdb->prepare(
-                    "SELECT pm.post_id 
+                    "SELECT pm.post_id
                      FROM $wpdb->postmeta pm
                      INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
-                     WHERE pm.meta_key = 'user_id' 
+                     WHERE pm.meta_key = 'user_id'
                        AND pm.meta_value = %s
                        AND p.post_type = 'brokers'",
                     $buildout_agent
@@ -1043,7 +1058,7 @@ function tristatecr_syncapi_cron_job_function() {
 
                 $_agent = get_the_title($agent_id);
 
-                update_post_meta(get_the_id(),'_buildout_listing_agent', $_agent);
+                update_post_meta(get_the_id(), '_buildout_listing_agent', $_agent);
             }
         }
         wp_reset_postdata();
@@ -1092,7 +1107,6 @@ function new_tristatecr_insert_broker_data()
             $broker_phone_number = $data['phone_number'];
             $broker_profile_pic = $data['profile_photo_url'];
 
-
             // Check if user already exists as a broker
             if (!new_user_exists_as_broker($user_id)) {
                 // User does not exist as a broker, insert data into "brokers" custom post type
@@ -1119,9 +1133,6 @@ function new_tristatecr_insert_broker_data()
     }
 }
 
-
-
-
 function new_tristate_get_broker_id($meta_key, $meta_value)
 {
 
@@ -1136,33 +1147,33 @@ function new_tristate_get_broker_id($meta_key, $meta_value)
     return ($posts[0]);
 }
 
-
-function get_lease_space_data($pid){
+function get_lease_space_data($pid)
+{
     global $wpdb;
-    $space_tbl= $wpdb->prefix . 'lease_spaces';
-    $l_meta = get_post_meta($pid,'lease_space_table_id',true);
+    $space_tbl = $wpdb->prefix . 'lease_spaces';
+    $l_meta = get_post_meta($pid, 'lease_space_table_id', true);
     $html = '';
-    if(!empty($l_meta)){
+    if (!empty($l_meta)) {
         $html .= "<div class='trimmed-unit'>";
         $html .= "<ul class='ul-content ul-features>";
-        $counter=1;
-        foreach($l_meta as $lm){
+        $counter = 1;
+        foreach ($l_meta as $lm) {
             $query = $wpdb->prepare(
                 "SELECT * FROM $space_tbl WHERE id = %s AND deal_status=%s",
                 $lm, '1'
             );
             $row = $wpdb->get_row($query, ARRAY_A);
             // var_dump($row);
-            $html .= '<h4>Unit ' . $counter .'</h4>';
+            $html .= '<h4>Unit ' . $counter . '</h4>';
             $html .= "<li><p>Title: <span>Unit title</span></p></li>";
-            $html .=  "<li><p>Price: <span>$1234 SF</span></p> </li>";
+            $html .= "<li><p>Price: <span>$1234 SF</span></p> </li>";
             $html .= "<li><p>Area: <span>600 SF</span></p></li>";
-            $counter ++;
+            $counter++;
         }
         $html .= "</ul>";
         $html .= "</div>";
     }
-    
+
     return $html;
 
 }
