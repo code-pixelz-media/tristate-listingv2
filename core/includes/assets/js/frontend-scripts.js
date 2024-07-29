@@ -6,6 +6,7 @@ jQuery(document).on('change','#map-layer-data', function(){
 jQuery(document).ready(function($){
 
      
+     
 	
 	// // for price range slider
 	// $("#price-range").slider({
@@ -516,6 +517,7 @@ jQuery("#selectcolumn").on("change", function(){
 
 // More filters for state page
 jQuery(document).ready(function () {
+  jQuery("#more-filter-content").insertAfter(".Filterform > .MuiBox-root");
   jQuery('#more-filter-content').hide();
   jQuery("#state-more-filter").on("click", function () {
   jQuery('#more-filter-content').toggleClass("ts-adv-show");
@@ -566,7 +568,7 @@ jQuery(document).ready(function () {
   });
 }
 
-  var nav = $('#fixed-left');
+  var nav = $('#fixed-left1');
   var headerHeight = $('.elementor-sticky').outerHeight();
   var navOffsetTop = nav.offset().top;
   var navOffsetLeft = nav.offset().left;

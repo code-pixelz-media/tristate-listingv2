@@ -4,34 +4,34 @@ let markers = [];
 let infoWindows = [];
 let markerCluster;
 
-function markersLatLng(tId , ID) {
+function markersLatLng(tId, ID) {
 
-  if(ID){
+  if (ID) {
     var allMarkers = document.getElementById(tId).value;
-  }else{
+  } else {
     var allMarkers = tId;
   }
 
   var markersArray = JSON.parse(allMarkers);
   var markerData = [];
-  if(markersArray){
-    markersArray.forEach(function(input) {
+  if (markersArray) {
+    markersArray.forEach(function (input) {
       var latitude = parseFloat(input.lat);
       var longitude = parseFloat(input.long);
       var img = input.marker_image;
       var postID = input.post_id;
-                       
+
       if (!isNaN(latitude) && !isNaN(longitude) && isFinite(latitude) && isFinite(longitude)) {
-        var title = input.popup_data.title ;
+        var title = input.popup_data.title;
         if (title.length > 35) {
           title = title.substring(0, 23);
           title += " ...";
         }
         var subs = input.popup_data.sub_title;
-        var image = input.popup_data.image ;
+        var image = input.popup_data.image;
         var link = input.popup_data.link ?? '#';
-        var listingType= input.popup_data.type;
-        var markerDataObject = { lat: latitude, lng: longitude, imgIcon:img, title: title , subtitle:subs, type: listingType , pid:postID, img:image ,link :link };
+        var listingType = input.popup_data.type;
+        var markerDataObject = { lat: latitude, lng: longitude, imgIcon: img, title: title, subtitle: subs, type: listingType, pid: postID, img: image, link: link };
         markerData.push(markerDataObject);
       }
     });
@@ -41,22 +41,22 @@ function markersLatLng(tId , ID) {
   return markerData;
 }
 
-function get_visible_properties(){
+function get_visible_properties() {
 
-  var jsonArr=[] ;
-  jQuery(".propertylisting-content:visible").each(function() {
-   
-            var dataJson = $(this).attr('data-json');
-            var dataObj = JSON.parse(dataJson);
-            if(dataObj){
-              jsonArr.push(dataObj);
-            }
+  var jsonArr = [];
+  jQuery(".propertylisting-content:visible").each(function () {
+
+    var dataJson = $(this).attr('data-json');
+    var dataObj = JSON.parse(dataJson);
+    if (dataObj) {
+      jsonArr.push(dataObj);
+    }
   });
   return {
     'mapdata': jsonArr,
-   
+
   }
-  
+
 }
 
 function getCarouselInfowindowHtml(markersInfo) {
@@ -94,13 +94,15 @@ function getCarouselInfowindowHtml(markersInfo) {
 
 
 function get_infowindow_html(markerInfo, currentIndex = 0, totalMarkers = 1) {
+  var statePage = jQuery(document).find('.filter-wrapper').hasClass('ts-state-page');
+  var quickViewButton = !statePage ? ` <button data-div="${markerInfo.pid}" class="quick-view">Quick View</button>` : '';
   const navigation = totalMarkers > 1 ? `
   <div id="content-bottom">
       <span class="prev" ${currentIndex === 0 ? 'style="opacity: 0;"' : ''} onclick="showPreviousMarker(${currentIndex})">&#8592;</span>
        <p class="carousel-count">${currentIndex + 1} of ${totalMarkers}</p>
        <span class="next" ${currentIndex === totalMarkers - 1 ? 'style="opacity: 0;"' : ''} onclick="showNextMarker(${currentIndex})">&#8594;</span>
   </div>` : '';
-  const backGround = markerInfo.type ==='FOR LEASE' ? 'lease-bgopacity' : 'sale-bgopacity';
+  const backGround = markerInfo.type === 'FOR LEASE' ? 'lease-bgopacity' : 'sale-bgopacity';
   const contentString = `
       <div id="content" data-mkid="${markerInfo.pid}">
           <div id="bodyContent">
@@ -115,7 +117,9 @@ function get_infowindow_html(markerInfo, currentIndex = 0, totalMarkers = 1) {
                   <h2 class="">${markerInfo.subtitle.address_b}</h2>
                   <h2 class="">${markerInfo.subtitle.address_c}</h2>
                   <p><a class="listing-more" href="${markerInfo.link}" target="_blank">View Listing</a></p>
+                  ${quickViewButton}
               </div>
+             
           </div>
           ${navigation}
       </div>
@@ -126,68 +130,68 @@ function get_infowindow_html(markerInfo, currentIndex = 0, totalMarkers = 1) {
 
 
 
-function get_markerData(fromId=true ,id){
+function get_markerData(fromId = true, id) {
   var statePageCheck = jQuery(document).find('.filter-wrapper').hasClass('ts-state-page');
-  markers.forEach(function(marker) {
-    marker.setMap(null); 
+  markers.forEach(function (marker) {
+    marker.setMap(null);
   });
-  markers = []; 
+  markers = [];
   var allData = get_visible_properties(),
-  markerData = fromId ? markersLatLng(id,true) : markersLatLng(JSON.stringify(allData.mapdata),false);
- 
-  if(markerData){
+    markerData = fromId ? markersLatLng(id, true) : markersLatLng(JSON.stringify(allData.mapdata), false);
 
- 
+  if (markerData) {
+
+
     var bounds = new google.maps.LatLngBounds();
-    markerData.forEach(function(markerInfo) {
-  
+    markerData.forEach(function (markerInfo) {
+
       var markerIcon = {
         url: markerInfo.imgIcon,
         scaledSize: statePageCheck ? new google.maps.Size(50, 50) : new google.maps.Size(38, 38) // Adjust the size as per your requirement
       };
-      
+
       var marker = new google.maps.Marker({
         position: { lat: markerInfo.lat, lng: markerInfo.lng },
         map: map,
         title: markerInfo.title,
-        icon : markerIcon,
-        pid:markerInfo.pid
+        icon: markerIcon,
+        pid: markerInfo.pid
       });
-      
-      
+
+
       markers.push(marker);
       marker.addListener("click", (ev) => {
         var clickedPosition = marker.getPosition(); // Get the clicked position
         var overlappingMarkers = findOverlappingMarkers(clickedPosition);
-        
+
         var hasClass = jQuery(document).find('.filter-wrapper').hasClass('ts-state-page');
-    
+
         if (overlappingMarkers.length > 1 && !hasClass) {
-            overlappingMarkersData = overlappingMarkers.map(m => markerData.find(data => data.pid === m.pid));
-            currentInfoWindowIndex = 0;
-            updateInfoWindowContent();
+          overlappingMarkersData = overlappingMarkers.map(m => markerData.find(data => data.pid === m.pid));
+          currentInfoWindowIndex = 0;
+          updateInfoWindowContent();
         } else {
-            const markerInfo = markerData.find(data => data.pid === marker.pid);
-            const content = get_infowindow_html(markerInfo);
-            const infoWindow = new google.maps.InfoWindow({
-                content: content,
-                ariaLabel: markerInfo.title,
-            });
-    
-            infoWindows.forEach(item => item.close());
-            infoWindow.open({
-                anchor: marker,
-                map,
-            });
-            infoWindows.push(infoWindow);
+          const markerInfo = markerData.find(data => data.pid === marker.pid);
+          const content = get_infowindow_html(markerInfo);
+          const infoWindow = new google.maps.InfoWindow({
+            content: content,
+            ariaLabel: markerInfo.title,
+          });
+
+          infoWindows.forEach(item => item.close());
+          infoWindow.open({
+            anchor: marker,
+            map,
+          });
+          infoWindows.push(infoWindow);
         }
-    });
-    
-    
-      
+      });
+
+
+
       bounds.extend(marker.getPosition());
     });
-  
+
     map.fitBounds(bounds);
   }
 }
@@ -210,39 +214,39 @@ let currentInfoWindowIndex = 0;
 let overlappingMarkersData = [];
 
 function showPreviousMarker(currentIndex) {
-    if (currentIndex > 0) {
-        currentInfoWindowIndex = currentIndex - 1;
-        updateInfoWindowContent();
-    }
+  if (currentIndex > 0) {
+    currentInfoWindowIndex = currentIndex - 1;
+    updateInfoWindowContent();
+  }
 }
 
 function showNextMarker(currentIndex) {
-    if (currentIndex < overlappingMarkersData.length - 1) {
-        currentInfoWindowIndex = currentIndex + 1;
-        updateInfoWindowContent();
-    }
+  if (currentIndex < overlappingMarkersData.length - 1) {
+    currentInfoWindowIndex = currentIndex + 1;
+    updateInfoWindowContent();
+  }
 }
 
 function updateInfoWindowContent() {
-    const markerInfo = overlappingMarkersData[currentInfoWindowIndex];
-    const content = get_infowindow_html(markerInfo, currentInfoWindowIndex, overlappingMarkersData.length);
-    const infoWindow = new google.maps.InfoWindow({
-        content: content,
-        ariaLabel: markerInfo.title,
-    });
+  const markerInfo = overlappingMarkersData[currentInfoWindowIndex];
+  const content = get_infowindow_html(markerInfo, currentInfoWindowIndex, overlappingMarkersData.length);
+  const infoWindow = new google.maps.InfoWindow({
+    content: content,
+    ariaLabel: markerInfo.title,
+  });
 
-    infoWindows.forEach(item => item.close());
-    infoWindow.open({
-        anchor: markers.find(m => m.pid === markerInfo.pid),
-        map,
-    });
-    infoWindows.push(infoWindow);
+  infoWindows.forEach(item => item.close());
+  infoWindow.open({
+    anchor: markers.find(m => m.pid === markerInfo.pid),
+    map,
+  });
+  infoWindows.push(infoWindow);
 }
 
 
 function findOverlappingMarkers(position) {
-  return markers.filter(marker => 
-      marker.getPosition().equals(position)
+  return markers.filter(marker =>
+    marker.getPosition().equals(position)
   );
 }
 
@@ -250,36 +254,58 @@ function findClosestMarkers(position) {
   var closestMarkers = [];
   var closestDistance = Number.MAX_VALUE;
 
-  markers.forEach(function(marker) {
-      var distance = google.maps.geometry.spherical.computeDistanceBetween(position, marker.getPosition());
-      if (distance < closestDistance) {
-          closestMarkers = [marker];
-          closestDistance = distance;
-      } else if (distance === closestDistance) {
-          closestMarkers.push(marker);
-      }
+  markers.forEach(function (marker) {
+    var distance = google.maps.geometry.spherical.computeDistanceBetween(position, marker.getPosition());
+    if (distance < closestDistance) {
+      closestMarkers = [marker];
+      closestDistance = distance;
+    } else if (distance === closestDistance) {
+      closestMarkers.push(marker);
+    }
   });
 
   return closestMarkers;
 }
 
-jQuery(document).on('mouseenter','.propertylisting-content',function(){
-  if(jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')){
-      const pid = jQuery(this).data('pid');
-      const marker = markers.find(m => m.pid === pid);
-      if(marker){
-        new google.maps.event.trigger( marker, 'click' );
-      }
-      
+jQuery(document).on('mouseenter', '.propertylisting-content', function () {
+  if (jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')) {
+    const pid = jQuery(this).data('pid');
+    const marker = markers.find(m => m.pid === pid);
+    if (marker) {
+      new google.maps.event.trigger(marker, 'click');
+    }
+
   }
+});
+
+jQuery(document).on('click', '.quick-view', function () {
+
+
+    var pid = $(this).data('div');
+    var $targetDiv = $('div[data-pid="' + pid + '"]');
+    var statePage = jQuery(document).find('.filter-wrapper').hasClass('ts-state-page');
+    if ($targetDiv.length && !statePage) {
+      $targetDiv.addClass('property-focused');
+      $('html, body').animate({
+        scrollTop: $targetDiv.offset().top - 200
+      }, 1, function () {
+       
+
+      });
+      setTimeout(function () {
+        $targetDiv.removeClass('property-focused');
+      }, 5000);
+    }
+
+
 });
 
 
 //jQuery('.propertylisting-content:visible').on('mouseleave', function() {
-  jQuery(document).on('mouseleave','.propertylisting-content',function(){
-    if(jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')){
-      infoWindows.forEach(item => item.close());
-    }
+jQuery(document).on('mouseleave', '.propertylisting-content', function () {
+  if (jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')) {
+    infoWindows.forEach(item => item.close());
+  }
 });
 
 

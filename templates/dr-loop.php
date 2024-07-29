@@ -22,10 +22,9 @@ if($property_use_type_name && $property_use_sub_type_name ){
 }elseif($property_use_type_name && !$property_use_sub_type_name){
     $use_str = $property_use_type_name;
 }
-
-
-
-
+if($args['state'] && $property_use_type_name){
+    $use_str = $property_use_type_name;
+}
 $badges         = array(
                     'use' =>$use_str ?? '',
                     'additional_use' => $additional_property_subtype_ids,
@@ -34,13 +33,19 @@ $badges         = array(
                     (($buildout_sale == '1') ? 'for Sale' : false)),
                     'commission' => meta_of_api_sheet($ID, 'commission')
                 );
-                
+if($args['state']){
+    unset($badges['additional_use']);
+}
 $_price_sf      = meta_of_api_sheet($ID, 'price_sf');
 $_price_sf      = preg_replace('/\.[0-9]+/', '', $_price_sf);
 $_price_sf      = (int) preg_replace('/[^0-9]/', '', $_price_sf);
 
-$min_size       = ''; //get_post_meta($ID, '_gsheet_min_size_fm',true);
+//$min_size       = ''; //get_post_meta($ID, '_gsheet_min_size_fm',true);
 $max_size       = '';//get_post_meta($ID, '_gsheet__max_size_fm',true);
+$min_size = get_min_size_lsp($ID)['size'];
+if(empty($min_size)){
+    $min_size ='';
+}
 $building_size_sf = get_post_meta($id, '_building_size_sf', true);
 //max and min values for for lease properties sf
 $max_lease_sf_value       = get_post_meta($ID, '_gsheet_price_sf',true);
@@ -377,7 +382,7 @@ if($formatted_type == 'forlease'){
     data-id="<?php echo $buildout_id;?>"
     data-json = "<?php echo htmlspecialchars($json_data, ENT_QUOTES, 'UTF-8');?>" 
     data-price="<?php echo esc_attr(!empty($bo_price) && $formatted_type== 'forsale'? $bo_price : '0'); ?>"
-    data-pricesf="<?php echo esc_attr(!empty($maxes_lsp['dollars_per_sf_per_month']) ? $maxes_lsp['dollars_per_sf_per_month'] : '0'); ?>"
+    data-pricesf="<?php echo  $maxes_lsp['dollars_per_sf_per_month'] ?  $maxes_lsp['dollars_per_sf_per_month'] : '0' ; ?>"
     data-minsize="<?php echo esc_attr(!empty($min_size) ? $min_size : '0');?>"
     data-maxsize="<?php  echo esc_attr(!empty($maxes_lsp['size'] ) ? $maxes_lsp['size'] : '0');?>"
     data-dateupdated="<?php echo strtotime($date_upd); ?>",
@@ -403,8 +408,8 @@ if($args['state']) { ?>
     <div class="plc-top">
     <?php if($args['state']) { ?>
     <div id="state-layout-head">
-        <h2 class="lisiitng__title" id="state_property_title" style="display:none"><a href="<?php echo get_the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> <?php echo esc_html(get_the_title()); ?></a>  </h2> 
-        <h2 class="lisiitng__state_title" >
+        <h2 class="lisiitng__title" id="state_property_title" ><a href="<?php echo get_the_permalink(); ?>" target="_blank" class="MuiButton-colorPrimary"> <?php echo esc_html(get_the_title()); ?></a>  </h2> 
+        <h2 class="lisiitng__state_title" style="display:none">
             <?php echo esc_html(get_the_title()); ?>
         </h2>
     </div>

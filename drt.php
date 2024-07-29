@@ -4,6 +4,8 @@
 //add_action('wp_head', 'drt_restrict_page_access');
 //add_action('wp_footer', 'drt_display_notice_after_footer');
 
+
+
 add_action('template_redirect', 'drt_restrict_page_access', 11);
 
 function drt_restrict_page_access()
@@ -274,6 +276,60 @@ function __total()
             AND ($wpdb->postmeta.meta_value != '1' OR $wpdb->postmeta.meta_id IS NULL)";
   $results = $wpdb->get_results($wpdb->prepare($query, $post_type), ARRAY_A);
   return intval($results[0]['count']);
+}
+
+
+function get_min_size_lsp($id){
+  global $wpdb;
+  $space_tbl = $wpdb->prefix . 'lease_spaces';
+  $l_meta = get_post_meta($id, 'lease_space_table_id', true);
+  if (!is_array($l_meta)) {
+      $l_meta = array($l_meta);
+  }
+  $placeholders = implode(',', array_fill(0, count($l_meta), '%d'));
+  $query = $wpdb->prepare(
+      "SELECT lease_rate, size_sf, lease_rate_units,space_size_units
+       FROM $space_tbl
+       WHERE id IN ($placeholders)
+         AND deal_status = %s
+      ",
+      array_merge($l_meta, ['1'])
+  );
+  $results = $wpdb->get_results($query, ARRAY_A);
+  if(!empty($results) ){
+    $min_vals = array(
+        'dollars_per_sf_per_month' => [],
+        'dollars_per_month' => [],
+        'size' => []
+    );
+    foreach($results as $r){
+        $lease_rate       = $r['lease_rate'];
+        $lease_rate_units = $r['lease_rate_units'];
+        $size_units       = $r['space_size_units'];
+        $size_sf          = $r['size_sf'];
+        if($lease_rate_units == 'dollars_per_sf_per_month'){
+            $min_vals['dollars_per_sf_per_month'][] = $lease_rate;
+        }
+        if($lease_rate_units == 'dollars_per_month'){
+            $min_vals['dollars_per_month'][] = $lease_rate;
+        }
+        if($size_units == 'sf'){
+            $min_vals['size'][] = $size_sf;
+        }
+    }
+    $min_values = array(
+        'dollars_per_sf_per_month' => !empty($min_vals['dollars_per_sf_per_month']) ? min($min_vals['dollars_per_sf_per_month']) : false,
+        'dollars_per_month' => !empty($min_vals['dollars_per_month']) ? min($min_vals['dollars_per_month']) : false,
+        'size' => !empty($min_vals['size']) ? min($min_vals['size']) : false
+    );
+}else {
+  $min_values= array(
+       'dollars_per_sf_per_month' => false,
+       'dollars_per_month' => false,
+       'size' => false
+   );
+}
+return $min_values;
 }
 
 //getting max values for lease space properties
@@ -677,13 +733,13 @@ function drt_shortcode($_atts)
           <div class="MuiBox-root">
             <div id="select-container">  
               <?php
-              if (!empty($atts['state'])) {
+              //if (!empty($atts['state'])) {
               ?>
                 <div class="search-by-text-new state-page-keyword">
                   <label for="search-by-text-new">Search</label>
                   <input class="MuiInputBase-input" aria-invalid="false" id="search-by-text-new" placeholder="Search by address,city,state, or zip" type="text">
                 </div>
-              <?php } ?>
+              <?php // } ?>
               <!-- Dynamically created select elements will be placed here -->
             </div>
 
@@ -1439,7 +1495,9 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
    let unitPrice = parseInt($listing.data('pricesf')); //unit_per_sf
     //let unitSize = parseFloat($listing.data('unit_size'));
     let unitSize = parseFloat($listing.data('maxsizesf'));
-    var propertyMaxRent = parseInt($listing.data('maxrent'));
+    let unitMinSize = parseFloat($listing.data('minsize'));//minsize
+   // var propertyMaxRent = parseInt($listing.data('maxrent'));
+    var propertyMaxRent = parseInt($listing.data('monthly-rent'));
     var salePrice = parseInt($listing.data('price'));
 
 
@@ -1578,15 +1636,37 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
   if (maxSize > 0 && !(unitSize >= minSize && (maxSize === Infinity || unitSize <= maxSize) || maxSize === 0)) {
         showListing = false;
     }
-if(minSize > 0 && maxSize ==0){
-    if (!(unitSize >= minSize && (minSize === Infinity || unitSize <= minSize) || minSize === 0)) {
+
+
+    if(minSize > 0 && maxSize ==0){
+    if (!(minSize >= unitMinSize && (minSize === Infinity || unitMinSize <= minSize) || minSize === 0)) {
         showListing = false;
     }
   }
 
-    if (maxRent > 0 && !(propertyMaxRent !== 0 && (maxRent === Infinity || (propertyMaxRent >= minRent && propertyMaxRent <= maxRent)) || maxRent === 0)) {
+/*     if(minSize > 0 && maxSize ==0){
+    if (!(minSize >= unitSize && (minSize === Infinity || unitSize <= minSize) || minSize === 0)) {
         showListing = false;
     }
+  } */
+/* if(minSize > 0 && maxSize ==0){
+    if (!(unitSize >= minSize && (minSize === Infinity || unitSize <= minSize) || minSize === 0)) {
+        showListing = false;
+    }
+  } */
+
+
+  if (maxRent > 0 && !(propertyMaxRent >= minRent && (maxRent === Infinity || propertyMaxRent <= maxRent) || maxRent === 0)) {
+        showListing = false;
+    }
+
+
+/*     if (maxRent > 0 && !(propertyMaxRent !== 0 && (maxRent === Infinity || (propertyMaxRent >= minRent && propertyMaxRent <= maxRent)) || maxRent === 0)) {
+        showListing = false;
+    } */
+
+
+
 /* 
     if (maxSalePrice > 0 && !(salePrice >= minSalePrice && (maxSalePrice === Infinity || salePrice <= maxSalePrice) || maxSalePrice === 0)) {
         showListing = false;
@@ -1596,20 +1676,51 @@ if(minSize > 0 && maxSize ==0){
         showListing = false;
     } */
 
+
+
+if (maxPrice > 0 && !(unitPrice >= minPrice && (maxPrice === Infinity || unitPrice <= maxPrice) || maxPrice === 0)) {
+        showListing = false;
+    }
+    if(minPrice > 0 && maxPrice ==0){
+    if (!(minPrice >= unitPrice && (minPrice === Infinity || unitPrice <= minPrice) || minPrice === 0)) {
+        showListing = false;
+    }
+  }
+/* 
+//july 24
 if(maxPrice === Infinity ){
   maxPrice = "0";
 }
     if (maxPrice > 0 && !(unitPrice !== 0 && (maxPrice === Infinity || (unitPrice >= minPrice && unitPrice <= maxPrice)) || maxPrice === 0)) {
         showListing = false;
     }
+    // july 24
+    */
 
 
     if(maxSalePrice === Infinity ){
       maxSalePrice = "0";
 }
+/*
+// july 24 start
+if (maxSalePrice > 0 && !(salePrice !== 0 && (maxSalePrice === Infinity || (salePrice >= minSalePrice && salePrice <= maxSalePrice)) || maxSalePrice === 0)) {
+        showListing = false;
+    } 
+    // july 24 end
+    */
+    if(maxSalePrice === Infinity ){
+      maxSalePrice = "0";
+}
+
     if (maxSalePrice > 0 && !(salePrice !== 0 && (maxSalePrice === Infinity || (salePrice >= minSalePrice && salePrice <= maxSalePrice)) || maxSalePrice === 0)) {
         showListing = false;
     }
+
+    if(minSalePrice > 0 && maxSalePrice ==0){
+    if (!(minSalePrice >= salePrice && (minSalePrice === Infinity || salePrice <= minSalePrice) || minSalePrice === 0)) {
+        showListing = false;
+    }
+  }
 
     $listing.find(".trimmed-unit").each(function() {
     let unitSizeSpan = $(this).find("[data-unit_size]");
@@ -1656,7 +1767,7 @@ if (selectedAgents.length > 0 && !isAnyPartIncluded(selectedAgents, listingAgent
           }
 /* check filter any selected or not end */
     }
-      if (maxSize > 0 && !(unitSize >= minSize && (maxSize === Infinity || unitSize <= maxSize) || maxSize === 0)) {
+/*       if (maxSize > 0 && !(unitSize >= minSize && (maxSize === Infinity || unitSize <= maxSize) || maxSize === 0)) {
         showListing = false;
     }
 
@@ -1664,23 +1775,94 @@ if (selectedAgents.length > 0 && !isAnyPartIncluded(selectedAgents, listingAgent
         showListing = false;
     }
 
-    // if (maxSalePrice > 0 && !(salePrice >= minSalePrice && (maxSalePrice === Infinity || salePrice <= maxSalePrice) || maxSalePrice === 0)) {
-    //     showListing = false;
-    // }
 
-    // if (maxPrice > 0 && !(unitPrice >= minPrice && (maxPrice === Infinity || unitPrice <= maxPrice) || maxPrice === 0)) {
-    //     showListing = false;
-    // }
 
+    console.log("minRent value is: "+minRent);
+    if(minRent > 0 && maxRent ==0){
+      alert('tr');
+    if (!(propertyMaxRent >= minRent && (minRent === Infinity || propertyMaxRent <= minRent) || minRent === 0)) {
+        showListing = false;
+    }
+  }
     if (maxSalePrice > 0 && !(salePrice !== 0 && (maxSalePrice === Infinity || (salePrice >= minSalePrice && salePrice <= maxSalePrice)) || maxSalePrice === 0)) {
         showListing = false;
     }
 
     if (maxPrice > 0 && !(unitPrice !== 0 && (maxPrice === Infinity || (unitPrice >= minPrice && unitPrice <= maxPrice)) || maxPrice === 0)) {
         showListing = false;
+    } */
+
+    /* new july 24 added */
+    if (maxRent > 0 && !(propertyMaxRent >= minRent && (maxRent === Infinity || propertyMaxRent <= maxRent) || maxRent === 0)) {
+        showListing = false;
     }
 
+
+/*     if (maxRent > 0 && !(propertyMaxRent !== 0 && (maxRent === Infinity || (propertyMaxRent >= minRent && propertyMaxRent <= maxRent)) || maxRent === 0)) {
+        showListing = false;
+    } */
+
+
+
+/* 
+    if (maxSalePrice > 0 && !(salePrice >= minSalePrice && (maxSalePrice === Infinity || salePrice <= maxSalePrice) || maxSalePrice === 0)) {
+        showListing = false;
     }
+
+    if (maxPrice > 0 && !(unitPrice >= minPrice && (maxPrice === Infinity || unitPrice <= maxPrice) || maxPrice === 0)) {
+        showListing = false;
+    } */
+
+
+
+if (maxPrice > 0 && !(unitPrice >= minPrice && (maxPrice === Infinity || unitPrice <= maxPrice) || maxPrice === 0)) {
+        showListing = false;
+    }
+    if(minPrice > 0 && maxPrice ==0){
+    if (!(minPrice >= unitPrice && (minPrice === Infinity || unitPrice <= minPrice) || minPrice === 0)) {
+        showListing = false;
+    }
+  }
+/* 
+//july 24
+if(maxPrice === Infinity ){
+  maxPrice = "0";
+}
+    if (maxPrice > 0 && !(unitPrice !== 0 && (maxPrice === Infinity || (unitPrice >= minPrice && unitPrice <= maxPrice)) || maxPrice === 0)) {
+        showListing = false;
+    }
+    // july 24
+    */
+
+
+    if(maxSalePrice === Infinity ){
+      maxSalePrice = "0";
+}
+/*
+// july 24 start
+if (maxSalePrice > 0 && !(salePrice !== 0 && (maxSalePrice === Infinity || (salePrice >= minSalePrice && salePrice <= maxSalePrice)) || maxSalePrice === 0)) {
+        showListing = false;
+    } 
+    // july 24 end
+    */
+    if(maxSalePrice === Infinity ){
+      maxSalePrice = "0";
+}
+
+    if (maxSalePrice > 0 && !(salePrice !== 0 && (maxSalePrice === Infinity || (salePrice >= minSalePrice && salePrice <= maxSalePrice)) || maxSalePrice === 0)) {
+        showListing = false;
+    }
+
+    if(minSalePrice > 0 && maxSalePrice ==0){
+    if (!(minSalePrice >= salePrice && (minSalePrice === Infinity || salePrice <= minSalePrice) || minSalePrice === 0)) {
+        showListing = false;
+    }
+  }
+    /* new july 24 added end */
+
+
+    }
+
 });
   
 if (keyword) {
@@ -2667,3 +2849,16 @@ function tristate_format_phone_number($phone) {
 
   return $phone;
 }
+
+
+add_action('wp_footer', function(){
+?>
+<script>
+// jQuery(document).find('body').addClass('tristate-plugin-activated');
+jQuery(document).ready(function($){
+$(document).find('body').addClass('tri-plugin-active');
+});
+</script>
+<?php
+
+});
