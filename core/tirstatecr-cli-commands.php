@@ -482,7 +482,7 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
             if ($item->proposal) {
                 continue;
             }
-            // buildout id from the api
+
             $id = NEW_np_generate_buildout_item_id($item);
             $all_active_props_id[] = $id;
             $name = $item->name;
@@ -568,18 +568,15 @@ function tristatectr_datasync_command_v2($args, $aargs = array())
                 update_post_meta($post_id, '_buildout_last_updated', time());
 
             }
-            
-            
         }
-        
+
         // delete non existing properties
         $all_new_results = $wpdb->get_results("SELECT post_id, meta_value FROM {$wpdb->prefix}postmeta WHERE meta_key = '_import_buildout_id'");
         $new_imported_ids = wp_list_pluck($all_new_results, 'meta_value', 'post_id');
-        foreach($new_imported_ids as $key=>$val){
-              if(!in_array($val,$all_active_props_id)){
-              
-                wp_delete_post($key,true);
-              } 
+        foreach ($new_imported_ids as $key => $val) {
+            if (!in_array($val, $all_active_props_id)) {
+                wp_delete_post($key, true);
+            }
         }
     }
 /********************************--Properties Sync Ends--*****************************************/

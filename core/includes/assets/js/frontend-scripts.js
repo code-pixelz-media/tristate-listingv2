@@ -560,40 +560,18 @@ jQuery(document).ready(function () {
   
   jQuery('.propertylisting-content').each(function(){
     // jQuery(this).wrap('<a href="'+ jQuery(this).data('permalink')+'"></a>');
-    jQuery(this).on('click',function(){
-      window.location = jQuery(this).data('permalink'); 
-      return false;
+    jQuery(this).on('click',function(e){
+      e.preventDefault();
+      window.open(jQuery(this).data('permalink'), '_blank').focus();
+      // window.location = jQuery(this).data('permalink'); 
+      // return false;
     });
     
   });
 }
+if(!jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')){
+  $('a[target=""]').attr('target', '_blank');
+}
 
-  var nav = $('#fixed-left1');
-  var headerHeight = $('.elementor-sticky').outerHeight();
-  var navOffsetTop = nav.offset().top;
-  var navOffsetLeft = nav.offset().left;
-  var navWidth = nav.width()+10;
-
- jQuery(window).scroll(function() {
-    var scrollTop =jQuery(window).scrollTop();
-
-    if (scrollTop >= (126)) {
-      nav.addClass('fixed_navbar');
-      nav.css({
-        'left': navOffsetLeft + 'px',
-        'width': navWidth + 'px'
-      });
-     jQuery('.right-content').css('margin-left', nav.width() + 25 + 'px'); // Adjust the right content margin
-     jQuery('.left-content').css('margin-top', '30px'); // Add top margin to left-content
-    } else {
-      nav.removeClass('fixed_navbar');
-      nav.css({
-        'left': '',
-        'width': ''
-      });
-     jQuery('.right-content').css('margin-left', ''); // Reset the right content margin
-     jQuery('.left-content').css('margin-top', ''); // Reset the top margin of left-content
-    }
-  });
 
 });

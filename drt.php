@@ -734,10 +734,11 @@ function drt_shortcode($_atts)
             <div id="select-container">  
               <?php
               //if (!empty($atts['state'])) {
+                $placeholder = !empty($atts['state']) ? __('Search by address, city, state or zip','tristatecr') : __('Search by Keyword ','tristatecr');
               ?>
                 <div class="search-by-text-new state-page-keyword">
                   <label for="search-by-text-new">Search</label>
-                  <input class="MuiInputBase-input" aria-invalid="false" id="search-by-text-new" placeholder="Search by address,city,state, or zip" type="text">
+                  <input class="MuiInputBase-input" aria-invalid="false" id="search-by-text-new" placeholder="<?php echo $placeholder; ?>" type="text">
                 </div>
               <?php // } ?>
               <!-- Dynamically created select elements will be placed here -->
@@ -989,7 +990,7 @@ function drt_shortcode($_atts)
         $search_query = new WP_Query($args);
         $default_found_results = $search_query->found_posts;
         ?>
-        <div id="menu-btn"><i class="fa fa-angle-left"></i></div>
+        <div id="menu-btn"><i class="fa fa-angle-left"></i>Filter</div>
         <div class="right-map">
           <!-- <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d407542.86304287874!2d-74.32724652492182!3d40.69942908913206!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!z4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2snp!4v1711702301417!5m2!1sen!2snp" allowfullscreen="allowFullScreen" width="100%" height="450px" style="position: relative; display: block;"></iframe> -->
           <div id="tristate-map" style="height:600px; width:100%;position:relative;display:block;"></div>
@@ -1637,12 +1638,19 @@ let maxSize = maxSizeValue === "" || isNaN(parseFloat(maxSizeValue)) ? Infinity 
         showListing = false;
     }
 
-
-    if(minSize > 0 && maxSize ==0){
+/*     if(minSize > 0 && maxSize ==0){
     if (!(minSize >= unitMinSize && (minSize === Infinity || unitMinSize <= minSize) || minSize === 0)) {
         showListing = false;
     }
-  }
+  } */
+  if(minSize > 0 && maxSize ==0){ //lllaaaa
+   
+
+   if ((minSize >= unitMinSize && (minSize === Infinity || unitMinSize <= minSize) || minSize === 0)) {
+     showListing = false;
+ }
+
+}
 
 /*     if(minSize > 0 && maxSize ==0){
     if (!(minSize >= unitSize && (minSize === Infinity || unitSize <= minSize) || minSize === 0)) {
@@ -1859,6 +1867,26 @@ if (maxSalePrice > 0 && !(salePrice !== 0 && (maxSalePrice === Infinity || (sale
     }
   }
     /* new july 24 added end */
+
+    if (maxSize > 0 && !(unitSize >= minSize && (maxSize === Infinity || unitSize <= maxSize) || maxSize === 0)) {
+        showListing = false;
+    }
+
+
+/*     if(minSize > 0 && maxSize ==0){
+    if (!(minSize >= unitMinSize && (minSize === Infinity || unitMinSize <= minSize) || minSize === 0)) {
+        showListing = false;
+    }
+  } */
+
+  if(minSize > 0 && maxSize ==0){ //lllaaaa
+   
+
+   if ((minSize >= unitMinSize && (minSize === Infinity || unitMinSize <= minSize) || minSize === 0)) {
+     showListing = false;
+ }
+
+}
 
 
     }

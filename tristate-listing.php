@@ -223,3 +223,4 @@ function tristatecr_single_property_googe_map($lat, $lng)
 <?php
 }
 
+
