@@ -191,95 +191,12 @@ $_buildout_second_broker_id =  get_post_meta($ID, '_buildout_second_broker_id', 
          }
      }
 
-
-if(!empty($state)){
-    
-    if(strpos(trim(strtolower($state)) , 'newj') ){
-        $state = 'NJ';
-    }
-    
-    if(strpos(trim(strtolower($state)) , 'penn') ){
-        $state = 'PA';
-    }
-    
-    if($state == "PENNSYLVANIA"){
-        $state = 'PA';
-    }
-    
-    if(trim($state) == 'NEW JERSERY'){
-        $state = 'NJ';
-    }
-    
-    if(strpos(strtolower(trim($state)) , 'penn')){
-        $state = 'PA';
-    }
-    
-    if(strpos(strtolower(trim($state)) , 'newj')){
-        $state = 'NJ';
-    }
-}
-
-if(!empty($city)){
-        
-    if(preg_match("/\bPhil?\b/i" , trim($city))){
-        $city = "Philadelphia";
-    }
-    
-    if(strtolower(trim($city)) == 'phiadelphia'){
-        $city = "Philadelphia";
-    }
-    if(strtolower(trim($city)) == 'philadelphia'){
-        $city = "Philadelphia";
-    }
-    
-    if(strtolower(trim($city)) == 'phildelphia'){
-        $city = "Philadelphia";
-    }
-    
-    if(strpos(trim(strtolower($city)) , 'york') ){
-        $city = 'New York';
-    }
-        
-}
-
 if(!empty($neighborhood)){
 
-
-    
-    if(strtolower(trim($neighborhood)) == 'south phildelpha'){
-        $neighborhood = "South Philadelphia";
-    }
-    
-    if(strtolower(trim($neighborhood)) == 'south philadelpha'){
-        $neighborhood = "South Philadelphia";
-    }
-    if(strtolower($neighborhood) == 'south philly'){
-        $neighborhood = "South Philadelphia";
-    }
     if(trim($neighborhood) == "#VALUE!"){
        unset($neighborhood);
     }
 }
-
-if(!empty($badges['use'])){
-    
-     if(strpos($badges['use'],'mixed')){
-        $badges['use'] = 'Mixed Use';
-     }
-     
-     if(trim($badges['use']) == "Mixed-use"){
-        $badges['use'] = 'Mixed Use';
-     }
-     
-     if(strtolower(trim($badges['use'])) == "retail/ restaurant "){
-        $badges['use'] = 'Retail/Restaurant';
-     }
-     if (preg_match("/Retail\/ Restaurant/i",  $badges['use'])) {
-        $badges['use'] = 'Retail/Restaurant';
-     }
-}
-
-
 
 $meta_vrs = [
     'City' => $city,
@@ -299,38 +216,9 @@ $new_max_p_sf= preg_replace('/\$?(\d+)\.\d{2}/', '$1', $_price_sf);
 if($_price_sf !=='0' && !empty($_price_sf))  $max_p_val[] = (int) $new_max_p_sf;
 
 
-$desc = '';
-
-if ($buildout_lease == '1') {
-    $desc = meta_of_api_sheet($ID,'lease_description');
-
-} elseif ($buildout_sale == '1') {
-
-    $desc = meta_of_api_sheet($ID, 'sale_description');
-    
-} elseif($buildout_lease == '1' && $buildout_sale == '1') {
-   $desc = meta_of_api_sheet($ID, 'lease_description');
-}
-$type_imp = get_post_meta($ID,'_import_from',true);
-
-$selected_array = isset($_POST['selected_type']) ? $_POST['selected_type'] : array();
-
-$selected_string = implode(', ', $selected_array);
-
-if(!empty($selected_array)){
-    if($buildout_lease == '1' && $buildout_sale == '1' ){
-        if($selected_string  == 'for Lease'){
-           $desc=  meta_of_api_sheet($ID,'lease_description');
-        }
-        if($selected_string  == 'for sale'){
-        
-            $desc=  meta_of_api_sheet($ID,'sale_description');
-        }
-    }    
-
-}
-
+$desc = get_post_meta($ID,'_gsheet_notes',true);
 $full_desc = $desc; 
+
 $trimmed_desc = wp_trim_words($desc, 10, '...&nbsp<span class="desc-more">More</span>');
 
 $lat = get_post_meta($ID, '_buildout_latitude', true);
@@ -382,7 +270,7 @@ if($formatted_type == 'forlease'){
     data-id="<?php echo $buildout_id;?>"
     data-json = "<?php echo htmlspecialchars($json_data, ENT_QUOTES, 'UTF-8');?>" 
     data-price="<?php echo esc_attr(!empty($bo_price) && $formatted_type== 'forsale'? $bo_price : '0'); ?>"
-    data-pricesf="<?php echo  $maxes_lsp['dollars_per_sf_per_month'] ?  $maxes_lsp['dollars_per_sf_per_month'] : '0' ; ?>"
+    data-pricesf="<?php echo  $maxes_lsp['price_sf'] ?  $maxes_lsp['price_sf'] : '0' ; ?>"
     data-minsize="<?php echo esc_attr(!empty($min_size) ? $min_size : '0');?>"
     data-maxsize="<?php  echo esc_attr(!empty($maxes_lsp['size'] ) ? $maxes_lsp['size'] : '0');?>"
     data-dateupdated="<?php echo strtotime($date_upd); ?>",

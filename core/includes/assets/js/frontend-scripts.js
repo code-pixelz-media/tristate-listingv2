@@ -575,3 +575,10 @@ if(!jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')){
 
 
 });
+
+if (jQuery(window).width() < 767 ) {
+  //console.log('small screen');
+  // jQuery(".main-filter-page .search-by-text-new.state-page-keyword").insertAfter(".main-filter-page").addClass("filter-fixed-main-filter");
+  jQuery(".main-filter-page .search-by-text-new.state-page-keyword").insertAfter(".elementor-element-dffec4d").addClass("filter-fixed-main-filter");
+  
+}

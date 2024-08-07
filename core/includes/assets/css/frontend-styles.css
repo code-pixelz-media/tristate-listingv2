@@ -197,7 +197,7 @@ div#filter-wrapper {
   max-width: 100%;
 }
 .main-filter-page #search-by-text-new {
-  background: rgb(205 205 205 / 80%);
+  background: rgb(255 255 255 / 80%);
   color: #5f5f5f;
   height: 25px;
   font-size: 14px;
@@ -205,7 +205,7 @@ div#filter-wrapper {
   margin-top: 5px;
 }
 .main-filter-page #search-by-text-new::placeholder {
-  color: var(--colorwhite);
+  color: var(--colorblack);
 }
 .main-filter-page .search-by-text-new label,
 #search_count_area #search-by-text-new {
@@ -2134,8 +2134,8 @@ button:hover {
   color: #1671ad !important;
   border: none;
   text-decoration: none;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 400;
   margin-bottom: 3px;
   line-height: 1.5;
   padding: 0 !important;
@@ -2339,7 +2339,20 @@ a.button {
   .ts-state-page .slider-box {
     border-right: none;
   }
-
+  .search-by-text-new.state-page-keyword.filter-fixed-main-filter {
+    /* position: fixed; */
+    /* top: 55px; */
+    z-index: 99999;
+    /* width: 70%; */
+    /* margin-left: 55px; */
+  }
+  .search-by-text-new.state-page-keyword.filter-fixed-main-filter input {
+    border-radius: 5px;
+    width: 100%;
+  }
+  .search-by-text-new.state-page-keyword.filter-fixed-main-filter label {
+    display: none;
+  }
   div#search_count_area {
     flex-direction: column;
     width: 100%;
@@ -2358,7 +2371,13 @@ a.button {
   .ts-state-page.filter-wrapper .MuiBox-root .left-content {
     display: block;
   }
-
+  #bodyContent {
+    flex-direction: column;
+  }
+  #bodyContent img {
+    max-width: 100%;
+    width: 100%;
+  }
   #filter-wrapper > .MuiBox-root {
     flex-direction: column;
   }
@@ -2658,9 +2677,8 @@ body.single-properties_search #container a.button:hover {
   color: var(--colorwhite);
 }
 .property-focused {
-  /* border: 0.5px solid #000; */
   border-radius: 4px;
-  /* background: #f1f1f1; */
+  background: #f1f1f1;
   box-shadow: 0 0 5px 0 #bebebe;
   padding: 10px;
 }

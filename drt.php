@@ -357,7 +357,8 @@ function get_max_lsp($id){
       $max_values = array(
           'dollars_per_sf_per_month' => [],
           'dollars_per_month' => [],
-          'size' => []
+          'size' => [],
+          'price_sf' => []
       );
       foreach($results as $r){
           $lease_rate       = $r['lease_rate'];
@@ -376,24 +377,105 @@ function get_max_lsp($id){
           if($size_units == 'sf'){
               $max_values['size'][] = $size_sf;
           }
+          
+          if($lease_rate_units == 'dollars_per_sf_per_month' || $lease_rate_units == 'dollars_per_sf_per_year'){
+            $max_values['price_sf'][] = $lease_rate;
+          }
       }
       
       $max_values = array(
           'dollars_per_sf_per_month' => !empty($max_values['dollars_per_sf_per_month']) ? max($max_values['dollars_per_sf_per_month']) : false,
           'dollars_per_month' => !empty($max_values['dollars_per_month']) ? max($max_values['dollars_per_month']) : false,
-          'size' => !empty($max_values['size']) ? max($max_values['size']) : false
+          'size' => !empty($max_values['size']) ? max($max_values['size']) : false,
+          'price_sf' => !empty($max_values['price_sf']) ? max($max_values['price_sf']) : false,
       );
   }else {
      $max_values= array(
           'dollars_per_sf_per_month' => false,
           'dollars_per_month' => false,
-          'size' => false
+          'size' => false,
+          'price_sf'=>false
       );
   
   }
 
   return $max_values;
 
+}
+
+function tri_lsp_get_min_max($id, $minormax = 'max')
+{
+
+	global $wpdb;
+	$space_tbl = $wpdb->prefix . 'lease_spaces';
+	$l_meta = get_post_meta($id, 'lease_space_table_id', true);
+	if (!is_array($l_meta)) {
+		$l_meta = array($l_meta);
+	}
+	$placeholders = implode(',', array_fill(0, count($l_meta), '%d'));
+	$query = $wpdb->prepare(
+		"SELECT lease_rate, size_sf, lease_rate_units,space_size_units
+       FROM $space_tbl
+       WHERE id IN ($placeholders)
+         AND deal_status = %s
+      ",
+		array_merge($l_meta, ['1'])
+	);
+	$results = $wpdb->get_results($query, ARRAY_A);
+	$all_vals = array(
+		'dollars_per_sf_per_year' => [],
+		'dollars_per_sf_per_month' => [],
+		'dollars_per_month' => [],
+		'size' => [],
+		'price_sf'=> []
+	);
+	if (!empty($results) ) {
+		foreach ($results as $r) {
+			$lease_rate       = $r['lease_rate'];
+			$lease_rate_units = $r['lease_rate_units'];
+			$size_units       = $r['space_size_units'];
+			$size_sf          = $r['size_sf'];
+			if ($lease_rate_units == 'dollars_per_sf_per_year') {
+				$all_vals['dollars_per_sf_per_year'][] = $lease_rate;
+			}
+			if ($lease_rate_units == 'dollars_per_sf_per_month') {
+				$all_vals['dollars_per_sf_per_month'][] = $lease_rate;
+			}
+			if ($lease_rate_units == 'dollars_per_month') {
+				$all_vals['dollars_per_month'][] = $lease_rate;
+			}
+			if ($size_units == 'sf') {
+				$all_vals['size'][] = $size_sf;
+			}
+			
+			if($lease_rate_units == 'dollars_per_sf_per_year' || $lease_rate_units=='dollars_per_sf_per_month'){
+				$all_vals['price_sf'][] = $lease_rate;
+			}
+		}
+		
+		$result = array();
+	    foreach ($all_vals as $key => $values) {
+	        if ($minormax == 'min') {
+	            $result[$key] = !empty($values) ? min($values) : 0;
+	        } else {
+	            $result[$key] = !empty($values) ? max($values) : 0;
+	        }
+	    }
+		
+	}else{
+	
+		$result =  array(
+			'dollars_per_sf_per_year' => 0,
+			'dollars_per_sf_per_month' => 0,
+			'dollars_per_month' => 0,
+			'size' => 0,
+			'price_sf'=> 0
+		);
+	
+	}
+	
+
+    return $result;
 }
 
 add_shortcode('TSC-inventory-pub', 'drt_shortcode');
