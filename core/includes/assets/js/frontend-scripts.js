@@ -5,34 +5,6 @@ jQuery(document).on('change','#map-layer-data', function(){
 
 jQuery(document).ready(function($){
 
-     
-     
-	
-	// // for price range slider
-	// $("#price-range").slider({
-	// 	range: true,
-	// 	min: $("#price-range").data('min'),//get min val
-	// 	max: $("#price-range").data('max'),//get max val  
-	// 	values: [$("#price-range").data('min'), $("#price-range").data('max')],//postion slider val
-	// 	step: 1,
-	// 	slide: function (event, ui) {
-	// 	  $("#priceRange").val("$" + ui.values[0] + " - $" + ui.values[1]);
-	// 	  $("#price-range-min").val('$'+ui.values[0].toLocaleString());
-	// 	  $("#price-range-max").val('$'+ui.values[1].toLocaleString());
-	   
-	// 	},
-	// 	change: function (event, ui) {
-	// 	  $("#price-range-selected").val(ui.values[0] + "-" + ui.values[1]);
-	// 	  $("#search-by-text").trigger('keyup');
-	
-	// 	},
-	
-	//   });
-	
-	// $(document).find('.copy-map').on('click', function(){
-	// var link = $(this).data('link');
-	
-	// });
 	
 	$(document).find('.tri-more-info').attr('target', '_blank');
 	  
@@ -79,58 +51,7 @@ jQuery(document).ready(function($){
       container.find('.trimmed-desc').show();
   });
 
-//   $(document).on('change','#manage-sliders11', function(){
-//     var maxp = $(this).data('maxprice'),
-//         maxr = $(this).data('maxrent'),
-//         maxs = $(this).data('maxsize'),
-//         //price-range===> property price price-range2==>size price-range3==>rent
-//         crs  = $(this).data('current');
-        
-//         console.log(crs);
-        
-//       //when price is changed need to change on rent and size
-//       if(crs == 'price-range'){
-        
-//         // for rent range slider
-//         $( "#price-range3" ).slider( "option", "max", maxr );
-//         $("#rent-range-max").val('$'+maxr.toLocaleString());
-//         //for size range slider
-//         $( "#price-range2" ).slider( "option", "max", maxs );
-//         $("#size-range-max").val('$'+maxs.toLocaleString());
-//       }
-//       //when size is changed need to change on price and rent 
-//       if(crs =='price-range2'){
-//         //for price
-//         $("#price-range" ).slider( "option", "max", maxp );
-//         $("#price-range-max").val('$'+maxp.toLocaleString());
-//         // for rent
-//         $("#price-range3" ).slider( "option", "max", maxr );
-//         $("#rent-range-max").val('$'+maxr.toLocaleString());
-//       }
-//       // when rent is changed need to change on price and size
-//       if(crs =='price-range3'){
-//         //for price
-//         $( "#price-range" ).slider( "option", "max", maxp );
-//         $("#price-range-max").val('$'+maxp.toLocaleString());
-//         //for size 
-//         $( "#price-range2" ).slider( "option", "max", maxs );
-//         $("#size-range-max").val('$'+maxs.toLocaleString());
-//       }
-      
-//       if(crs == 'all'){
-//         //for price
-//         $("#price-range" ).slider( "option", "max", maxp );
-//         $("#price-range-max").val('$'+maxp.toLocaleString());
-//         // for rent
-//         $("#price-range3" ).slider( "option", "max", maxr );
-//         $("#rent-range-max").val('$'+maxr.toLocaleString());
-//         //for size 
-//         $( "#price-range2" ).slider( "option", "max", maxs );
-//         $("#size-range-max").val(maxs.toLocaleString() + ' SF');
-//       }
-// });
 
-// $(document).on('keyup','#search-by-text' , function(){
 
 $('#search-by-text1123').on('keyup', function(){
 
@@ -163,35 +84,11 @@ $('#search-by-text1123').on('keyup', function(){
     maxPriceSf =  ((max = pricesfArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range3" ).data('max')),
     minSize  = ((max = minsizeArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : 5),
     maxSize  = ((max = maxsizeArray.reduce((max, current) => (current > max ? current : max), -Infinity)) !== -Infinity ? max : $( "#price-range2" ).data('max'));
-    console.log('MAX PRICE:' + maxPrice);
-    console.log('MAX SF:' + maxPriceSf);
-    console.log('MAX SIZE:' + maxSize);
+
     
 	jQuery("#price-range").slider("values", [0, maxPrice]);
    
-    //price
-    // $( "#price-range" ).slider( "option", "max", maxPrice );
-    // $('#price-range-max').val('$' + maxPrice.toLocaleString());
-    // // rent 
-    // $( "#price-range3" ).slider( "option", "max", maxPriceSf );
-    // $('#rent-range-max').val('$' + maxPriceSf.toLocaleString());
-    // // size
-    // $( "#price-range2" ).slider( "option", "max", maxSize );
-    // $('#size-range-max').val( maxSize.toLocaleString() + ' SF');
-    
-	// var priceMinMax =  $('#price-range-selected').val().split('-').map(Number);
-	// $('.propertylisting-content').each(function() {
-	
-	
-	// 	var price = parseFloat($(this).data('price'));
-	
-	// 	var isBetweenMaxMinPrice = (price >= priceMinMax[0]) && (price <= priceMinMax[1]);
-	// 	if(!isBetweenMaxMinPrice){
-	// 		$(this).css('display','none');
-	// 	}else{
-	// 		$(this).css('display','block');
-	// 	}
-	// });
+
     
 		
   });
@@ -306,25 +203,6 @@ jQuery(document).ready(function () {
 
 jQuery(function () {
 
-  // jQuery("#price-range").slider({
-  //   range: true,
-  //   min: jQuery("#price-range").data('min'),//get min val
-  //   max: jQuery("#price-range").data('max'),//get max val  
-  //   values: [jQuery("#price-range").data('min'), jQuery("#price-range").data('max')],//postion slider val
-  //   step: 1,
-  //   slide: function (event, ui) {
-  //     jQuery("#priceRange").val("$" + ui.values[0] + " - $" + ui.values[1]);
-  //     jQuery("#price-range-min").val('$'+ui.values[0].toLocaleString());
-  //     jQuery("#price-range-max").val('$'+ui.values[1].toLocaleString());
-   
-  //   },
-  //   change: function (event, ui) {
-  //     jQuery("#price-range-selected").val(ui.values[0] + "-" + ui.values[1]);
-  //     jQuery("#search-by-text").trigger('keyup');
-
-  //   },
-
-  // });
 
   var prmin = jQuery("#price-range-min"),
    prmax = jQuery("#price-range-max"),
@@ -337,17 +215,14 @@ jQuery(function () {
   function rangeInputsKeydown(el,valsEl,sliderId,defaults){
     var timer;
     el.on('keyup', function(event) {
-      // if (event.keyCode === 9 || event.keyCode === 32 || event.keyCode === 8) {
-      //   return; 
-      // }
+
       clearTimeout(timer);
       var prmin = parseFloat(jQuery("#" + valsEl +"-min").val().replace(/[^0-9]/g, '')) ;
       var  prmax = parseFloat(jQuery("#" + valsEl +"-max").val().replace(/[^0-9]/g, ''));
       var prminy = isNaN(prmin) ? defaults[0] : prmin;
       var prmaxy =  isNaN(prmax) ? defaults[1] : prmax;
       timer = setTimeout(function() {
-        // $("#price-range").slider("option", "max",prmaxy);
-        // $("#price-range").slider("option", "min",prminy);
+       
         
         jQuery("#" + sliderId).slider("values", [prminy, prmaxy]);
         jQuery("#search-by-text-new").trigger('keyup');
@@ -368,69 +243,7 @@ jQuery(function () {
   rangeInputsKeydown(srmin,'size-range','price-range2',[0,25000]);
   rangeInputsKeydown(srmax,'size-range','price-range2',[0,25000]);
 
-  // jQuery("#priceRange").val(
-  //   "$" +
-  //     jQuery("#price-range").slider("values", 0) +
-  //     " - $" +
-  //     jQuery("#price-range").slider("values", 1)
-  // );
-  // size range
-  // jQuery("#price-range2").slider({
-  //   range: true,
-  //   min: jQuery("#price-range2").data('min'),//get min val
-  //   max: jQuery("#price-range2").data('max'),//get max val  
-  //   values: [jQuery("#price-range2").data('min'), jQuery("#price-range2").data('max')],//postion slider val
-  //   step:1,
-  //   slide: function (event, ui) {
-    
-  //     jQuery("#priceRange2").val(
-  //       "" + ui.values[0].toLocaleString() + " SF to " + ui.values[1].toLocaleString() + " SF "
-  //     );
-  //     jQuery("#size-range-min").val(ui.values[0].toLocaleString()+ ' SF');
-  //     jQuery("#size-range-max").val(ui.values[1].toLocaleString() + " SF");
-  //   },
-  //   change: function (event, ui) {
-      
-  //     jQuery("#size-range-selected").val(ui.values[0] + "-" + ui.values[1]);
-  //     var checkClear = jQuery("#size-range-selected").attr("data-clear");
-  //     if(checkClear == "0"){jQuery("#size-range-selected").trigger("change");}
-  //     jQuery('#search-by-text').trigger('keyup');
-    
-      
-  //   },
-  // });
-  // jQuery("#priceRange2").val(
-  //   jQuery("#price-range2").slider("values", 0) +
-  //     " SF to " +
-  //     jQuery("#price-range2").slider("values", 1) +
-  //     " SF "
-  // );
-
-  // //for rent range
-  // jQuery("#price-range3").slider({
-  //   range: true,
-  //   min: jQuery("#price-range3").data('min'),//get min val
-  //   max: jQuery("#price-range3").data('max'),//get max val  
-  //   values: [jQuery("#price-range3").data('min'), jQuery("#price-range3").data('max')],
-  //   step:1,
-  //   slide: function (event, ui) {
-  //     jQuery("#priceRange3").val("$" + ui.values[0].toLocaleString() + " - $" + ui.values[1].toLocaleString());
-  //     jQuery("#rent-range-min").val("$" +ui.values[0].toLocaleString());
-  //     jQuery("#rent-range-max").val("$" +ui.values[1].toLocaleString());
-  //   },
-  //   change: function (event, ui) {
-  //     jQuery("#rent-range-selected").val(ui.values[0] + "-" + ui.values[1]);
-  //     var checkClear = jQuery("#rent-range-selected").attr("data-clear");
-  //     if(checkClear == "0"){jQuery("#rent-range-selected").trigger("change");}
-      
-  //   },
-  // });
-  // jQuery("#priceRange3").val(
-  //   "$" +
-  //     jQuery("#price-range3").slider("values", 0) +
-  //     " - $" +
-  //     jQuery("#price-range3").slider("values", 1)
-  // );
+  
 });
 
 // Filter page mobile drawer menu
@@ -559,12 +372,11 @@ jQuery(document).ready(function () {
   });
   
   jQuery('.propertylisting-content').each(function(){
-    // jQuery(this).wrap('<a href="'+ jQuery(this).data('permalink')+'"></a>');
+   
     jQuery(this).on('click',function(e){
       e.preventDefault();
       window.open(jQuery(this).data('permalink'), '_blank').focus();
-      // window.location = jQuery(this).data('permalink'); 
-      // return false;
+     
     });
     
   });
@@ -577,8 +389,7 @@ if(!jQuery(document).find('.filter-wrapper').hasClass('ts-state-page')){
 });
 
 if (jQuery(window).width() < 767 ) {
-  //console.log('small screen');
-  // jQuery(".main-filter-page .search-by-text-new.state-page-keyword").insertAfter(".main-filter-page").addClass("filter-fixed-main-filter");
+
   jQuery(".main-filter-page .search-by-text-new.state-page-keyword").insertAfter(".elementor-element-dffec4d").addClass("filter-fixed-main-filter");
   
 }

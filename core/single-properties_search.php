@@ -109,7 +109,7 @@
         
         let LISTINGS_ROUTE_URL = REST_URL + 'tristatectr/v3/listings';
         let BROKERS_ROUTE_URL = REST_URL + 'tristatectr/v1/brokers';
-        console.log(LISTINGS_ROUTE_URL);
+  
         let listings = [];
         let listingsMarkers = [];
 
@@ -134,7 +134,7 @@
             };
             layers.push(item);
         });
-        console.log('layers', layers);
+   
 
         let markerColors = [
             'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
@@ -208,12 +208,7 @@
                     let thumbImage = listing.image ? '<img src="' + listing.image + '" />' : '';
 
                     let thirdHeading = listing._type_str;
-                    // console.log(thirdHeading);
-                    // if (listing._type_str.toLowerCase() === 'for sale') {
-                    //     thirdHeading.push(listing.price);
-                    // }
-                    // if (listing._type_str.toLowerCase() === 'for lease') {}
-                    // thirdHeading = thirdHeading.filter(Boolean);
+
                     const backGround = thirdHeading ==='FOR LEASE' ? 'lease-bgopacity' : 'sale-bgopacity';
                     const contentString =
                         '<div class="search-results-map" id="content">' +

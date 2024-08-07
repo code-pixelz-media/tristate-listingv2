@@ -107,26 +107,6 @@ if($formatted_type == 'forlease'){
 }else {
     $new_price = false;
 }
-
-
-/* if(empty($_agent)){
-    $buildout_agent = get_post_meta($ID, '_buildout_broker_id', true);
-    if(!empty($buildout_agent)){
-        $query = $wpdb->prepare(
-            "SELECT pm.post_id 
-             FROM $wpdb->postmeta pm
-             INNER JOIN $wpdb->posts p ON pm.post_id = p.ID
-             WHERE pm.meta_key = 'user_id' 
-               AND pm.meta_value = %s
-               AND p.post_type = 'brokers'",
-            $buildout_agent
-        );
-        $agent_id = $wpdb->get_var($query);
-        
-       $_agent = get_the_title($agent_id);
-    }
-        
-} */
  
 
 if(empty($_agent)){
@@ -150,7 +130,7 @@ if(empty($_agent)){
 
 $_buildout_second_broker_id =  get_post_meta($ID, '_buildout_second_broker_id', true);
 
-   // $buildout_agent = get_post_meta($ID, '_buildout_second_broker_id', true);
+
     if(!empty($_buildout_second_broker_id)){
         $query = $wpdb->prepare(
             "SELECT pm.post_id 
@@ -172,7 +152,7 @@ $_buildout_second_broker_id =  get_post_meta($ID, '_buildout_second_broker_id', 
 
     $_buildout_third_broker_id =  get_post_meta($ID, '_buildout_third_broker_id', true);
 
-    // $buildout_agent = get_post_meta($ID, '_buildout_second_broker_id', true);
+
      if(!empty($_buildout_third_broker_id)){
          $query = $wpdb->prepare(
              "SELECT pm.post_id 
@@ -250,7 +230,7 @@ if($formatted_type == 'forlease'){
     $data_attr_pricesf = ($maxes_lsp['dollars_per_sf_per_month']) ?  'data-maxpricesf="'.$maxes_lsp['dollars_per_sf_per_month'].'"' : '' ;
     $data_attr_sizesf = ($maxes_lsp['size']) ?  'data-maxsizesf="'.$maxes_lsp['size'].'"' : '' ;
     $data_attr_rent = ($maxes_lsp['dollars_per_month']) ? 'data-maxrent="'.$maxes_lsp['dollars_per_month'].'"' : '' ;
-    // $new_size = $maxes_lsp['size'];
+   
     
 }else{
     
@@ -504,7 +484,7 @@ if($args['state']) { ?>
                 $displaying_rent = false;
                 $displaying_sf_yr=false;
                 
-                // var_dump($lsp_price_per_sf ,$lsp_monthly_rent, $lsp_price_per_sf_yr);
+        
                 // monthly per sf
                 if(!empty($lsp_price_per_sf)){
                     $min_psf = min($lsp_price_per_sf);
@@ -513,7 +493,7 @@ if($args['state']) { ?>
                     $displaying_sf = $min_psf == $max_psf ? $lable.'$'.trs_format_number($max_psf). $sf_pfix : 
                                      $lable.'$'. trs_format_number($min_psf) .'-'. '$'.trs_format_number($max_psf).$sf_pfix; 
                                
-                            //    var_dump(1);
+           
                             
                                
                 // exact monthly rent

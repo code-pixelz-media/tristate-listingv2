@@ -69,7 +69,7 @@ define('TRISTATECRLISTING_PLUGIN_URL',plugin_dir_url(TRISTATECRLISTING_PLUGIN_FI
  */
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/class-tristatecr-listing.php';
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tirstatecr-cli-commands.php';
-require_once TRISTATECRLISTING_PLUGIN_DIR . 'drt.php';
+require_once TRISTATECRLISTING_PLUGIN_DIR . 'tristate-controller.php';
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tristatecr-ajax-actions.php';
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tristatecr-rest-api.php';
 require_once TRISTATECRLISTING_PLUGIN_DIR . 'core/tristatecr-deactivate.php';   
